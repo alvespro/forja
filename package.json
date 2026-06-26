@@ -43,6 +43,7 @@
     "oxlint": "^1.69.0",
     "supabase": "^2.108.0",
     "typescript": "~6.0.2",
-    "vite": "^8.1.0"
+    "vite": "^8.1.0",
+    "vite-plugin-pwa": "^1.3.0"
   }
 }

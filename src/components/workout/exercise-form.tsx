@@ -70,7 +70,7 @@ export function ExerciseForm({ exercise, onSubmit, onCancel, isSubmitting }: Exe
           <Label htmlFor="ex-grupo">Grupo muscular</Label>
           <Input
             id="ex-grupo"
-            placeholder="peito, costas, pernas..."
+            placeholder="peito, costas, pernas…"
             value={grupoMuscular}
             onChange={(event) => setGrupoMuscular(event.target.value)}
           />
@@ -81,7 +81,7 @@ export function ExerciseForm({ exercise, onSubmit, onCancel, isSubmitting }: Exe
         <Label htmlFor="ex-video">Vídeo do YouTube (URL)</Label>
         <Input
           id="ex-video"
-          placeholder="https://youtu.be/..."
+          placeholder="https://youtu.be/…"
           value={videoUrl}
           onChange={(event) => {
             setVideoUrl(event.target.value)
@@ -115,7 +115,7 @@ export function ExerciseForm({ exercise, onSubmit, onCancel, isSubmitting }: Exe
           Cancelar
         </Button>
         <Button type="submit" size="sm" disabled={isSubmitting || !nome.trim()}>
-          {isSubmitting ? 'Salvando...' : 'Salvar'}
+          {isSubmitting ? 'Salvando…' : 'Salvar'}
         </Button>
       </div>
     </form>

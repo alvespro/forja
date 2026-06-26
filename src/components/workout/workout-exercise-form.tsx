@@ -126,7 +126,7 @@ export function WorkoutExerciseForm({
           Cancelar
         </Button>
         <Button type="submit" size="sm" disabled={isSubmitting || !exerciseId}>
-          {isSubmitting ? 'Salvando...' : 'Salvar'}
+          {isSubmitting ? 'Salvando…' : 'Salvar'}
         </Button>
       </div>
     </form>

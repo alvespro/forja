@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Select } from '@/components/ui/select'
 import { CourseForm } from '@/components/library/course-form'
 import { useDeleteCourse, useUpdateCourse } from '@/hooks/use-courses'
+import { useConfirm } from '@/hooks/use-confirm'
 import { LIBRARY_STATUS_DOT_CLASS, LIBRARY_STATUS_OPTIONS } from '@/lib/library-status'
 import { cn } from '@/lib/utils'
 import type { Course, LibraryStatus } from '@/types/database'
@@ -20,13 +21,18 @@ export function CourseCard({ course }: CourseCardProps) {
 
   const updateCourse = useUpdateCourse()
   const deleteCourse = useDeleteCourse()
+  const { confirm, dialog } = useConfirm()
 
   function handleStatusChange(status: LibraryStatus) {
     updateCourse.mutate({ id: course.id, values: { status } })
   }
 
-  function handleDelete() {
-    if (!window.confirm(`Excluir o curso "${course.titulo}"? Essa ação não pode ser desfeita.`)) return
+  async function handleDelete() {
+    const ok = await confirm({
+      title: `Excluir o curso "${course.titulo}"?`,
+      description: 'Essa ação não pode ser desfeita.',
+    })
+    if (!ok) return
     deleteCourse.mutate(course.id)
   }
 
@@ -44,12 +50,14 @@ export function CourseCard({ course }: CourseCardProps) {
   }
 
   return (
-    <Card>
+    <>
+      {dialog}
+      <Card>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-col">
-            <span className="font-medium text-foreground">{course.titulo}</span>
-            {course.provedor && <span className="text-xs text-aco-texto">{course.provedor}</span>}
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate font-medium text-foreground">{course.titulo}</span>
+            {course.provedor && <span className="truncate text-xs text-aco-texto">{course.provedor}</span>}
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
@@ -92,6 +100,7 @@ export function CourseCard({ course }: CourseCardProps) {
           <span className="w-10 shrink-0 text-right font-mono text-xs text-aco-texto">{course.progresso}%</span>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </>
   )
 }

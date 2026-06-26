@@ -149,7 +149,7 @@ export function SetRow({
           disabled={isSaving}
           onClick={handleComplete}
         >
-          {isSaving ? 'Salvando...' : 'Concluir série'}
+          {isSaving ? 'Salvando…' : 'Concluir série'}
         </Button>
       </div>
     </div>

@@ -110,7 +110,7 @@ export function CardioForm({ onSubmit, onCancel, isSubmitting }: CardioFormProps
           Cancelar
         </Button>
         <Button type="submit" size="sm" disabled={isSubmitting}>
-          {isSubmitting ? 'Salvando...' : 'Registrar'}
+          {isSubmitting ? 'Salvando…' : 'Registrar'}
         </Button>
       </div>
     </form>

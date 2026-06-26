@@ -7,6 +7,7 @@ import {
   useDeleteWorkoutExercise,
   useUpdateWorkoutExercise,
 } from '@/hooks/use-workout-exercises'
+import { useConfirm } from '@/hooks/use-confirm'
 import type { Exercise, WorkoutExercise } from '@/types/database'
 
 type WorkoutExerciseRowProps = {
@@ -19,9 +20,11 @@ export function WorkoutExerciseRow({ prescription, exercise, exercises }: Workou
   const [isEditing, setIsEditing] = useState(false)
   const updatePrescription = useUpdateWorkoutExercise()
   const deletePrescription = useDeleteWorkoutExercise()
+  const { confirm, dialog } = useConfirm()
 
-  function handleDelete() {
-    if (!window.confirm(`Remover ${exercise?.nome ?? 'exercício'} deste treino?`)) return
+  async function handleDelete() {
+    const ok = await confirm({ title: `Remover ${exercise?.nome ?? 'exercício'} deste treino?` })
+    if (!ok) return
     deletePrescription.mutate({ id: prescription.id, workoutId: prescription.workout_id })
   }
 
@@ -46,8 +49,9 @@ export function WorkoutExerciseRow({ prescription, exercise, exercises }: Workou
 
   return (
     <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card/40 px-3 py-2">
-      <div className="flex flex-col">
-        <span className="text-sm font-medium text-foreground">{exercise?.nome ?? 'Exercício removido'}</span>
+      {dialog}
+      <div className="flex min-w-0 flex-col">
+        <span className="truncate text-sm font-medium text-foreground">{exercise?.nome ?? 'Exercício removido'}</span>
         <span className="font-mono text-xs text-aco-texto">
           {prescription.series_alvo ?? '—'}x{prescription.reps_alvo ?? '—'} · pausa{' '}
           {prescription.pausa_alvo_seg ?? '—'}s

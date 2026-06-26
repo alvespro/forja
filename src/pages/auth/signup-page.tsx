@@ -121,7 +121,7 @@ export function SignupPage() {
             {authError && <p className="text-sm text-alerta">{authError}</p>}
 
             <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
-              {isSubmitting ? 'Criando conta...' : 'Criar conta'}
+              {isSubmitting ? 'Criando conta…' : 'Criar conta'}
             </Button>
           </form>
         )}

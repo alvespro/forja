@@ -86,7 +86,7 @@ export function SessionRunner() {
                 })
               }
             >
-              {createSession.isPending ? 'Iniciando...' : 'Iniciar sessão'}
+              {createSession.isPending ? 'Iniciando…' : 'Iniciar sessão'}
             </Button>
           </div>
         )}
@@ -231,7 +231,7 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
               Cancelar
             </Button>
             <Button type="button" size="sm" disabled={finishSession.isPending} onClick={handleFinish}>
-              {finishSession.isPending ? 'Salvando...' : 'Confirmar'}
+              {finishSession.isPending ? 'Salvando…' : 'Confirmar'}
             </Button>
           </div>
         </div>

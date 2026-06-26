@@ -138,7 +138,11 @@ export function PomodoroTimer({ tarefa, onExit }: PomodoroTimerProps) {
         />
         <div className="flex items-center justify-between text-xs text-aco-texto">
           <span>🍅 {ciclosConcluidos} pomodoro(s) concluído(s)</span>
-          <button type="button" onClick={onExit} className="hover:text-foreground hover:underline">
+          <button
+            type="button"
+            onClick={onExit}
+            className="rounded outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
             Encerrar sessão
           </button>
         </div>

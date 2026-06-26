@@ -80,7 +80,7 @@ export function LoginPage() {
           {authError && <p className="text-sm text-alerta">{authError}</p>}
 
           <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
+            {isSubmitting ? 'Entrando…' : 'Entrar'}
           </Button>
         </form>
 

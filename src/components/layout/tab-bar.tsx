@@ -17,7 +17,7 @@ export function TabBar() {
           end={to === '/'}
           className={({ isActive }) =>
             cn(
-              'flex min-w-[72px] flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium text-muted-foreground',
+              'flex min-w-[72px] flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium text-muted-foreground outline-none transition-colors focus-visible:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
               isActive && 'text-primary',
             )
           }

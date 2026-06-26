@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Select } from '@/components/ui/select'
 import { ReadingForm } from '@/components/library/reading-form'
 import { useDeleteReading, useUpdateReading } from '@/hooks/use-readings'
+import { useConfirm } from '@/hooks/use-confirm'
 import { LIBRARY_STATUS_DOT_CLASS, LIBRARY_STATUS_OPTIONS } from '@/lib/library-status'
 import { cn } from '@/lib/utils'
 import type { LibraryStatus, Reading } from '@/types/database'
@@ -21,13 +22,18 @@ export function ReadingCard({ reading }: ReadingCardProps) {
 
   const updateReading = useUpdateReading()
   const deleteReading = useDeleteReading()
+  const { confirm, dialog } = useConfirm()
 
   function handleStatusChange(status: LibraryStatus) {
     updateReading.mutate({ id: reading.id, values: { status } })
   }
 
-  function handleDelete() {
-    if (!window.confirm(`Excluir a leitura "${reading.titulo}"? Essa ação não pode ser desfeita.`)) return
+  async function handleDelete() {
+    const ok = await confirm({
+      title: `Excluir a leitura "${reading.titulo}"?`,
+      description: 'Essa ação não pode ser desfeita.',
+    })
+    if (!ok) return
     deleteReading.mutate(reading.id)
   }
 
@@ -45,22 +51,24 @@ export function ReadingCard({ reading }: ReadingCardProps) {
   }
 
   return (
-    <Card>
+    <>
+      {dialog}
+      <Card>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="flex flex-1 items-start gap-2 text-left"
+            className="flex min-w-0 flex-1 items-start gap-2 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-expanded={expanded}
           >
             <ChevronDown
               className={cn('mt-0.5 size-4 shrink-0 text-aco-texto transition-transform', expanded && 'rotate-180')}
               aria-hidden="true"
             />
-            <div className="flex flex-col">
-              <span className="font-medium text-foreground">{reading.titulo}</span>
-              {reading.autor && <span className="text-xs text-aco-texto">{reading.autor}</span>}
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate font-medium text-foreground">{reading.titulo}</span>
+              {reading.autor && <span className="truncate text-xs text-aco-texto">{reading.autor}</span>}
             </div>
           </button>
 
@@ -115,6 +123,7 @@ export function ReadingCard({ reading }: ReadingCardProps) {
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </>
   )
 }

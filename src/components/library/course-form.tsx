@@ -94,7 +94,7 @@ export function CourseForm({ course, onSubmit, onCancel, isSubmitting }: CourseF
           Cancelar
         </Button>
         <Button type="submit" size="sm" disabled={isSubmitting}>
-          {isSubmitting ? 'Salvando...' : 'Salvar'}
+          {isSubmitting ? 'Salvando…' : 'Salvar'}
         </Button>
       </div>
     </form>

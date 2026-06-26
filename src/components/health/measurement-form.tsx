@@ -54,7 +54,7 @@ export function MeasurementForm({ unidade, onSubmit, onCancel, isSubmitting }: M
         Cancelar
       </Button>
       <Button type="submit" size="sm" disabled={isSubmitting || !valor}>
-        {isSubmitting ? 'Salvando...' : 'Registrar'}
+        {isSubmitting ? 'Salvando…' : 'Registrar'}
       </Button>
     </form>
   )

@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CardioForm } from '@/components/workout/cardio-form'
 import { useCardioSessions, useCreateCardioSession, useDeleteCardioSession } from '@/hooks/use-cardio-sessions'
+import { useConfirm } from '@/hooks/use-confirm'
 
 const TIPO_LABEL: Record<string, string> = {
   longo: 'Longo',
@@ -22,14 +23,17 @@ export function CardioTab() {
   const createSession = useCreateCardioSession()
   const deleteSession = useDeleteCardioSession()
   const [isAdding, setIsAdding] = useState(false)
+  const { confirm, dialog } = useConfirm()
 
-  function handleDelete(id: string) {
-    if (!window.confirm('Excluir este registro de cardio?')) return
+  async function handleDelete(id: string) {
+    const ok = await confirm({ title: 'Excluir este registro de cardio?' })
+    if (!ok) return
     deleteSession.mutate(id)
   }
 
   return (
     <div className="flex flex-col gap-3">
+      {dialog}
       <div className="flex items-center justify-between">
         <p className="text-sm text-aco-texto">Registre corridas e sessões de cardio.</p>
         {!isAdding && (

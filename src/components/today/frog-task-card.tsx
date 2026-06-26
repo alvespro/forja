@@ -32,7 +32,7 @@ export function FrogTaskCard() {
           <button
             type="button"
             onClick={() => toggleDone.mutate()}
-            className="flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors hover:bg-accent"
+            className="flex w-full items-center gap-3 rounded-md p-2 text-left outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <span
               className={cn(
@@ -45,7 +45,7 @@ export function FrogTaskCard() {
             </span>
             <span
               className={cn(
-                'flex-1',
+                'min-w-0 flex-1 truncate',
                 frog.status === 'feito' && 'text-muted-foreground line-through',
               )}
             >

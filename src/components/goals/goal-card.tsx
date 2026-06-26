@@ -13,6 +13,7 @@ import {
   useUpdateKeyResult,
 } from '@/hooks/use-key-results'
 import { useDeleteGoal, useUpdateGoal, type GoalInput } from '@/hooks/use-goals'
+import { useConfirm } from '@/hooks/use-confirm'
 import { calculateGoalProgress } from '@/lib/goal-progress'
 import { cn } from '@/lib/utils'
 import type { Cycle, Goal, KeyResult } from '@/types/database'
@@ -33,6 +34,7 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
   const createKeyResult = useCreateKeyResult()
   const updateKeyResult = useUpdateKeyResult()
   const deleteKeyResult = useDeleteKeyResult()
+  const { confirm, dialog } = useConfirm()
 
   const progresso = calculateGoalProgress(goal, keyResults)
   const temKeyResults = keyResults.length > 0
@@ -41,8 +43,12 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
     updateGoal.mutate({ id: goal.id, values }, { onSuccess: () => setIsEditing(false) })
   }
 
-  function handleDeleteGoal() {
-    if (!window.confirm(`Excluir a meta "${goal.titulo}"? Essa ação não pode ser desfeita.`)) return
+  async function handleDeleteGoal() {
+    const ok = await confirm({
+      title: `Excluir a meta "${goal.titulo}"?`,
+      description: 'Essa ação não pode ser desfeita.',
+    })
+    if (!ok) return
     deleteGoal.mutate(goal.id)
   }
 
@@ -61,20 +67,22 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
   }
 
   return (
-    <Card>
+    <>
+      {dialog}
+      <Card>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="flex flex-1 items-start gap-2 text-left"
+            className="flex min-w-0 flex-1 items-start gap-2 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-expanded={expanded}
           >
             <ChevronDown
               className={cn('mt-0.5 size-4 shrink-0 text-aco-texto transition-transform', expanded && 'rotate-180')}
               aria-hidden="true"
             />
-            <span className="font-medium text-foreground">{goal.titulo}</span>
+            <span className="truncate font-medium text-foreground">{goal.titulo}</span>
           </button>
 
           <div className="flex shrink-0 gap-1">
@@ -171,6 +179,7 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </>
   )
 }

@@ -55,7 +55,7 @@ export function WeeklyReviewForm() {
                   aria-pressed={humor === option.valor}
                   onClick={() => handleSave(option.valor)}
                   className={cn(
-                    'flex size-11 items-center justify-center rounded-full text-xl transition-colors',
+                    'flex size-11 items-center justify-center rounded-full text-xl outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                     humor === option.valor ? 'bg-primary' : 'bg-muted hover:bg-accent',
                   )}
                 >
@@ -68,7 +68,7 @@ export function WeeklyReviewForm() {
               value={texto}
               onChange={(event) => setTexto(event.target.value)}
               onBlur={() => save.mutate({ humor, o_que_senti: texto })}
-              placeholder="Como foi a semana? O que funcionou, o que travou, o que muda na próxima..."
+              placeholder="Como foi a semana? O que funcionou, o que travou, o que muda na próxima…"
               rows={5}
             />
 
@@ -80,7 +80,7 @@ export function WeeklyReviewForm() {
               disabled={save.isPending}
               onClick={() => save.mutate({ humor, o_que_senti: texto })}
             >
-              {save.isPending ? 'Salvando...' : 'Salvar'}
+              {save.isPending ? 'Salvando…' : 'Salvar'}
             </Button>
           </div>
         )}

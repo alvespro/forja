@@ -77,7 +77,7 @@ export function WorkoutForm({ workout, defaultOrdem, onSubmit, onCancel, isSubmi
           Cancelar
         </Button>
         <Button type="submit" size="sm" disabled={isSubmitting || !nome.trim()}>
-          {isSubmitting ? 'Salvando...' : 'Salvar'}
+          {isSubmitting ? 'Salvando…' : 'Salvar'}
         </Button>
       </div>
     </form>

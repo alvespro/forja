@@ -150,7 +150,7 @@ export function GoalForm({
           Cancelar
         </Button>
         <Button type="submit" size="sm" disabled={isSubmitting}>
-          {isSubmitting ? 'Salvando...' : 'Salvar'}
+          {isSubmitting ? 'Salvando…' : 'Salvar'}
         </Button>
       </div>
     </form>

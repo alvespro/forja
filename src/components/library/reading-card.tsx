@@ -72,7 +72,7 @@ export function ReadingCard({ reading }: ReadingCardProps) {
             </div>
           </button>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-3">
             <Select
               aria-label={`Status de ${reading.titulo}`}
               value={reading.status}

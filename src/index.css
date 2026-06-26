@@ -77,7 +77,7 @@
   --aco-texto: #8294b0;
   --ok: #5fa88c;
   --atencao: #e8a23d;
-  --alerta: #cb6a4e;
+  --alerta: #d77356; /* ajustado de #cb6a4e: contraste 4.49:1 sobre --aco falhava AA (mín. 4.5:1) */
 
   /* tokens semânticos shadcn/ui, mapeados para a paleta acima */
   --background: var(--meia-noite);

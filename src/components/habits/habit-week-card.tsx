@@ -51,7 +51,7 @@ export function HabitWeekCard({
                 aria-label={`${WEEKDAY_LABELS[i]}, dia ${parseDateOnly(date).getDate()}, ${isDone ? 'concluído' : 'não concluído'}`}
                 aria-pressed={isDone}
                 className={cn(
-                  'flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md py-2 text-[11px] transition-colors',
+                  'flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md py-2 text-[11px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   isFuture && 'cursor-not-allowed opacity-40',
                   !isFuture &&
                     (isDone

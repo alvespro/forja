@@ -20,7 +20,7 @@ export function FreeTimer() {
         <Timer className="size-4 text-aco-texto" aria-hidden="true" />
         <span className="font-mono text-lg tabular-nums text-foreground">{formatElapsed(elapsedMs)}</span>
       </div>
-      <div className="flex gap-1">
+      <div className="flex gap-3">
         {isRunning ? (
           <Button type="button" variant="outline" size="icon-sm" aria-label="Pausar" onClick={pause}>
             <Pause className="size-3.5" aria-hidden="true" />

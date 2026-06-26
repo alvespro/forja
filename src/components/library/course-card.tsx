@@ -60,7 +60,7 @@ export function CourseCard({ course }: CourseCardProps) {
             {course.provedor && <span className="truncate text-xs text-aco-texto">{course.provedor}</span>}
           </div>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-3">
             <Select
               aria-label={`Status de ${course.titulo}`}
               value={course.status}

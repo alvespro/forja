@@ -54,7 +54,7 @@ export function HabitChecklistCard() {
                     onClick={() =>
                       toggle.mutate({ habitId: habit.id, date: today, completed: !isDone })
                     }
-                    className="flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-colors hover:bg-accent"
+                    className="flex w-full items-center gap-3 rounded-md p-2.5 text-left outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     <span
                       className={cn(

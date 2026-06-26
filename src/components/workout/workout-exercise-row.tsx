@@ -58,7 +58,7 @@ export function WorkoutExerciseRow({ prescription, exercise, exercises }: Workou
           {prescription.cadencia_alvo ? ` · cadência ${prescription.cadencia_alvo}` : ''}
         </span>
       </div>
-      <div className="flex shrink-0 gap-1">
+      <div className="flex shrink-0 gap-3">
         <Button
           type="button"
           variant="ghost"

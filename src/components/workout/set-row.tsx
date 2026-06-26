@@ -70,7 +70,7 @@ export function SetRow({
       <button
         type="button"
         onClick={() => setIsEditing(true)}
-        className="flex w-full items-center justify-between gap-2 rounded-lg border border-ok/30 bg-ok/10 px-3 py-2 text-left"
+        className="flex w-full items-center justify-between gap-2 rounded-lg border border-ok/30 bg-ok/10 px-3 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <div className="flex items-center gap-2">
           <Check className="size-3.5 text-ok" aria-hidden="true" />

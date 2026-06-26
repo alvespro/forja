@@ -42,7 +42,7 @@ export function LibraryPage() {
           aria-selected={tab === 'leituras'}
           onClick={() => setTab('leituras')}
           className={cn(
-            'px-3 py-2 text-sm font-medium transition-colors',
+            'rounded-t px-3 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             tab === 'leituras' ? 'border-b-2 border-brasa text-foreground' : 'text-aco-texto hover:text-foreground',
           )}
         >
@@ -54,7 +54,7 @@ export function LibraryPage() {
           aria-selected={tab === 'cursos'}
           onClick={() => setTab('cursos')}
           className={cn(
-            'px-3 py-2 text-sm font-medium transition-colors',
+            'rounded-t px-3 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             tab === 'cursos' ? 'border-b-2 border-brasa text-foreground' : 'text-aco-texto hover:text-foreground',
           )}
         >

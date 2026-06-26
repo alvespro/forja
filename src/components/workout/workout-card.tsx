@@ -76,7 +76,7 @@ export function WorkoutCard({ workout, exercises }: WorkoutCardProps) {
             </div>
           </button>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-3">
             {!workout.ativo && <span className="text-xs text-aco-texto">inativo</span>}
             <Button
               type="button"

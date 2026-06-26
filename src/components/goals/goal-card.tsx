@@ -85,7 +85,7 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
             <span className="truncate font-medium text-foreground">{goal.titulo}</span>
           </button>
 
-          <div className="flex shrink-0 gap-1">
+          <div className="flex shrink-0 gap-3">
             <Button
               type="button"
               variant="ghost"

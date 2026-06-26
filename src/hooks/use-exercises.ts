@@ -1,23 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-import { supabase } from '@/lib/supabase'
+import { createCrudHooks } from '@/lib/crud-factory'
 import type { Exercise } from '@/types/database'
-
-import { useAuth } from './use-auth'
-
-export function useExercises() {
-  const { user } = useAuth()
-
-  return useQuery({
-    queryKey: ['exercises'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('exercises').select('*').order('nome')
-      if (error) throw error
-      return data as Exercise[]
-    },
-    enabled: !!user,
-  })
-}
 
 export type ExerciseInput = {
   nome: string
@@ -27,40 +9,13 @@ export type ExerciseInput = {
   cadencia_padrao: string | null
 }
 
-export function useCreateExercise() {
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
+const exercisesCrud = createCrudHooks<Exercise, ExerciseInput>({
+  table: 'exercises',
+  queryKey: 'exercises',
+  orderBy: { column: 'nome' },
+})
 
-  return useMutation({
-    mutationFn: async (values: ExerciseInput) => {
-      if (!user) throw new Error('Usuário não autenticado')
-      const { error } = await supabase.from('exercises').insert({ ...values, user_id: user.id })
-      if (error) throw error
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['exercises'] }),
-  })
-}
-
-export function useUpdateExercise() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ id, values }: { id: string; values: ExerciseInput }) => {
-      const { error } = await supabase.from('exercises').update(values).eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['exercises'] }),
-  })
-}
-
-export function useDeleteExercise() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('exercises').delete().eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['exercises'] }),
-  })
-}
+export const useExercises = exercisesCrud.useList
+export const useCreateExercise = exercisesCrud.useCreate
+export const useUpdateExercise = exercisesCrud.useUpdate
+export const useDeleteExercise = exercisesCrud.useDelete

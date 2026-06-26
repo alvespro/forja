@@ -1,23 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-import { supabase } from '@/lib/supabase'
+import { createCrudHooks } from '@/lib/crud-factory'
 import type { Workout } from '@/types/database'
-
-import { useAuth } from './use-auth'
-
-export function useWorkouts() {
-  const { user } = useAuth()
-
-  return useQuery({
-    queryKey: ['workouts'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('workouts').select('*').order('ordem')
-      if (error) throw error
-      return data as Workout[]
-    },
-    enabled: !!user,
-  })
-}
 
 export type WorkoutInput = {
   nome: string
@@ -26,40 +8,13 @@ export type WorkoutInput = {
   ativo: boolean
 }
 
-export function useCreateWorkout() {
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
+const workoutsCrud = createCrudHooks<Workout, WorkoutInput>({
+  table: 'workouts',
+  queryKey: 'workouts',
+  orderBy: { column: 'ordem' },
+})
 
-  return useMutation({
-    mutationFn: async (values: WorkoutInput) => {
-      if (!user) throw new Error('Usuário não autenticado')
-      const { error } = await supabase.from('workouts').insert({ ...values, user_id: user.id })
-      if (error) throw error
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workouts'] }),
-  })
-}
-
-export function useUpdateWorkout() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ id, values }: { id: string; values: WorkoutInput }) => {
-      const { error } = await supabase.from('workouts').update(values).eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workouts'] }),
-  })
-}
-
-export function useDeleteWorkout() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('workouts').delete().eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workouts'] }),
-  })
-}
+export const useWorkouts = workoutsCrud.useList
+export const useCreateWorkout = workoutsCrud.useCreate
+export const useUpdateWorkout = workoutsCrud.useUpdate
+export const useDeleteWorkout = workoutsCrud.useDelete

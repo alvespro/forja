@@ -137,7 +137,7 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
     setActiveRest(null)
   }
 
-  const exercisesById = new Map(exercises.map((exercise) => [exercise.id, exercise]))
+  const exercisesById = useMemo(() => new Map(exercises.map((exercise) => [exercise.id, exercise])), [exercises])
   const logsByExercise = useMemo(() => {
     const map = new Map<string, SetLog[]>()
     for (const log of logs.data ?? []) {

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 
 import { AuthContext } from '@/hooks/use-auth'
@@ -22,9 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ session, user: session?.user ?? null, loading }),
+    [session, loading],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -1,27 +1,19 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { todayInSaoPaulo } from '@/lib/date'
+import { createCrudHooks } from '@/lib/crud-factory'
 import { supabase } from '@/lib/supabase'
 import type { HealthMetric } from '@/types/database'
 
 import { useAuth } from './use-auth'
 
-export function useHealthMetrics() {
-  const { user } = useAuth()
+const healthMetricsCrud = createCrudHooks<HealthMetric, never>({
+  table: 'health_metrics',
+  queryKey: 'health-metrics',
+  orderBy: { column: 'measured_at', ascending: true },
+})
 
-  return useQuery({
-    queryKey: ['health-metrics'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('health_metrics')
-        .select('*')
-        .order('measured_at', { ascending: true })
-      if (error) throw error
-      return data as HealthMetric[]
-    },
-    enabled: !!user,
-  })
-}
+export const useHealthMetrics = healthMetricsCrud.useList
 
 /** Agrupa as leituras por chave do marcador, em ordem cronológica. */
 export function groupHealthMetricsByKey(metrics: HealthMetric[] | undefined): Map<string, HealthMetric[]> {
@@ -48,6 +40,7 @@ export type CreateHealthMetricInput = {
   measured_at?: string
 }
 
+/** Mantido próprio: preenche measured_at com o dia de hoje (fuso SP) quando omitido. */
 export function useCreateHealthMetric() {
   const { user } = useAuth()
   const queryClient = useQueryClient()

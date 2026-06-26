@@ -1,7 +1,9 @@
 import { LogOut } from 'lucide-react'
+import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase'
 
@@ -30,11 +32,23 @@ export function AppShell() {
         </header>
 
         <main className="flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-8 md:pb-8">
-          <Outlet />
+          <Suspense fallback={<PageSkeleton />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 
       <TabBar />
+    </div>
+  )
+}
+
+function PageSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-32 w-full" />
     </div>
   )
 }

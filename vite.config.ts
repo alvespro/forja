@@ -13,12 +13,14 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/favicon.ico', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'FORJA',
+        name: 'FORJA — Sistema de Alta Performance',
         short_name: 'FORJA',
-        description: 'Sistema operacional pessoal de alta performance.',
+        description: 'Seu sistema operacional pessoal. Metas, treino, saúde, foco.',
         lang: 'pt-BR',
         start_url: '/',
+        scope: '/',
         display: 'standalone',
+        orientation: 'portrait',
         background_color: '#0b1220',
         theme_color: '#0b1220',
         icons: [
@@ -44,6 +46,21 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,ico,woff,woff2}'],
+        runtimeCaching: [
+          {
+            // Cache das chamadas ao Supabase (REST/Auth)
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24, // 24h
+              },
+              networkTimeoutSeconds: 10,
+            },
+          },
+        ],
       },
     }),
   ],

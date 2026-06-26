@@ -25,7 +25,7 @@ export function JournalPage() {
           aria-selected={tab === 'diario'}
           onClick={() => setTab('diario')}
           className={cn(
-            'px-3 py-2 text-sm font-medium transition-colors',
+            'rounded-t px-3 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             tab === 'diario' ? 'border-b-2 border-brasa text-foreground' : 'text-aco-texto hover:text-foreground',
           )}
         >
@@ -37,7 +37,7 @@ export function JournalPage() {
           aria-selected={tab === 'revisao'}
           onClick={() => setTab('revisao')}
           className={cn(
-            'px-3 py-2 text-sm font-medium transition-colors',
+            'rounded-t px-3 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             tab === 'revisao' ? 'border-b-2 border-brasa text-foreground' : 'text-aco-texto hover:text-foreground',
           )}
         >

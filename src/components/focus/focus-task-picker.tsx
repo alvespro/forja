@@ -24,7 +24,7 @@ export function FocusTaskPicker({ value, onChange }: FocusTaskPickerProps) {
         <button
           type="button"
           onClick={() => onChange(frog.titulo)}
-          className="self-start text-xs text-aco-texto hover:text-foreground hover:underline"
+          className="self-start rounded text-xs text-aco-texto outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           🐸 Usar sapo do dia: {frog.titulo}
         </button>

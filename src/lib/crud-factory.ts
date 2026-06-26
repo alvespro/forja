@@ -3,13 +3,23 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 
+type OrderSpec = { column: string; ascending?: boolean; nullsFirst?: boolean }
+
 type CrudConfig = {
   /** Nome da tabela no Postgres. */
   table: string
   /** Prefixo da query key do TanStack Query (também usado para invalidação). */
   queryKey: string
-  /** Ordenação padrão da listagem. */
-  orderBy?: { column: string; ascending?: boolean }
+  /** Ordenação padrão da listagem (uma ou várias colunas, aplicadas em ordem). */
+  orderBy?: OrderSpec | OrderSpec[]
+  /** Limite de linhas da listagem (ex: histórico recente). */
+  limit?: number
+  /**
+   * Filtro adicional na listagem (ex: `.eq('tipo', 'diario')`). Tipado livremente porque
+   * o cliente Supabase deste projeto não usa o generic `Database` (Seção 5, types manuais).
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filter?: (query: any) => any
 }
 
 /**
@@ -22,7 +32,8 @@ type CrudConfig = {
 export function createCrudHooks<Row, Insert extends Record<string, unknown>, Update = Partial<Insert>>(
   config: CrudConfig,
 ) {
-  const { table, queryKey, orderBy } = config
+  const { table, queryKey, orderBy, limit, filter } = config
+  const orderSpecs = orderBy ? (Array.isArray(orderBy) ? orderBy : [orderBy]) : []
 
   function useList() {
     const { user } = useAuth()
@@ -31,7 +42,11 @@ export function createCrudHooks<Row, Insert extends Record<string, unknown>, Upd
       queryKey: [queryKey],
       queryFn: async () => {
         let query = supabase.from(table).select('*')
-        if (orderBy) query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true })
+        if (filter) query = filter(query)
+        for (const spec of orderSpecs) {
+          query = query.order(spec.column, { ascending: spec.ascending ?? true, nullsFirst: spec.nullsFirst })
+        }
+        if (limit) query = query.limit(limit)
         const { data, error } = await query
         if (error) throw error
         return data as Row[]

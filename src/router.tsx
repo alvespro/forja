@@ -14,6 +14,10 @@ const HabitsPage = lazy(() => import('@/pages/habits-page').then((m) => ({ defau
 const LibraryPage = lazy(() => import('@/pages/library-page').then((m) => ({ default: m.LibraryPage })))
 const FocusPage = lazy(() => import('@/pages/focus-page').then((m) => ({ default: m.FocusPage })))
 const JournalPage = lazy(() => import('@/pages/journal-page').then((m) => ({ default: m.JournalPage })))
+const FinancesPage = lazy(() => import('@/pages/finances-page').then((m) => ({ default: m.FinancesPage })))
+const BodyPage = lazy(() => import('@/pages/body-page').then((m) => ({ default: m.BodyPage })))
+const MealsPage = lazy(() => import('@/pages/meals-page').then((m) => ({ default: m.MealsPage })))
+const CrmPage = lazy(() => import('@/pages/crm-page').then((m) => ({ default: m.CrmPage })))
 
 /** Páginas de auth ficam fora do AppShell, sem Suspense de layout — cada uma traz a própria. */
 function withSuspense(element: React.ReactNode) {
@@ -38,6 +42,10 @@ export const router = createBrowserRouter([
           { path: 'library', element: <LibraryPage /> },
           { path: 'focus', element: <FocusPage /> },
           { path: 'journal', element: <JournalPage /> },
+          { path: 'finances', element: <FinancesPage /> },
+          { path: 'body', element: <BodyPage /> },
+          { path: 'meals', element: <MealsPage /> },
+          { path: 'crm', element: <CrmPage /> },
         ],
       },
     ],

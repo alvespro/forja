@@ -201,3 +201,53 @@ export type CardioSession = {
   tiros: string | null
   notas: string | null
 }
+
+export type FinanceTipo = 'receita' | 'gasto'
+
+export type Finance = {
+  id: string
+  user_id: string
+  tipo: FinanceTipo
+  categoria: string | null
+  valor: number
+  descricao: string | null
+  data: string
+}
+
+export type FinanceGoal = {
+  id: string
+  user_id: string
+  ciclo_id: string | null
+  meta_mensal: number | null
+  numero_liberdade: number | null
+}
+
+export type BodyMetric = {
+  id: string
+  user_id: string
+  peso_kg: number | null
+  gordura_pct: number | null
+  medido_em: string
+}
+
+export type Meal = {
+  id: string
+  user_id: string
+  refeicao: number
+  descricao: string | null
+  proteina_g: number | null
+  calorias: number | null
+  tipo: string | null
+  data: string
+}
+
+export type CrmClient = {
+  id: string
+  user_id: string
+  nome: string
+  fase: string | null
+  valor_estimado: number | null
+  proxima_acao: string | null
+  data_proxima_acao: string | null
+  created_at: string
+}

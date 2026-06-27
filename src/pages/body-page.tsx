@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BodyMetricForm } from '@/components/body/body-metric-form'
+import { BodyMetricsChart } from '@/components/body/body-metrics-chart'
 import { useBodyMetrics, useCreateBodyMetric, useDeleteBodyMetric } from '@/hooks/use-body-metrics'
 import { useConfirm } from '@/hooks/use-confirm'
 import { parseDateOnly } from '@/lib/date'
@@ -64,6 +65,14 @@ export function BodyPage() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {!metrics.isLoading && !metrics.isError && ordered.length > 0 && (
+        <Card size="sm">
+          <CardContent>
+            <BodyMetricsChart metrics={ordered} />
+          </CardContent>
+        </Card>
       )}
 
       {isAdding && (

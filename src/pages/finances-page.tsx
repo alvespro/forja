@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FinanceForm } from '@/components/finances/finance-form'
+import { FinanceGoalCard } from '@/components/finances/finance-goal-card'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useCreateFinance, useDeleteFinance, useFinances } from '@/hooks/use-finances'
 import { parseDateOnly } from '@/lib/date'
@@ -74,6 +75,8 @@ export function FinancesPage() {
           </Card>
         </div>
       )}
+
+      <FinanceGoalCard />
 
       {isAdding && (
         <FinanceForm

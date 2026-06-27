@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Video } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { WorkoutExerciseForm } from '@/components/workout/workout-exercise-form'
+import { YoutubeEmbed } from '@/components/workout/youtube-embed'
 import {
   useDeleteWorkoutExercise,
   useUpdateWorkoutExercise,
@@ -18,6 +19,7 @@ type WorkoutExerciseRowProps = {
 
 export function WorkoutExerciseRow({ prescription, exercise, exercises }: WorkoutExerciseRowProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [showVideo, setShowVideo] = useState(false)
   const updatePrescription = useUpdateWorkoutExercise()
   const deletePrescription = useDeleteWorkoutExercise()
   const { confirm, dialog } = useConfirm()
@@ -48,36 +50,53 @@ export function WorkoutExerciseRow({ prescription, exercise, exercises }: Workou
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card/40 px-3 py-2">
+    <div className="flex flex-col gap-2 rounded-lg border border-border bg-card/40 px-3 py-2">
       {dialog}
-      <div className="flex min-w-0 flex-col">
-        <span className="truncate text-sm font-medium text-foreground">{exercise?.nome ?? 'Exercício removido'}</span>
-        <span className="font-mono text-xs text-aco-texto">
-          {prescription.series_alvo ?? '—'}x{prescription.reps_alvo ?? '—'} · pausa{' '}
-          {prescription.pausa_alvo_seg ?? '—'}s
-          {prescription.cadencia_alvo ? ` · cadência ${prescription.cadencia_alvo}` : ''}
-        </span>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-sm font-medium text-foreground">{exercise?.nome ?? 'Exercício removido'}</span>
+          <span className="font-mono text-xs text-aco-texto">
+            {prescription.series_alvo ?? '—'}x{prescription.reps_alvo ?? '—'} · pausa{' '}
+            {prescription.pausa_alvo_seg ?? '—'}s
+            {prescription.cadencia_alvo ? ` · cadência ${prescription.cadencia_alvo}` : ''}
+          </span>
+        </div>
+        <div className="flex shrink-0 gap-3">
+          {exercise?.youtube_video_id && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={showVideo ? 'Esconder vídeo do exercício' : 'Ver vídeo do exercício'}
+              onClick={() => setShowVideo((v) => !v)}
+            >
+              <Video className="size-3.5" aria-hidden="true" />
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Editar prescrição"
+            onClick={() => setIsEditing(true)}
+          >
+            <Pencil className="size-3.5" aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Remover prescrição"
+            onClick={handleDelete}
+          >
+            <Trash2 className="size-3.5" aria-hidden="true" />
+          </Button>
+        </div>
       </div>
-      <div className="flex shrink-0 gap-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Editar prescrição"
-          onClick={() => setIsEditing(true)}
-        >
-          <Pencil className="size-3.5" aria-hidden="true" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Remover prescrição"
-          onClick={handleDelete}
-        >
-          <Trash2 className="size-3.5" aria-hidden="true" />
-        </Button>
-      </div>
+
+      {showVideo && exercise?.youtube_video_id && (
+        <YoutubeEmbed videoId={exercise.youtube_video_id} title={exercise.nome} />
+      )}
     </div>
   )
 }

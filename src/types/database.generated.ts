@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_metrics: {
+        Row: {
+          gordura_pct: number | null
+          id: string
+          medido_em: string
+          peso_kg: number | null
+          user_id: string
+        }
+        Insert: {
+          gordura_pct?: number | null
+          id?: string
+          medido_em?: string
+          peso_kg?: number | null
+          user_id: string
+        }
+        Update: {
+          gordura_pct?: number | null
+          id?: string
+          medido_em?: string
+          peso_kg?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       cardio_sessions: {
         Row: {
           distancia_km: number | null
@@ -80,6 +104,39 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_clients: {
+        Row: {
+          created_at: string | null
+          data_proxima_acao: string | null
+          fase: string | null
+          id: string
+          nome: string
+          proxima_acao: string | null
+          user_id: string
+          valor_estimado: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_proxima_acao?: string | null
+          fase?: string | null
+          id?: string
+          nome: string
+          proxima_acao?: string | null
+          user_id: string
+          valor_estimado?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          data_proxima_acao?: string | null
+          fase?: string | null
+          id?: string
+          nome?: string
+          proxima_acao?: string | null
+          user_id?: string
+          valor_estimado?: number | null
+        }
+        Relationships: []
+      }
       cycles: {
         Row: {
           ativo: boolean | null
@@ -140,6 +197,68 @@ export type Database = {
           nome?: string
           user_id?: string
           youtube_video_id?: string | null
+        }
+        Relationships: []
+      }
+      finance_goals: {
+        Row: {
+          ciclo_id: string | null
+          id: string
+          meta_mensal: number | null
+          numero_liberdade: number | null
+          user_id: string
+        }
+        Insert: {
+          ciclo_id?: string | null
+          id?: string
+          meta_mensal?: number | null
+          numero_liberdade?: number | null
+          user_id: string
+        }
+        Update: {
+          ciclo_id?: string | null
+          id?: string
+          meta_mensal?: number | null
+          numero_liberdade?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_goals_ciclo_id_fkey"
+            columns: ["ciclo_id"]
+            isOneToOne: false
+            referencedRelation: "cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finances: {
+        Row: {
+          categoria: string | null
+          data: string
+          descricao: string | null
+          id: string
+          tipo: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string | null
+          data?: string
+          descricao?: string | null
+          id?: string
+          tipo: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          categoria?: string | null
+          data?: string
+          descricao?: string | null
+          id?: string
+          tipo?: string
+          user_id?: string
+          valor?: number
         }
         Relationships: []
       }
@@ -403,6 +522,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      meals: {
+        Row: {
+          calorias: number | null
+          data: string
+          descricao: string | null
+          id: string
+          proteina_g: number | null
+          refeicao: number
+          tipo: string | null
+          user_id: string
+        }
+        Insert: {
+          calorias?: number | null
+          data?: string
+          descricao?: string | null
+          id?: string
+          proteina_g?: number | null
+          refeicao: number
+          tipo?: string | null
+          user_id: string
+        }
+        Update: {
+          calorias?: number | null
+          data?: string
+          descricao?: string | null
+          id?: string
+          proteina_g?: number | null
+          refeicao?: number
+          tipo?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

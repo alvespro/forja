@@ -382,3 +382,18 @@ export type SupplementLog = {
   tomado: boolean
   horario: string | null
 }
+
+export type DocumentImportTipo = 'exame' | 'treino' | 'dieta' | 'suplemento' | 'outro'
+export type DocumentImportStatus = 'pendente' | 'confirmado' | 'rejeitado' | 'erro'
+
+export type DocumentImport = {
+  id: string
+  user_id: string
+  tipo: DocumentImportTipo
+  storage_path: string
+  status: DocumentImportStatus
+  dados_extraidos: Record<string, unknown> | null
+  dados_confirmados: Record<string, unknown> | null
+  erro: string | null
+  created_at: string
+}

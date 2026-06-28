@@ -1,6 +1,6 @@
-import { LogOut } from 'lucide-react'
+import { LogOut, Settings } from 'lucide-react'
 import { Suspense } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -20,15 +20,23 @@ export function AppShell() {
       <div className="flex flex-1 flex-col">
         <header className="flex h-16 items-center justify-between border-b border-border px-4 md:px-8">
           <span className="truncate text-sm text-muted-foreground">{user?.email}</span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => supabase.auth.signOut()}
-          >
-            <LogOut className="size-4" aria-hidden="true" />
-            Sair
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button type="button" variant="ghost" size="sm" asChild>
+              <Link to="/configuracoes">
+                <Settings className="size-4" aria-hidden="true" />
+                Importações
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => supabase.auth.signOut()}
+            >
+              <LogOut className="size-4" aria-hidden="true" />
+              Sair
+            </Button>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-8 md:pb-8">

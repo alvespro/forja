@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
 
 import { AuthProvider } from '@/components/auth/auth-provider'
+import { DocumentUpload } from '@/components/DocumentUpload'
 import { ForjaChat } from '@/components/ForjaChat'
 import { queryClient } from '@/lib/query-client'
 import { router } from '@/router'
@@ -13,6 +14,7 @@ function App() {
       <AuthProvider>
         <RouterProvider router={router} />
         <ForjaChat />
+        <DocumentUpload />
       </AuthProvider>
       <SpeedInsights />
     </QueryClientProvider>

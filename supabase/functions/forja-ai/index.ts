@@ -2,6 +2,10 @@
 // Cada agente busca os dados do próprio usuário no Postgres (via RLS, com o JWT da request)
 // antes de montar o contexto e chamar a API da Anthropic. A ANTHROPIC_API_KEY só existe aqui,
 // nos Secrets da Edge Function — nunca é exposta ao frontend.
+//
+// O user_id NUNCA vem do corpo da requisição: é sempre derivado do JWT autenticado via
+// `sb.auth.getUser()`, e a busca usa a anon key (não a service role), então o RLS do Postgres
+// garante que cada usuário só pode ler os próprios dados.
 
 import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -9,6 +13,7 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6'
+const MAX_TOKENS = 500
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -22,26 +27,36 @@ const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao']
 
 const SYSTEM_PROMPTS: Record<Agente, string> = {
   treino:
-    'Você é o agente de TREINO do app FORJA. Você ajuda o usuário a entender sua prescrição de ' +
-    'treino, histórico de sessões, progressão de carga/reps e cardio. Use os DADOS DO USUÁRIO ' +
-    'fornecidos abaixo como única fonte de verdade — não invente exercícios, cargas ou sessões que ' +
-    'não estejam lá. Seja direto, prático e use linguagem de coach de academia. Responda em português.',
+    'Você é o Coach de Performance do FORJA, sistema pessoal de Welber Alves (32 anos, perfil ' +
+    'falso magro em recomposição corporal). Analise o histórico de treino fornecido e responda ' +
+    'com precisão técnica e linguagem direta. Use os dados reais de carga e frequência. Identifique ' +
+    'estagnações, sugira progressão de carga ou volume, indique quando fazer deload. Seja ' +
+    'específico: nomes de exercícios, números de carga, séries e repetições. Não invente dados que ' +
+    'não estejam no contexto fornecido. Responda em português do Brasil. Máximo 200 palavras.',
   biblioteca:
-    'Você é o agente de BIBLIOTECA do app FORJA. Você ajuda o usuário com leituras e cursos em ' +
-    'andamento, recomenda o que priorizar e ajuda a extrair aplicações práticas dos materiais. ' +
-    'Use os DADOS DO USUÁRIO fornecidos abaixo como única fonte de verdade. Responda em português, ' +
-    'de forma objetiva.',
+    'Você é o Curador de Leituras do FORJA, sistema pessoal de Welber Alves. Perfil: Eneagrama 3w2 ' +
+    '(motivado por resultado e conexão, evita profundidade emocional). Área mais carente: Finanças ' +
+    '(20% na Roda da Vida). Trilha prioritária: Profundidade Humana (a mais evitada pelo tipo). ' +
+    'Analise as leituras já feitas com suas notas e as metas ativas. Sugira o próximo livro com ' +
+    'justificativa precisa e personalizada — considere o que falta na jornada do usuário, não só o ' +
+    'que ele quer ouvir. Se ele está evitando a trilha de Profundidade Humana, aponte isso com ' +
+    'honestidade. Responda em português do Brasil. Máximo 150 palavras.',
   coach:
-    'Você é o COACH do app FORJA, focado em metas (RPM), hábitos, diário e ciclos de 90 dias. ' +
-    'Ajude o usuário a refletir sobre progresso, consistência de hábitos e alinhamento entre ações ' +
-    'diárias e metas. Use os DADOS DO USUÁRIO fornecidos abaixo como única fonte de verdade. Seja ' +
-    'direto e questione com empatia quando notar inconsistência entre meta e execução. Responda em ' +
-    'português.',
+    'Você é o Mentor 5AM do FORJA, sistema pessoal de Welber Alves (32 anos, Eneagrama 3w2, ' +
+    'protocolo 5AM). Risco principal: evitação emocional disfarçada de disciplina. Seu tom: direto, ' +
+    'honesto, motivador sem ser superficial. Analise os hábitos recentes, o diário e os marcadores ' +
+    'de saúde. Gere um briefing: o que está bem, o que está falhando, uma ação prioritária para hoje ' +
+    'e uma pergunta de reflexão baseada no medo de ser visto como fracasso e na tendência de ' +
+    'confundir performance com identidade. Nunca seja condescendente. Responda em português do ' +
+    'Brasil. Máximo 180 palavras.',
   nutricao:
-    'Você é o agente de NUTRIÇÃO/CORPO do app FORJA. Você ajuda o usuário a entender evolução de ' +
-    'peso, % de gordura e refeições registradas (proteína, calorias). Use os DADOS DO USUÁRIO ' +
-    'fornecidos abaixo como única fonte de verdade — não invente valores. Responda em português, com ' +
-    'foco prático.',
+    'Você é o Analista Metabólico do FORJA, sistema pessoal de Welber Alves. Perfil crítico: ' +
+    'glicemia em jejum historicamente em torno de 103 mg/dL (limiar pré-diabético leve), em ' +
+    'recomposição corporal (meta: mais músculo, menos gordura visceral). Analise as refeições ' +
+    'registradas e a composição corporal fornecidas no contexto. Identifique padrões problemáticos ' +
+    '(carbo noturno, proteína insuficiente pós-treino, janelas de jejum inadequadas) só quando os ' +
+    'dados sustentarem isso. Dê sugestões práticas e específicas, não genéricas. Cite os dados ' +
+    'reais. Responda em português do Brasil. Máximo 180 palavras.',
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -52,77 +67,25 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 async function buscarContextoTreino(sb: SupabaseClient, userId: string): Promise<string> {
-  const [workouts, exercises, sessions] = await Promise.all([
-    sb.from('workouts').select('id, nome, foco, ativo, ordem').eq('user_id', userId).order('ordem'),
-    sb.from('exercises').select('id, nome, grupo_muscular').eq('user_id', userId),
+  const [logs, sessions] = await Promise.all([
+    sb
+      .from('set_logs')
+      .select('exercise_id, carga_kg, reps, created_at, exercises(nome)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50),
     sb
       .from('workout_sessions')
-      .select('id, workout_id, performed_at, duracao_seg, esforco_percebido, notas')
+      .select('performed_at, duracao_seg, esforco_percebido, workouts(nome)')
       .eq('user_id', userId)
       .order('performed_at', { ascending: false })
       .limit(10),
   ])
 
-  const workoutIds = (workouts.data ?? []).map((w) => w.id)
-  const workoutExercises = workoutIds.length
-    ? await sb
-        .from('workout_exercises')
-        .select('workout_id, exercise_id, ordem, series_alvo, reps_alvo, pausa_alvo_seg, cadencia_alvo')
-        .in('workout_id', workoutIds)
-        .order('ordem')
-    : { data: [] }
-
-  const sessionIds = (sessions.data ?? []).map((s) => s.id)
-  const setLogs = sessionIds.length
-    ? await sb
-        .from('set_logs')
-        .select('session_id, exercise_id, serie_num, carga_kg, reps, rpe, concluida')
-        .in('session_id', sessionIds)
-        .order('serie_num')
-    : { data: [] }
-
-  const cardio = await sb
-    .from('cardio_sessions')
-    .select('tipo, performed_at, distancia_km, duracao_seg, fc_media, zona')
-    .eq('user_id', userId)
-    .order('performed_at', { ascending: false })
-    .limit(5)
-
-  const exerciseNameById = new Map((exercises.data ?? []).map((e) => [e.id, e.nome]))
-
   return JSON.stringify(
     {
-      treinos_montados: (workouts.data ?? []).map((w) => ({
-        nome: w.nome,
-        foco: w.foco,
-        ativo: w.ativo,
-        exercicios: (workoutExercises.data ?? [])
-          .filter((we) => we.workout_id === w.id)
-          .map((we) => ({
-            exercicio: exerciseNameById.get(we.exercise_id) ?? 'desconhecido',
-            series_alvo: we.series_alvo,
-            reps_alvo: we.reps_alvo,
-            pausa_alvo_seg: we.pausa_alvo_seg,
-            cadencia_alvo: we.cadencia_alvo,
-          })),
-      })),
-      ultimas_sessoes: (sessions.data ?? []).map((s) => ({
-        performed_at: s.performed_at,
-        duracao_seg: s.duracao_seg,
-        esforco_percebido: s.esforco_percebido,
-        notas: s.notas,
-        series: (setLogs.data ?? [])
-          .filter((sl) => sl.session_id === s.id)
-          .map((sl) => ({
-            exercicio: exerciseNameById.get(sl.exercise_id) ?? 'desconhecido',
-            serie_num: sl.serie_num,
-            carga_kg: sl.carga_kg,
-            reps: sl.reps,
-            rpe: sl.rpe,
-            concluida: sl.concluida,
-          })),
-      })),
-      ultimas_corridas_cardio: cardio.data ?? [],
+      historico_series_recentes: logs.data ?? [],
+      sessoes_recentes: sessions.data ?? [],
     },
     null,
     2,
@@ -130,85 +93,52 @@ async function buscarContextoTreino(sb: SupabaseClient, userId: string): Promise
 }
 
 async function buscarContextoBiblioteca(sb: SupabaseClient, userId: string): Promise<string> {
-  const [readings, courses] = await Promise.all([
+  const [readings, goals] = await Promise.all([
     sb
       .from('readings')
-      .select('trilha, titulo, autor, status, progresso, nota_321')
+      .select('titulo, autor, trilha, status, progresso, nota_321')
       .eq('user_id', userId),
-    sb.from('courses').select('provedor, titulo, status, progresso').eq('user_id', userId),
+    sb
+      .from('goals')
+      .select('area, titulo, progresso, status')
+      .eq('user_id', userId)
+      .eq('status', 'ativo'),
   ])
 
-  return JSON.stringify({ leituras: readings.data ?? [], cursos: courses.data ?? [] }, null, 2)
+  return JSON.stringify(
+    { leituras: readings.data ?? [], metas_ativas: goals.data ?? [] },
+    null,
+    2,
+  )
 }
 
 async function buscarContextoCoach(sb: SupabaseClient, userId: string): Promise<string> {
-  const [cycles, goals, habits, journal] = await Promise.all([
+  const [habitos, diario, saude] = await Promise.all([
     sb
-      .from('cycles')
-      .select('nome, data_inicio, data_fim, ativo')
-      .eq('user_id', userId)
-      .eq('ativo', true),
-    sb
-      .from('goals')
-      .select('id, area, titulo, resultado_rpm, proposito_rpm, plano_rpm, progresso, status')
-      .eq('user_id', userId),
-    sb.from('habits').select('id, nome, area, ativo, ordem').eq('user_id', userId).order('ordem'),
-    sb
-      .from('journal_entries')
-      .select('data, tipo, humor, conteudo, o_que_senti')
+      .from('habit_logs')
+      .select('habit_id, data, concluido, habits(nome)')
       .eq('user_id', userId)
       .order('data', { ascending: false })
-      .limit(10),
+      .limit(35),
+    sb
+      .from('journal_entries')
+      .select('data, humor, o_que_senti')
+      .eq('user_id', userId)
+      .order('data', { ascending: false })
+      .limit(7),
+    sb
+      .from('health_metrics')
+      .select('chave, valor, measured_at')
+      .eq('user_id', userId)
+      .order('measured_at', { ascending: false })
+      .limit(20),
   ])
-
-  const goalIds = (goals.data ?? []).map((g) => g.id)
-  const keyResults = goalIds.length
-    ? await sb
-        .from('key_results')
-        .select('goal_id, descricao, valor_atual, valor_meta, unidade')
-        .in('goal_id', goalIds)
-    : { data: [] }
-
-  const habitIds = (habits.data ?? []).map((h) => h.id)
-  const last30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  const habitLogs = habitIds.length
-    ? await sb
-        .from('habit_logs')
-        .select('habit_id, data, concluido')
-        .in('habit_id', habitIds)
-        .gte('data', last30)
-    : { data: [] }
-
-  const habitNameById = new Map((habits.data ?? []).map((h) => [h.id, h.nome]))
 
   return JSON.stringify(
     {
-      ciclo_ativo: cycles.data ?? [],
-      metas: (goals.data ?? []).map((g) => ({
-        area: g.area,
-        titulo: g.titulo,
-        resultado_rpm: g.resultado_rpm,
-        proposito_rpm: g.proposito_rpm,
-        plano_rpm: g.plano_rpm,
-        progresso: g.progresso,
-        status: g.status,
-        resultados_chave: (keyResults.data ?? [])
-          .filter((kr) => kr.goal_id === g.id)
-          .map((kr) => ({
-            descricao: kr.descricao,
-            valor_atual: kr.valor_atual,
-            valor_meta: kr.valor_meta,
-            unidade: kr.unidade,
-          })),
-      })),
-      habitos_ultimos_30_dias: (habits.data ?? []).map((h) => ({
-        nome: h.nome,
-        ativo: h.ativo,
-        logs: (habitLogs.data ?? [])
-          .filter((log) => log.habit_id === h.id)
-          .map((log) => ({ data: log.data, concluido: log.concluido })),
-      })),
-      diario_recente: journal.data ?? [],
+      habitos_ultimos_35_dias: habitos.data ?? [],
+      diario_ultimos_7_dias: diario.data ?? [],
+      marcadores_saude: saude.data ?? [],
     },
     null,
     2,
@@ -216,23 +146,23 @@ async function buscarContextoCoach(sb: SupabaseClient, userId: string): Promise<
 }
 
 async function buscarContextoNutricao(sb: SupabaseClient, userId: string): Promise<string> {
-  const [meals, bodyMetrics] = await Promise.all([
+  const [refeicoes, composicao] = await Promise.all([
     sb
       .from('meals')
-      .select('data, refeicao, descricao, proteina_g, calorias, tipo')
+      .select('refeicao, descricao, proteina_g, calorias, tipo, data')
       .eq('user_id', userId)
       .order('data', { ascending: false })
-      .limit(30),
+      .limit(18),
     sb
       .from('body_metrics')
-      .select('medido_em, peso_kg, gordura_pct')
+      .select('peso_kg, gordura_pct, medido_em')
       .eq('user_id', userId)
       .order('medido_em', { ascending: false })
-      .limit(30),
+      .limit(5),
   ])
 
   return JSON.stringify(
-    { refeicoes_recentes: meals.data ?? [], medicoes_corporais_recentes: bodyMetrics.data ?? [] },
+    { refeicoes_recentes: refeicoes.data ?? [], composicao_corporal: composicao.data ?? [] },
     null,
     2,
   )
@@ -255,8 +185,8 @@ async function perguntarAnthropic(systemPrompt: string, contexto: string, pergun
     },
     body: JSON.stringify({
       model: ANTHROPIC_MODEL,
-      max_tokens: 1024,
-      system: `${systemPrompt}\n\nDADOS DO USUÁRIO (JSON):\n${contexto}`,
+      max_tokens: MAX_TOKENS,
+      system: `${systemPrompt}\n\nCONTEXTO DOS DADOS (JSON):\n${contexto}`,
       messages: [{ role: 'user', content: pergunta }],
     }),
   })
@@ -301,7 +231,8 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'pergunta é obrigatória' }, 400)
   }
 
-  // Cliente Supabase com o JWT do usuário: RLS garante que só os dados dele são lidos.
+  // Cliente Supabase com o JWT do usuário (anon key): RLS garante que só os dados dele são lidos.
+  // O user_id é sempre derivado do JWT abaixo — nunca aceito do corpo da requisição.
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
   })

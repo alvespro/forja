@@ -141,7 +141,9 @@ async function getConsumedItems(token: string, date: string): Promise<ConsumedIt
   if (!response.ok) {
     throw new Error(`Buscar diário Yazio falhou (${response.status}): ${await response.text()}`)
   }
-  return (await response.json()) as ConsumedItem[]
+  const data = await response.json()
+  // A API às vezes devolve `{}` em vez de `[]` quando o diário está vazio nesse dia.
+  return Array.isArray(data) ? (data as ConsumedItem[]) : []
 }
 
 async function getProductDetail(token: string, productId: string): Promise<ProductDetail | null> {

@@ -1,5 +1,6 @@
 // FORJA — sincronização diária com o Yazio (API não-oficial e reversa, sem suporte da Yazio).
-// Busca as refeições do dia anterior no diário do Yazio e grava em `meals`, registrando cada
+// Busca as refeições do dia anterior no diário do Yazio, identifica o `meal_slot` mais próximo
+// pelo horário e grava em `meal_logs` (upsert por `yazio_sync_id`, sem duplicar). Registra cada
 // tentativa (sucesso ou erro) em `yazio_sync_logs`.
 //
 // Autorização: aceita (a) o usuário logado dono dos dados (botão "Sincronizar agora" no app) ou
@@ -43,26 +44,22 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-type Daytime = 'breakfast' | 'lunch' | 'dinner' | 'snack'
-
-const DAYTIME_INFO: Record<Daytime, { refeicao: number; tipo: string; label: string }> = {
-  breakfast: { refeicao: 1, tipo: 'yazio:breakfast', label: 'Café da manhã (Yazio)' },
-  lunch: { refeicao: 2, tipo: 'yazio:lunch', label: 'Almoço (Yazio)' },
-  dinner: { refeicao: 3, tipo: 'yazio:dinner', label: 'Jantar (Yazio)' },
-  snack: { refeicao: 4, tipo: 'yazio:snack', label: 'Lanche (Yazio)' },
-}
-
 type ConsumedItem = {
   id: string
   product_id: string | null
-  date: string
-  daytime: Daytime
+  date: string // 'YYYY-MM-DD HH:MM:SS'
+  daytime: 'breakfast' | 'lunch' | 'dinner' | 'snack'
   amount: number
 }
 
 type ProductDetail = {
   name: string
   nutrients?: Record<string, number>
+}
+
+type MealSlotRow = {
+  id: string
+  horario_alvo: string | null // 'HH:MM:SS'
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -91,6 +88,31 @@ function yesterdayInSaoPaulo(): string {
   const spNow = new Date(Date.now() - 3 * 60 * 60 * 1000)
   spNow.setUTCDate(spNow.getUTCDate() - 1)
   return spNow.toISOString().slice(0, 10)
+}
+
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+/** Escolhe o meal_slot cujo horario_alvo está mais próximo do horário do item consumido. */
+function nearestSlot(itemDate: string, slots: MealSlotRow[]): string | null {
+  const withHorario = slots.filter((s) => s.horario_alvo)
+  if (withHorario.length === 0) return null
+
+  const timePart = itemDate.split(' ')[1] ?? '12:00:00'
+  const itemMinutes = timeToMinutes(timePart)
+
+  let closest = withHorario[0]
+  let smallestDiff = Infinity
+  for (const slot of withHorario) {
+    const diff = Math.abs(timeToMinutes(slot.horario_alvo as string) - itemMinutes)
+    if (diff < smallestDiff) {
+      smallestDiff = diff
+      closest = slot
+    }
+  }
+  return closest.id
 }
 
 async function yazioLogin(): Promise<string> {
@@ -130,17 +152,25 @@ async function getProductDetail(token: string, productId: string): Promise<Produ
   return (await response.json()) as ProductDetail
 }
 
-type MealRow = {
+type MealLogRow = {
   user_id: string
-  refeicao: number
-  descricao: string
-  proteina_g: number
-  calorias: number
-  tipo: string
+  meal_slot_id: string | null
   data: string
+  descricao: string
+  calorias: number
+  proteina_g: number
+  carbo_g: number
+  gordura_g: number
+  fonte: 'yazio'
+  yazio_sync_id: string
 }
 
-async function buildMealsFromDiary(token: string, date: string, items: ConsumedItem[]): Promise<MealRow[]> {
+async function buildMealLogsFromDiary(
+  token: string,
+  date: string,
+  items: ConsumedItem[],
+  slots: MealSlotRow[],
+): Promise<MealLogRow[]> {
   const uniqueProductIds = [...new Set(items.map((item) => item.product_id).filter((id): id is string => !!id))]
   const products = new Map<string, ProductDetail>()
   await Promise.all(
@@ -150,32 +180,24 @@ async function buildMealsFromDiary(token: string, date: string, items: ConsumedI
     }),
   )
 
-  const groups = new Map<Daytime, { calorias: number; proteina: number; nomes: string[] }>()
-  for (const item of items) {
-    const group = groups.get(item.daytime) ?? { calorias: 0, proteina: 0, nomes: [] }
+  return items.map((item) => {
     const product = item.product_id ? products.get(item.product_id) : undefined
-    if (product) {
-      const kcalPerG = product.nutrients?.['energy.energy'] ?? 0
-      const proteinPerG = product.nutrients?.['nutrient.protein'] ?? 0
-      group.calorias += item.amount * kcalPerG
-      group.proteina += item.amount * proteinPerG
-      if (!group.nomes.includes(product.name)) group.nomes.push(product.name)
-    } else if (!group.nomes.includes('item personalizado')) {
-      group.nomes.push('item personalizado')
-    }
-    groups.set(item.daytime, group)
-  }
+    const kcalPerG = product?.nutrients?.['energy.energy'] ?? 0
+    const proteinPerG = product?.nutrients?.['nutrient.protein'] ?? 0
+    const carbPerG = product?.nutrients?.['nutrient.carb'] ?? 0
+    const fatPerG = product?.nutrients?.['nutrient.fat'] ?? 0
 
-  return Array.from(groups.entries()).map(([daytime, group]) => {
-    const info = DAYTIME_INFO[daytime]
     return {
       user_id: FORJA_USER_ID,
-      refeicao: info.refeicao,
-      descricao: group.nomes.join(', ').slice(0, 500) || info.label,
-      proteina_g: Math.round(group.proteina * 10) / 10,
-      calorias: Math.round(group.calorias),
-      tipo: info.tipo,
+      meal_slot_id: nearestSlot(item.date, slots),
       data: date,
+      descricao: product?.name ?? 'item personalizado',
+      calorias: Math.round(item.amount * kcalPerG),
+      proteina_g: Math.round(item.amount * proteinPerG * 10) / 10,
+      carbo_g: Math.round(item.amount * carbPerG * 10) / 10,
+      gordura_g: Math.round(item.amount * fatPerG * 10) / 10,
+      fonte: 'yazio' as const,
+      yazio_sync_id: item.id,
     }
   })
 }
@@ -233,28 +255,42 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
   try {
+    const { data: dietPlan, error: dietPlanError } = await admin
+      .from('diet_plans')
+      .select('id')
+      .eq('user_id', FORJA_USER_ID)
+      .eq('ativo', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (dietPlanError) throw new Error(`Falha ao buscar plano ativo: ${dietPlanError.message}`)
+
+    const { data: slots, error: slotsError } = dietPlan
+      ? await admin.from('meal_slots').select('id, horario_alvo').eq('diet_plan_id', dietPlan.id)
+      : { data: [] as MealSlotRow[], error: null }
+    if (slotsError) throw new Error(`Falha ao buscar meal_slots: ${slotsError.message}`)
+
     const token = await yazioLogin()
     const items = await getConsumedItems(token, date)
-    const meals = items.length > 0 ? await buildMealsFromDiary(token, date, items) : []
 
-    // Idempotente: remove o que já foi importado do Yazio para essa data antes de regravar — mesmo
-    // quando o diário está vazio agora (ex: usuário apagou os itens no Yazio desde o último sync).
-    await admin.from('meals').delete().eq('user_id', FORJA_USER_ID).eq('data', date).like('tipo', 'yazio:%')
-
-    if (meals.length === 0) {
+    if (items.length === 0) {
       await logSync(admin, date, 'sucesso', 0, null)
-      return jsonResponse({ status: 'sucesso', data: date, registros_importados: 0 })
+      return jsonResponse({ sincronizados: 0, status: 'ok' })
     }
 
-    const { error: insertError } = await admin.from('meals').insert(meals)
-    if (insertError) throw new Error(`Falha ao salvar refeições: ${insertError.message}`)
+    const mealLogs = await buildMealLogsFromDiary(token, date, items, slots ?? [])
 
-    await logSync(admin, date, 'sucesso', items.length, null)
-    return jsonResponse({ status: 'sucesso', data: date, registros_importados: items.length })
+    const { error: upsertError } = await admin
+      .from('meal_logs')
+      .upsert(mealLogs, { onConflict: 'yazio_sync_id', ignoreDuplicates: false })
+    if (upsertError) throw new Error(`Falha ao salvar refeições: ${upsertError.message}`)
+
+    await logSync(admin, date, 'sucesso', mealLogs.length, null)
+    return jsonResponse({ sincronizados: mealLogs.length, status: 'ok' })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.error('sync-yazio error', error)
     await logSync(admin, date, 'erro', 0, message)
-    return jsonResponse({ status: 'erro', data: date, error: message }, 500)
+    return jsonResponse({ sincronizados: 0, status: 'erro', error: message }, 500)
   }
 })

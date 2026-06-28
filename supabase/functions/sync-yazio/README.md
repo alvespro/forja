@@ -1,7 +1,10 @@
 # sync-yazio — Edge Function
 
 Sincroniza diariamente o diário de refeições do Yazio (API não-oficial e reversa, sem suporte
-oficial da Yazio — pode parar de funcionar se eles mudarem a API) com a tabela `meals` do FORJA.
+oficial da Yazio — pode parar de funcionar se eles mudarem a API) com `meal_logs` do FORJA (Fase
+4.5 — Nutrição). Cada item consumido é gravado individualmente, com `meal_slot_id` resolvido pelo
+horário mais próximo dentre os slots do plano ativo, e `yazio_sync_id = <id do item no Yazio>`
+para upsert idempotente (rodar de novo no mesmo dia não duplica).
 
 ## Secrets necessários
 
@@ -74,7 +77,7 @@ nativo do Supabase (`service_role`).
 
 Body opcional: `{ "date": "YYYY-MM-DD" }` — se omitido, sincroniza o dia anterior.
 
-Resposta: `{ "status": "sucesso" | "erro", "data": "YYYY-MM-DD", "registros_importados": number, "error"?: string }`
+Resposta: `{ "status": "ok" | "erro", "sincronizados": number, "error"?: string }`
 
 ## Por que não busco direto via `npx yazio-mcp`
 

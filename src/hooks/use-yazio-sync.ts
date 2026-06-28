@@ -38,8 +38,8 @@ export function useSyncYazioNow() {
   return useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke<{
-        status?: string
-        registros_importados?: number
+        status?: 'ok' | 'erro'
+        sincronizados?: number
         error?: string
       }>('sync-yazio', { body: {} })
 
@@ -54,7 +54,7 @@ export function useSyncYazioNow() {
         }
         throw error
       }
-      if (data?.status !== 'sucesso') throw new Error(data?.error ?? 'Falha ao sincronizar com o Yazio')
+      if (data?.status !== 'ok') throw new Error(data?.error ?? 'Falha ao sincronizar com o Yazio')
       return data
     },
     // onSettled (não onSuccess): mesmo quando a sincronização falha, a Edge Function já gravou um
@@ -62,6 +62,7 @@ export function useSyncYazioNow() {
     // escondendo a falha mais recente.
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['meals'] })
+      queryClient.invalidateQueries({ queryKey: ['meal-logs'] })
       queryClient.invalidateQueries({ queryKey: ['yazio-sync-logs'] })
     },
   })

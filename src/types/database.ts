@@ -251,3 +251,134 @@ export type CrmClient = {
   data_proxima_acao: string | null
   created_at: string
 }
+
+export type DietPlan = {
+  id: string
+  user_id: string
+  cycle_id: string | null
+  nome: string
+  ativo: boolean
+  calorias_alvo: number | null
+  proteina_g: number | null
+  carbo_g: number | null
+  gordura_g: number | null
+  observacoes: string | null
+  created_at: string
+}
+
+export type MealSlotTipo = 'cafe_manha' | 'pre_treino' | 'pos_treino' | 'almoco' | 'lanche' | 'jantar'
+
+export type MealSlot = {
+  id: string
+  user_id: string
+  diet_plan_id: string
+  numero: number
+  nome: string
+  horario_alvo: string | null
+  tipo: MealSlotTipo
+  calorias_alvo: number | null
+  proteina_g_alvo: number | null
+  carbo_g_alvo: number | null
+  gordura_g_alvo: number | null
+  notas: string | null
+}
+
+export type MealLogFonte = 'yazio' | 'manual'
+
+export type MealLog = {
+  id: string
+  user_id: string
+  meal_slot_id: string | null
+  data: string
+  descricao: string | null
+  calorias: number | null
+  proteina_g: number | null
+  carbo_g: number | null
+  gordura_g: number | null
+  fonte: MealLogFonte
+  yazio_sync_id: string | null
+  created_at: string
+}
+
+export type MealSuggestionIngrediente = {
+  nome: string
+  quantidade: string
+  food_id?: string
+}
+
+export type MealSuggestion = {
+  id: string
+  user_id: string
+  meal_slot_id: string | null
+  nome: string
+  descricao: string | null
+  calorias: number | null
+  proteina_g: number | null
+  carbo_g: number | null
+  gordura_g: number | null
+  ingredientes: MealSuggestionIngrediente[] | null
+  origem: 'ia' | 'manual'
+  ativa: boolean
+  created_at: string
+}
+
+export type Food = {
+  id: string
+  user_id: string
+  nome: string
+  fonte: MealLogFonte
+  yazio_id: string | null
+  calorias_100g: number | null
+  proteina_100g: number | null
+  carbo_100g: number | null
+  gordura_100g: number | null
+  fibra_100g: number | null
+  categoria: string | null
+  disponivel_rio_verde: boolean
+  created_at: string
+}
+
+export type FoodSubstitution = {
+  id: string
+  user_id: string
+  food_id_original: string | null
+  food_id_substituto: string | null
+  motivo: string | null
+  equivalencia_g: number | null
+  aprovado_ia: boolean
+  created_at: string
+}
+
+export type SupplementTipo = 'whey' | 'creatina' | 'vitamina' | 'pre_treino' | 'omega3' | 'minerais' | 'outro'
+export type SupplementMomento =
+  | 'jejum'
+  | 'cafe_manha'
+  | 'pre_treino'
+  | 'pos_treino'
+  | 'almoco'
+  | 'jantar'
+  | 'dormir'
+  | 'qualquer'
+
+export type Supplement = {
+  id: string
+  user_id: string
+  nome: string
+  tipo: SupplementTipo | null
+  dose: string | null
+  unidade: string | null
+  momento: SupplementMomento | null
+  dias_semana: string[] | null
+  ativo: boolean
+  notas: string | null
+  created_at: string
+}
+
+export type SupplementLog = {
+  id: string
+  user_id: string
+  supplement_id: string
+  data: string
+  tomado: boolean
+  horario: string | null
+}

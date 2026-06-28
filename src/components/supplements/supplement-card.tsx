@@ -1,0 +1,101 @@
+import { useState } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { SupplementForm } from '@/components/supplements/supplement-form'
+import { useConfirm } from '@/hooks/use-confirm'
+import { useDeleteSupplement, useUpdateSupplement, type SupplementInput } from '@/hooks/use-supplements'
+import { cn } from '@/lib/utils'
+import type { Supplement } from '@/types/database'
+
+type SupplementCardProps = {
+  supplement: Supplement
+  adesaoPct: number | null
+}
+
+export function SupplementCard({ supplement, adesaoPct }: SupplementCardProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const updateSupplement = useUpdateSupplement()
+  const deleteSupplement = useDeleteSupplement()
+  const { confirm, dialog } = useConfirm()
+
+  async function handleDelete() {
+    const ok = await confirm({
+      title: `Excluir "${supplement.nome}"?`,
+      description: 'Essa ação não pode ser desfeita.',
+    })
+    if (!ok) return
+    deleteSupplement.mutate(supplement.id)
+  }
+
+  function handleUpdate(values: SupplementInput) {
+    updateSupplement.mutate({ id: supplement.id, values }, { onSuccess: () => setIsEditing(false) })
+  }
+
+  function handleToggleAtivo() {
+    const values: SupplementInput = {
+      nome: supplement.nome,
+      tipo: supplement.tipo,
+      dose: supplement.dose,
+      unidade: supplement.unidade,
+      momento: supplement.momento,
+      dias_semana: supplement.dias_semana,
+      ativo: !supplement.ativo,
+      notas: supplement.notas,
+    }
+    updateSupplement.mutate({ id: supplement.id, values })
+  }
+
+  if (isEditing) {
+    return (
+      <SupplementForm
+        supplement={supplement}
+        onSubmit={handleUpdate}
+        onCancel={() => setIsEditing(false)}
+        isSubmitting={updateSupplement.isPending}
+      />
+    )
+  }
+
+  return (
+    <>
+      {dialog}
+      <Card size="sm" className={cn(!supplement.ativo && 'opacity-60')}>
+        <CardContent className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-medium text-foreground">
+              {supplement.nome}
+              {!supplement.ativo && <span className="ml-1.5 text-xs text-aco-texto">(inativo)</span>}
+            </span>
+            <span className="truncate font-mono text-xs text-aco-texto">
+              {supplement.dose}
+              {supplement.unidade} · {supplement.momento} ·{' '}
+              {(supplement.dias_semana ?? []).join(', ') || 'sem dias definidos'}
+            </span>
+            {adesaoPct !== null && (
+              <span className="font-mono text-xs text-brasa">{adesaoPct}% de adesão no ciclo atual</span>
+            )}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={supplement.ativo ? 'Desativar' : 'Ativar'}
+              onClick={handleToggleAtivo}
+            >
+              {supplement.ativo ? '⏸' : '▶'}
+            </Button>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label="Editar" onClick={() => setIsEditing(true)}>
+              <Pencil className="size-3.5" aria-hidden="true" />
+            </Button>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label="Excluir" onClick={handleDelete}>
+              <Trash2 className="size-3.5" aria-hidden="true" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  )
+}

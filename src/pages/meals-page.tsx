@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MealForm } from '@/components/meals/meal-form'
-import { YazioSyncFooter } from '@/components/meals/yazio-sync-footer'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useCreateMeal, useDeleteMeal, useMeals } from '@/hooks/use-meals'
 import { parseDateOnly, todayInSaoPaulo } from '@/lib/date'
@@ -122,8 +121,6 @@ export function MealsPage() {
           ))}
         </div>
       )}
-
-      <YazioSyncFooter />
     </div>
   )
 }

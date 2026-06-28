@@ -18,6 +18,8 @@ const FinancesPage = lazy(() => import('@/pages/finances-page').then((m) => ({ d
 const BodyPage = lazy(() => import('@/pages/body-page').then((m) => ({ default: m.BodyPage })))
 const MealsPage = lazy(() => import('@/pages/meals-page').then((m) => ({ default: m.MealsPage })))
 const CrmPage = lazy(() => import('@/pages/crm-page').then((m) => ({ default: m.CrmPage })))
+const NutricaoPage = lazy(() => import('@/pages/nutricao-page').then((m) => ({ default: m.NutricaoPage })))
+const SupplementsPage = lazy(() => import('@/pages/supplements-page').then((m) => ({ default: m.SupplementsPage })))
 
 /** Páginas de auth ficam fora do AppShell, sem Suspense de layout — cada uma traz a própria. */
 function withSuspense(element: React.ReactNode) {
@@ -46,6 +48,8 @@ export const router = createBrowserRouter([
           { path: 'body', element: <BodyPage /> },
           { path: 'meals', element: <MealsPage /> },
           { path: 'crm', element: <CrmPage /> },
+          { path: 'nutricao', element: <NutricaoPage /> },
+          { path: 'suplementos', element: <SupplementsPage /> },
         ],
       },
     ],

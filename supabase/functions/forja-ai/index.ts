@@ -248,6 +248,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ resposta })
   } catch (error) {
     console.error('forja-ai error', error)
-    return jsonResponse({ error: 'Falha ao gerar resposta do agente' }, 500)
+    const detail = error instanceof Error ? error.message : String(error)
+    return jsonResponse({ error: `Falha ao gerar resposta do agente: ${detail}` }, 500)
   }
 })

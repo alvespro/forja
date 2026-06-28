@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import { FunctionsHttpError } from '@supabase/supabase-js'
 
 import { supabase } from '@/lib/supabase'
 
@@ -23,7 +24,19 @@ export function useForjaAI() {
         'forja-ai',
         { body: { agente, pergunta } },
       )
-      if (error) throw error
+      if (error) {
+        if (error instanceof FunctionsHttpError) {
+          let serverMessage: string | undefined
+          try {
+            const body = await error.context.clone().json()
+            serverMessage = body?.error
+          } catch {
+            // corpo não era JSON com `error` — segue com a mensagem genérica
+          }
+          if (serverMessage) throw new Error(serverMessage)
+        }
+        throw error
+      }
       if (!data?.resposta) throw new Error(data?.error ?? 'Resposta vazia do agente')
       return data.resposta
     },

@@ -66,7 +66,11 @@ export function ForjaChat() {
             </form>
 
             {perguntar.isError && (
-              <p className="text-xs text-alerta">Não foi possível obter resposta do agente. Tente novamente.</p>
+              <p className="text-xs text-alerta">
+                {perguntar.error instanceof Error
+                  ? perguntar.error.message
+                  : 'Não foi possível obter resposta do agente. Tente novamente.'}
+              </p>
             )}
 
             {resposta && (

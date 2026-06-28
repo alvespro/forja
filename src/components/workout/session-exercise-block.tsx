@@ -8,6 +8,7 @@ type SessionExerciseBlockProps = {
   prescription: WorkoutExercise
   logs: SetLog[]
   lastLog: SetLog | undefined
+  pausaPadraoSeg: number
   onSetCompleted: (log: SetLog, pausaAlvoSeg: number | null) => void
 }
 
@@ -17,6 +18,7 @@ export function SessionExerciseBlock({
   prescription,
   logs,
   lastLog,
+  pausaPadraoSeg,
   onSetCompleted,
 }: SessionExerciseBlockProps) {
   const totalSeries = prescription.series_alvo ?? logs.length ?? 1
@@ -43,6 +45,7 @@ export function SessionExerciseBlock({
               prescription={prescription}
               existingLog={logs.find((log) => log.serie_num === serieNum)}
               lastLog={lastLog}
+              pausaPadraoSeg={pausaPadraoSeg}
               onSetCompleted={(log) => onSetCompleted(log, prescription.pausa_alvo_seg)}
             />
           ))}

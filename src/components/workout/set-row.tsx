@@ -3,6 +3,7 @@ import { Check, Pencil } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PauseCountdown } from '@/components/workout/pause-countdown'
 import { useCreateSetLog, useUpdateSetLog } from '@/hooks/use-set-logs'
 import { cn } from '@/lib/utils'
 import type { SetLog, WorkoutExercise } from '@/types/database'
@@ -14,6 +15,7 @@ type SetRowProps = {
   prescription: WorkoutExercise | undefined
   existingLog: SetLog | undefined
   lastLog: SetLog | undefined
+  pausaPadraoSeg: number
   onSetCompleted: (log: SetLog) => void
 }
 
@@ -24,12 +26,13 @@ export function SetRow({
   prescription,
   existingLog,
   lastLog,
+  pausaPadraoSeg,
   onSetCompleted,
 }: SetRowProps) {
   const [isEditing, setIsEditing] = useState(!existingLog)
   const [carga, setCarga] = useState(String(existingLog?.carga_kg ?? lastLog?.carga_kg ?? ''))
   const [reps, setReps] = useState(String(existingLog?.reps ?? lastLog?.reps ?? ''))
-  const [pausa, setPausa] = useState(String(existingLog?.pausa_seg ?? ''))
+  const [pausa, setPausa] = useState(existingLog?.pausa_seg ?? 0)
   const [cadencia, setCadencia] = useState(existingLog?.cadencia ?? prescription?.cadencia_alvo ?? '')
   const [rpe, setRpe] = useState(String(existingLog?.rpe ?? ''))
 
@@ -44,7 +47,7 @@ export function SetRow({
       serie_num: serieNum,
       carga_kg: carga ? Number(carga) : null,
       reps: reps ? Number(reps) : null,
-      pausa_seg: pausa ? Number(pausa) : null,
+      pausa_seg: pausa || null,
       cadencia: cadencia.trim() || null,
       rpe: rpe ? Number(rpe) : null,
       concluida: true,
@@ -111,12 +114,10 @@ export function SetRow({
           value={reps}
           onChange={(event) => setReps(event.target.value)}
         />
-        <Input
-          type="number"
-          placeholder="pausa(s)"
-          aria-label="Pausa em segundos"
-          value={pausa}
-          onChange={(event) => setPausa(event.target.value)}
+        <PauseCountdown
+          key={prescription?.pausa_alvo_seg ?? pausaPadraoSeg}
+          targetSeconds={prescription?.pausa_alvo_seg ?? pausaPadraoSeg}
+          onElapsedChange={setPausa}
         />
         <Input
           placeholder="cadência"

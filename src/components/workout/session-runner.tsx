@@ -24,6 +24,14 @@ import {
 import { useWorkouts } from '@/hooks/use-workouts'
 import type { Exercise, SetLog } from '@/types/database'
 
+const PAUSA_PADRAO_STORAGE_KEY = 'forja:pausa-padrao-seg'
+
+function readPausaPadraoSeg(): number {
+  const stored = window.localStorage.getItem(PAUSA_PADRAO_STORAGE_KEY)
+  const parsed = stored ? Number(stored) : NaN
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 60
+}
+
 function formatDuration(totalSeconds: number): string {
   const seconds = Math.floor(totalSeconds)
   const hours = Math.floor(seconds / 3600)
@@ -138,6 +146,13 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
   const [esforco, setEsforco] = useState('')
   const [notas, setNotas] = useState('')
   const [activeRest, setActiveRest] = useState<{ logId: string; targetSeconds: number } | null>(null)
+  const [pausaPadraoSeg, setPausaPadraoSeg] = useState(readPausaPadraoSeg)
+
+  function handlePausaPadraoChange(value: string) {
+    const seconds = Math.max(1, Number(value) || 60)
+    setPausaPadraoSeg(seconds)
+    window.localStorage.setItem(PAUSA_PADRAO_STORAGE_KEY, String(seconds))
+  }
 
   function handleSetCompleted(log: SetLog, pausaAlvoSeg: number | null) {
     if (pausaAlvoSeg && pausaAlvoSeg > 0) {
@@ -199,6 +214,21 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <label htmlFor="sr-pausa-padrao" className="text-xs text-aco-texto">
+          Pausa padrão entre séries
+        </label>
+        <Input
+          id="sr-pausa-padrao"
+          type="number"
+          min={1}
+          className="h-7 w-20"
+          value={pausaPadraoSeg}
+          onChange={(event) => handlePausaPadraoChange(event.target.value)}
+        />
+        <span className="text-xs text-aco-texto">s</span>
+      </div>
+
       {activeRest && (
         <RestTimer
           key={activeRest.logId}
@@ -263,6 +293,7 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
             prescription={prescription}
             logs={logsByExercise.get(prescription.exercise_id) ?? []}
             lastLog={lastLogs.data?.get(prescription.exercise_id)}
+            pausaPadraoSeg={pausaPadraoSeg}
             onSetCompleted={handleSetCompleted}
           />
         ))

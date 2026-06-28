@@ -11,6 +11,7 @@ import { FreeTimer } from '@/components/workout/free-timer'
 import { RestTimer } from '@/components/workout/rest-timer'
 import { SessionExerciseBlock } from '@/components/workout/session-exercise-block'
 import { useActiveSession } from '@/hooks/use-active-session'
+import { useElapsedSince } from '@/hooks/use-elapsed-since'
 import { useExercises } from '@/hooks/use-exercises'
 import { useLastSetLogByExercise, useSetLogsForSession, useUpdateSetLogPausa } from '@/hooks/use-set-logs'
 import { useWakeLock } from '@/hooks/use-wake-lock'
@@ -22,6 +23,16 @@ import {
 } from '@/hooks/use-workout-sessions'
 import { useWorkouts } from '@/hooks/use-workouts'
 import type { Exercise, SetLog } from '@/types/database'
+
+function formatDuration(totalSeconds: number): string {
+  const seconds = Math.floor(totalSeconds)
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+  const mm = String(minutes).padStart(2, '0')
+  const ss = String(secs).padStart(2, '0')
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`
+}
 
 export function SessionRunner() {
   const { sessionId, setSessionId } = useActiveSession()
@@ -120,6 +131,9 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
 
   useWakeLock(true)
 
+  const startedAtMs = session.data ? new Date(session.data.performed_at).getTime() : Date.now()
+  const elapsedSeconds = useElapsedSince(startedAtMs)
+
   const [isFinishing, setIsFinishing] = useState(false)
   const [esforco, setEsforco] = useState('')
   const [notas, setNotas] = useState('')
@@ -150,13 +164,11 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
 
   function handleFinish() {
     if (!session.data) return
-    const startedAt = new Date(session.data.performed_at).getTime()
-    const duracaoSeg = Math.max(0, Math.round((Date.now() - startedAt) / 1000))
 
     finishSession.mutate(
       {
         id: sessionId,
-        duracao_seg: duracaoSeg,
+        duracao_seg: Math.round(elapsedSeconds),
         esforco_percebido: esforco ? Number(esforco) : null,
         notas: notas.trim() || null,
       },
@@ -196,7 +208,10 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
       )}
 
       <div className="flex items-center justify-between rounded-lg border border-brasa/40 bg-brasa/10 px-3 py-2">
-        <span className="text-sm font-medium text-foreground">Sessão em andamento</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-foreground">Sessão em andamento</span>
+          <span className="font-mono text-sm tabular-nums text-brasa">{formatDuration(elapsedSeconds)}</span>
+        </div>
         {!isFinishing && (
           <Button type="button" size="sm" onClick={() => setIsFinishing(true)}>
             Finalizar treino

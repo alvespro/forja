@@ -14,26 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      body_metrics: {
+      body_goals: {
         Row: {
-          gordura_pct: number | null
+          agua_meta_pct: number | null
+          created_at: string | null
+          cycle_id: string | null
+          gordura_meta_pct: number | null
+          gordura_visceral_meta: number | null
           id: string
-          medido_em: string
-          peso_kg: number | null
+          imc_meta: number | null
+          massa_muscular_meta_kg: number | null
+          musculo_pct_meta: number | null
+          objetivo: string | null
+          peso_meta_kg: number | null
+          tmb_meta_kcal: number | null
           user_id: string
         }
         Insert: {
-          gordura_pct?: number | null
+          agua_meta_pct?: number | null
+          created_at?: string | null
+          cycle_id?: string | null
+          gordura_meta_pct?: number | null
+          gordura_visceral_meta?: number | null
           id?: string
-          medido_em?: string
-          peso_kg?: number | null
+          imc_meta?: number | null
+          massa_muscular_meta_kg?: number | null
+          musculo_pct_meta?: number | null
+          objetivo?: string | null
+          peso_meta_kg?: number | null
+          tmb_meta_kcal?: number | null
           user_id: string
         }
         Update: {
-          gordura_pct?: number | null
+          agua_meta_pct?: number | null
+          created_at?: string | null
+          cycle_id?: string | null
+          gordura_meta_pct?: number | null
+          gordura_visceral_meta?: number | null
           id?: string
+          imc_meta?: number | null
+          massa_muscular_meta_kg?: number | null
+          musculo_pct_meta?: number | null
+          objetivo?: string | null
+          peso_meta_kg?: number | null
+          tmb_meta_kcal?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "body_goals_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      body_metrics: {
+        Row: {
+          agua_pct: number | null
+          fonte: string | null
+          gordura_corporal_kg: number | null
+          gordura_pct: number | null
+          gordura_subcutanea_pct: number | null
+          gordura_visceral: number | null
+          id: string
+          idade_corporal: number | null
+          imc: number | null
+          massa_ossea_kg: number | null
+          medido_em: string
+          musculo_pct: number | null
+          peso_ideal_kg: number | null
+          peso_kg: number | null
+          peso_muscular_kg: number | null
+          peso_sem_gordura_kg: number | null
+          proteina_kg: number | null
+          proteina_pct: number | null
+          tgc_pct: number | null
+          tmb_kcal: number | null
+          user_id: string
+        }
+        Insert: {
+          agua_pct?: number | null
+          fonte?: string | null
+          gordura_corporal_kg?: number | null
+          gordura_pct?: number | null
+          gordura_subcutanea_pct?: number | null
+          gordura_visceral?: number | null
+          id?: string
+          idade_corporal?: number | null
+          imc?: number | null
+          massa_ossea_kg?: number | null
           medido_em?: string
+          musculo_pct?: number | null
+          peso_ideal_kg?: number | null
           peso_kg?: number | null
+          peso_muscular_kg?: number | null
+          peso_sem_gordura_kg?: number | null
+          proteina_kg?: number | null
+          proteina_pct?: number | null
+          tgc_pct?: number | null
+          tmb_kcal?: number | null
+          user_id: string
+        }
+        Update: {
+          agua_pct?: number | null
+          fonte?: string | null
+          gordura_corporal_kg?: number | null
+          gordura_pct?: number | null
+          gordura_subcutanea_pct?: number | null
+          gordura_visceral?: number | null
+          id?: string
+          idade_corporal?: number | null
+          imc?: number | null
+          massa_ossea_kg?: number | null
+          medido_em?: string
+          musculo_pct?: number | null
+          peso_ideal_kg?: number | null
+          peso_kg?: number | null
+          peso_muscular_kg?: number | null
+          peso_sem_gordura_kg?: number | null
+          proteina_kg?: number | null
+          proteina_pct?: number | null
+          tgc_pct?: number | null
+          tmb_kcal?: number | null
           user_id?: string
         }
         Relationships: []
@@ -167,6 +271,92 @@ export type Database = {
         }
         Relationships: []
       }
+      diet_plans: {
+        Row: {
+          ativo: boolean | null
+          calorias_alvo: number | null
+          carbo_g: number | null
+          created_at: string | null
+          cycle_id: string | null
+          gordura_g: number | null
+          id: string
+          nome: string
+          observacoes: string | null
+          proteina_g: number | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          calorias_alvo?: number | null
+          carbo_g?: number | null
+          created_at?: string | null
+          cycle_id?: string | null
+          gordura_g?: number | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          proteina_g?: number | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          calorias_alvo?: number | null
+          carbo_g?: number | null
+          created_at?: string | null
+          cycle_id?: string | null
+          gordura_g?: number | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          proteina_g?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_plans_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_imports: {
+        Row: {
+          created_at: string | null
+          dados_confirmados: Json | null
+          dados_extraidos: Json | null
+          erro: string | null
+          id: string
+          status: string | null
+          storage_path: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          dados_confirmados?: Json | null
+          dados_extraidos?: Json | null
+          erro?: string | null
+          id?: string
+          status?: string | null
+          storage_path: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          dados_confirmados?: Json | null
+          dados_extraidos?: Json | null
+          erro?: string | null
+          id?: string
+          status?: string | null
+          storage_path?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           cadencia_padrao: string | null
@@ -286,6 +476,102 @@ export type Database = {
           tarefa?: string | null
           tecnica?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      food_substitutions: {
+        Row: {
+          aprovado_ia: boolean | null
+          created_at: string | null
+          equivalencia_g: number | null
+          food_id_original: string | null
+          food_id_substituto: string | null
+          id: string
+          motivo: string | null
+          user_id: string
+        }
+        Insert: {
+          aprovado_ia?: boolean | null
+          created_at?: string | null
+          equivalencia_g?: number | null
+          food_id_original?: string | null
+          food_id_substituto?: string | null
+          id?: string
+          motivo?: string | null
+          user_id: string
+        }
+        Update: {
+          aprovado_ia?: boolean | null
+          created_at?: string | null
+          equivalencia_g?: number | null
+          food_id_original?: string | null
+          food_id_substituto?: string | null
+          id?: string
+          motivo?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_substitutions_food_id_original_fkey"
+            columns: ["food_id_original"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_substitutions_food_id_substituto_fkey"
+            columns: ["food_id_substituto"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      foods: {
+        Row: {
+          calorias_100g: number | null
+          carbo_100g: number | null
+          categoria: string | null
+          created_at: string | null
+          disponivel_rio_verde: boolean | null
+          fibra_100g: number | null
+          fonte: string | null
+          gordura_100g: number | null
+          id: string
+          nome: string
+          proteina_100g: number | null
+          user_id: string
+          yazio_id: string | null
+        }
+        Insert: {
+          calorias_100g?: number | null
+          carbo_100g?: number | null
+          categoria?: string | null
+          created_at?: string | null
+          disponivel_rio_verde?: boolean | null
+          fibra_100g?: number | null
+          fonte?: string | null
+          gordura_100g?: number | null
+          id?: string
+          nome: string
+          proteina_100g?: number | null
+          user_id: string
+          yazio_id?: string | null
+        }
+        Update: {
+          calorias_100g?: number | null
+          carbo_100g?: number | null
+          categoria?: string | null
+          created_at?: string | null
+          disponivel_rio_verde?: boolean | null
+          fibra_100g?: number | null
+          fonte?: string | null
+          gordura_100g?: number | null
+          id?: string
+          nome?: string
+          proteina_100g?: number | null
+          user_id?: string
+          yazio_id?: string | null
         }
         Relationships: []
       }
@@ -523,6 +809,168 @@ export type Database = {
           },
         ]
       }
+      meal_logs: {
+        Row: {
+          calorias: number | null
+          carbo_g: number | null
+          created_at: string | null
+          data: string
+          descricao: string | null
+          fonte: string | null
+          gordura_g: number | null
+          id: string
+          meal_slot_id: string | null
+          proteina_g: number | null
+          user_id: string
+          yazio_sync_id: string | null
+        }
+        Insert: {
+          calorias?: number | null
+          carbo_g?: number | null
+          created_at?: string | null
+          data?: string
+          descricao?: string | null
+          fonte?: string | null
+          gordura_g?: number | null
+          id?: string
+          meal_slot_id?: string | null
+          proteina_g?: number | null
+          user_id: string
+          yazio_sync_id?: string | null
+        }
+        Update: {
+          calorias?: number | null
+          carbo_g?: number | null
+          created_at?: string | null
+          data?: string
+          descricao?: string | null
+          fonte?: string | null
+          gordura_g?: number | null
+          id?: string
+          meal_slot_id?: string | null
+          proteina_g?: number | null
+          user_id?: string
+          yazio_sync_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_logs_meal_slot_id_fkey"
+            columns: ["meal_slot_id"]
+            isOneToOne: false
+            referencedRelation: "meal_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meal_slots: {
+        Row: {
+          calorias_alvo: number | null
+          carbo_g_alvo: number | null
+          diet_plan_id: string
+          gordura_g_alvo: number | null
+          horario_alvo: string | null
+          id: string
+          nome: string
+          notas: string | null
+          numero: number
+          proteina_g_alvo: number | null
+          tipo: string | null
+          user_id: string
+        }
+        Insert: {
+          calorias_alvo?: number | null
+          carbo_g_alvo?: number | null
+          diet_plan_id: string
+          gordura_g_alvo?: number | null
+          horario_alvo?: string | null
+          id?: string
+          nome: string
+          notas?: string | null
+          numero: number
+          proteina_g_alvo?: number | null
+          tipo?: string | null
+          user_id: string
+        }
+        Update: {
+          calorias_alvo?: number | null
+          carbo_g_alvo?: number | null
+          diet_plan_id?: string
+          gordura_g_alvo?: number | null
+          horario_alvo?: string | null
+          id?: string
+          nome?: string
+          notas?: string | null
+          numero?: number
+          proteina_g_alvo?: number | null
+          tipo?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_slots_diet_plan_id_fkey"
+            columns: ["diet_plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meal_suggestions: {
+        Row: {
+          ativa: boolean | null
+          calorias: number | null
+          carbo_g: number | null
+          created_at: string | null
+          descricao: string | null
+          gordura_g: number | null
+          id: string
+          ingredientes: Json | null
+          meal_slot_id: string | null
+          nome: string
+          origem: string | null
+          proteina_g: number | null
+          user_id: string
+        }
+        Insert: {
+          ativa?: boolean | null
+          calorias?: number | null
+          carbo_g?: number | null
+          created_at?: string | null
+          descricao?: string | null
+          gordura_g?: number | null
+          id?: string
+          ingredientes?: Json | null
+          meal_slot_id?: string | null
+          nome: string
+          origem?: string | null
+          proteina_g?: number | null
+          user_id: string
+        }
+        Update: {
+          ativa?: boolean | null
+          calorias?: number | null
+          carbo_g?: number | null
+          created_at?: string | null
+          descricao?: string | null
+          gordura_g?: number | null
+          id?: string
+          ingredientes?: Json | null
+          meal_slot_id?: string | null
+          nome?: string
+          origem?: string | null
+          proteina_g?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_suggestions_meal_slot_id_fkey"
+            columns: ["meal_slot_id"]
+            isOneToOne: false
+            referencedRelation: "meal_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meals: {
         Row: {
           calorias: number | null
@@ -670,6 +1118,83 @@ export type Database = {
           },
         ]
       }
+      supplement_logs: {
+        Row: {
+          data: string
+          horario: string | null
+          id: string
+          supplement_id: string
+          tomado: boolean | null
+          user_id: string
+        }
+        Insert: {
+          data?: string
+          horario?: string | null
+          id?: string
+          supplement_id: string
+          tomado?: boolean | null
+          user_id: string
+        }
+        Update: {
+          data?: string
+          horario?: string | null
+          id?: string
+          supplement_id?: string
+          tomado?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplement_logs_supplement_id_fkey"
+            columns: ["supplement_id"]
+            isOneToOne: false
+            referencedRelation: "supplements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplements: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          dias_semana: string[] | null
+          dose: string | null
+          id: string
+          momento: string | null
+          nome: string
+          notas: string | null
+          tipo: string | null
+          unidade: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          dias_semana?: string[] | null
+          dose?: string | null
+          id?: string
+          momento?: string | null
+          nome: string
+          notas?: string | null
+          tipo?: string | null
+          unidade?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          dias_semana?: string[] | null
+          dose?: string | null
+          id?: string
+          momento?: string | null
+          nome?: string
+          notas?: string | null
+          tipo?: string | null
+          unidade?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           area: string | null
@@ -815,6 +1340,36 @@ export type Database = {
           id?: string
           nome?: string
           ordem?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      yazio_sync_logs: {
+        Row: {
+          created_at: string | null
+          data: string
+          erro: string | null
+          id: string
+          registros_importados: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data: string
+          erro?: string | null
+          id?: string
+          registros_importados?: number
+          status: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: string
+          erro?: string | null
+          id?: string
+          registros_importados?: number
+          status?: string
           user_id?: string
         }
         Relationships: []

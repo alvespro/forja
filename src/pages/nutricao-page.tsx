@@ -9,6 +9,8 @@ import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DailySummaryBar } from '@/components/nutrition/daily-summary-bar'
 import { MealSlotCard } from '@/components/nutrition/meal-slot-card'
+import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
+import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { SupplementsTodaySection } from '@/components/nutrition/supplements-today-section'
 import { useActiveDietPlan, useMealSlots } from '@/hooks/use-diet-plan'
 import { useMealLogsToday } from '@/hooks/use-meal-logs'
@@ -51,10 +53,15 @@ export function NutricaoPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">Nutrição 🥗</h1>
-        <p className="text-sm text-aco-texto">{dietPlan.data?.nome ?? 'Plano alimentar e suplementação'}</p>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Nutrição 🥗</h1>
+          <p className="text-sm text-aco-texto">{dietPlan.data?.nome ?? 'Plano alimentar e suplementação'}</p>
+        </div>
+        <ObjectiveBadge />
       </div>
+
+      <DietAdequacyCard />
 
       {isLoading ? (
         <div className="flex flex-col gap-3">

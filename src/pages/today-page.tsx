@@ -1,6 +1,9 @@
 import { ptBR } from 'date-fns/locale'
 import { format } from 'date-fns'
 
+import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
+import { ObjectiveBadge } from '@/components/body/objective-badge'
+import { CycleEndAlertCard } from '@/components/today/cycle-end-alert-card'
 import { CycleProgressCard } from '@/components/today/cycle-progress-card'
 import { FrogTaskCard } from '@/components/today/frog-task-card'
 import { HabitChecklistCard } from '@/components/today/habit-checklist-card'
@@ -15,13 +18,18 @@ export function TodayPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">Hoje</h1>
-        <p className="text-sm capitalize text-aco-texto">{dataFormatada}</p>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Hoje</h1>
+          <p className="text-sm capitalize text-aco-texto">{dataFormatada}</p>
+        </div>
+        <ObjectiveBadge />
       </div>
 
+      <CycleEndAlertCard />
       <CycleProgressCard />
       <WorkoutTodayCard />
+      <DietAdequacyCard collapsible />
       <PretreinoAlertCard />
       <FrogTaskCard />
       <HabitChecklistCard />

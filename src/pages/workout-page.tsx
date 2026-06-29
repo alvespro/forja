@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { Button } from '@/components/ui/button'
 import { CardioTab } from '@/components/workout/cardio-tab'
 import { EvolutionTab } from '@/components/workout/evolution-tab'
@@ -27,9 +28,12 @@ export function WorkoutPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">Treino</h1>
-        <p className="text-sm text-aco-texto">Execução, registro e evolução de carga.</p>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Treino</h1>
+          <p className="text-sm text-aco-texto">Execução, registro e evolução de carga.</p>
+        </div>
+        <ObjectiveBadge />
       </div>
 
       <div className="flex flex-wrap gap-1 border-b border-border pb-2" role="tablist" aria-label="Seções de treino">

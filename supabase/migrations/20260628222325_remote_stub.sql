@@ -1,0 +1,2 @@
+-- Placeholder: mesma situação da migration 20260628131449 — aplicada direto no remoto em
+-- sessão anterior, sem arquivo local. Adicionado só para reconciliar o histórico de migrations.

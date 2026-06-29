@@ -1,0 +1,4 @@
+-- Placeholder: esta migration foi aplicada diretamente no banco remoto em sessão anterior
+-- (criação de body_metrics rico em composição + body_goals), sem arquivo local correspondente.
+-- Adicionado aqui só para reconciliar o histórico local com `supabase migration list`/`db push`;
+-- não roda nenhum DDL novo.

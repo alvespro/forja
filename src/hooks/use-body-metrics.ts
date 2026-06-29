@@ -4,6 +4,10 @@ import type { BodyMetric } from '@/types/database'
 export type BodyMetricInput = {
   peso_kg: number | null
   gordura_pct: number | null
+  musculo_pct: number | null
+  agua_pct: number | null
+  gordura_visceral: number | null
+  imc: number | null
   medido_em: string
 }
 

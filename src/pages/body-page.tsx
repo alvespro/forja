@@ -10,6 +10,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BodyMetricForm } from '@/components/body/body-metric-form'
 import { BodyMetricsChart } from '@/components/body/body-metrics-chart'
+import { ObjectiveBadge } from '@/components/body/objective-badge'
+import { ObjectiveCard } from '@/components/body/objective-card'
+import { GoalProgressCards } from '@/components/body/goal-progress-cards'
 import { useBodyMetrics, useCreateBodyMetric, useDeleteBodyMetric } from '@/hooks/use-body-metrics'
 import { useConfirm } from '@/hooks/use-confirm'
 import { parseDateOnly } from '@/lib/date'
@@ -38,6 +41,7 @@ export function BodyPage() {
           <h1 className="font-heading text-2xl font-bold text-foreground">Corpo</h1>
           <p className="text-sm text-aco-texto">Peso e composição corporal ao longo do tempo.</p>
         </div>
+        <ObjectiveBadge />
         {!isAdding && (
           <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
             <Plus className="size-3.5" aria-hidden="true" />
@@ -45,6 +49,9 @@ export function BodyPage() {
           </Button>
         )}
       </div>
+
+      <ObjectiveCard />
+      <GoalProgressCards metrics={metrics.data ?? []} />
 
       {latest && !metrics.isLoading && !metrics.isError && (
         <div className="grid grid-cols-2 gap-3">

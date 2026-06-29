@@ -227,7 +227,27 @@ export type BodyMetric = {
   user_id: string
   peso_kg: number | null
   gordura_pct: number | null
+  musculo_pct: number | null
+  agua_pct: number | null
+  gordura_visceral: number | null
+  imc: number | null
   medido_em: string
+}
+
+export type ObjetivoCorporal = 'ganho_massa' | 'recomposicao' | 'perda_peso' | 'definicao' | 'performance'
+
+export type BodyGoal = {
+  id: string
+  user_id: string
+  cycle_id: string | null
+  objetivo: ObjetivoCorporal
+  peso_meta_kg: number | null
+  gordura_meta_pct: number | null
+  musculo_pct_meta: number | null
+  agua_meta_pct: number | null
+  gordura_visceral_meta: number | null
+  imc_meta: number | null
+  created_at: string
 }
 
 export type Meal = {

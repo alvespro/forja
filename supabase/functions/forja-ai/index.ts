@@ -21,9 +21,9 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao'
+type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas'
 
-const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao']
+const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas']
 
 const SYSTEM_PROMPTS: Record<Agente, string> = {
   treino:
@@ -57,6 +57,50 @@ const SYSTEM_PROMPTS: Record<Agente, string> = {
     '(carbo noturno, proteína insuficiente pós-treino, janelas de jejum inadequadas) só quando os ' +
     'dados sustentarem isso. Dê sugestões práticas e específicas, não genéricas. Cite os dados ' +
     'reais. Responda em português do Brasil. Máximo 180 palavras.',
+  metas:
+    'Você é o Analista de Objetivos do FORJA, sistema de Welber Alves.\n\n' +
+    'REGRAS POR OBJETIVO:\n' +
+    'recomposicao:\n' +
+    '  - Proteína: mínimo 1,8g por kg de peso corporal\n' +
+    '  - Calorias: déficit leve de 200-300kcal abaixo do TDEE\n' +
+    '  - Carbo: concentrar pré e pós-treino\n' +
+    '  - Gordura: mínimo 0,7g por kg\n' +
+    '  - Treino: força 4x semana obrigatório para preservar músculo\n' +
+    'ganho_massa:\n' +
+    '  - Proteína: 2g por kg de peso\n' +
+    '  - Calorias: superávit de 300-500kcal acima do TDEE\n' +
+    '  - Carbo: alto, especialmente pós-treino\n' +
+    'perda_peso:\n' +
+    '  - Proteína: 2,2g por kg para preservar músculo\n' +
+    '  - Calorias: déficit de 500kcal\n' +
+    '  - Carbo: baixo, priorizar legumes e fibras\n' +
+    'definicao:\n' +
+    '  - Proteína: 2,4g por kg\n' +
+    '  - Calorias: déficit de 300-400kcal\n' +
+    '  - Treino: manter cargas, aumentar volume\n' +
+    'performance:\n' +
+    '  - Carbo: alto (combustível)\n' +
+    '  - Proteína: 1,6g por kg\n' +
+    '  - Calorias: manutenção ou leve superávit\n\n' +
+    'MODO ANÁLISE (pergunta padrão sobre adequação da dieta):\n' +
+    'SUAS TAREFAS:\n' +
+    '1. Verificar se a dieta atual está ADEQUADA para o objetivo do ciclo ativo\n' +
+    '2. Identificar o que está faltando ou em excesso (use números reais do contexto, nunca genérico)\n' +
+    '3. Sugerir ajustes específicos com números (gramas, kcal)\n' +
+    '4. Avaliar se a frequência de treino da última semana é compatível com o objetivo\n' +
+    '5. Dar um veredito claro, na PRIMEIRA linha da resposta, em uma destas três formas exatas: ' +
+    '"VEREDITO: ADEQUADA", "VEREDITO: PARCIALMENTE ADEQUADA" ou "VEREDITO: INADEQUADA"\n' +
+    '6. Depois do veredito, listar no máximo 3 ajustes prioritários, um por linha, começando com "- "\n\n' +
+    'MODO SUGESTÃO DE METAS (quando a pergunta for "sugerir metas para [objetivo] em [dias] dias"):\n' +
+    'Responda APENAS com um JSON válido, sem nenhum texto antes ou depois, neste formato exato:\n' +
+    '{"metas_sugeridas": {"peso_meta_kg": number, "gordura_meta_pct": number, "musculo_pct_meta": number, ' +
+    '"agua_meta_pct": number, "gordura_visceral_meta": number, "imc_meta": number, "justificativa": "texto"}}\n' +
+    'Regras de cálculo: perda de gordura realista é 0,5-1% por semana; ganho muscular simultâneo realista é ' +
+    '0,5-1kg por mês em recomposição (menos em déficit puro, mais em superávit). Use o peso e a composição ' +
+    'corporal atuais (fornecidos no contexto) como ponto de partida e o prazo em dias informado na pergunta ' +
+    'para calcular metas conservadoras e realistas, nunca otimistas demais. A justificativa deve explicar o ' +
+    'raciocínio em até 3 frases.\n\n' +
+    'Seja direto, use os dados reais do contexto, máximo 300 palavras (exceto no modo JSON). Português do Brasil.',
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -168,11 +212,81 @@ async function buscarContextoNutricao(sb: SupabaseClient, userId: string): Promi
   )
 }
 
+async function buscarContextoMetas(sb: SupabaseClient, userId: string): Promise<string> {
+  const seteDiasAtras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+  const [metricas, metaAtiva, dietaAtiva, refeicoes, sessoes, series] = await Promise.all([
+    sb
+      .from('body_metrics')
+      .select('peso_kg, gordura_pct, musculo_pct, agua_pct, gordura_visceral, imc, medido_em')
+      .eq('user_id', userId)
+      .order('medido_em', { ascending: false })
+      .limit(8),
+    sb
+      .from('body_goals')
+      .select('objetivo, peso_meta_kg, gordura_meta_pct, musculo_pct_meta, agua_meta_pct, gordura_visceral_meta, imc_meta, cycles(nome, data_inicio, data_fim, ativo)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    sb
+      .from('diet_plans')
+      .select('nome, calorias_alvo, proteina_g, carbo_g, gordura_g')
+      .eq('user_id', userId)
+      .eq('ativo', true)
+      .limit(1)
+      .maybeSingle(),
+    sb
+      .from('meal_logs')
+      .select('calorias, proteina_g, carbo_g, gordura_g, data')
+      .eq('user_id', userId)
+      .gte('data', seteDiasAtras),
+    sb
+      .from('workout_sessions')
+      .select('performed_at, workouts(nome)')
+      .eq('user_id', userId)
+      .gte('performed_at', seteDiasAtras),
+    sb
+      .from('set_logs')
+      .select('carga_kg, reps, created_at')
+      .eq('user_id', userId)
+      .gte('created_at', seteDiasAtras),
+  ])
+
+  const refeicoesData = refeicoes.data ?? []
+  const diasComLog = new Set(refeicoesData.map((r) => r.data)).size || 1
+  const mediaConsumoUltimos7Dias = {
+    calorias: Math.round(refeicoesData.reduce((acc, r) => acc + (r.calorias ?? 0), 0) / diasComLog),
+    proteina_g: Math.round(refeicoesData.reduce((acc, r) => acc + (r.proteina_g ?? 0), 0) / diasComLog),
+    carbo_g: Math.round(refeicoesData.reduce((acc, r) => acc + (r.carbo_g ?? 0), 0) / diasComLog),
+    gordura_g: Math.round(refeicoesData.reduce((acc, r) => acc + (r.gordura_g ?? 0), 0) / diasComLog),
+  }
+
+  const volumeTotalUltimos7Dias = (series.data ?? []).reduce(
+    (acc, s) => acc + (s.carga_kg ?? 0) * (s.reps ?? 0),
+    0,
+  )
+
+  return JSON.stringify(
+    {
+      ultimas_8_pesagens: metricas.data ?? [],
+      meta_ativa: metaAtiva.data ?? null,
+      dieta_ativa: dietaAtiva.data ?? null,
+      media_consumo_real_ultimos_7_dias: mediaConsumoUltimos7Dias,
+      sessoes_treino_ultima_semana: sessoes.data ?? [],
+      volume_total_treino_ultima_semana_kg: volumeTotalUltimos7Dias,
+    },
+    null,
+    2,
+  )
+}
+
 const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Promise<string>> = {
   treino: buscarContextoTreino,
   biblioteca: buscarContextoBiblioteca,
   coach: buscarContextoCoach,
   nutricao: buscarContextoNutricao,
+  metas: buscarContextoMetas,
 }
 
 async function perguntarAnthropic(systemPrompt: string, contexto: string, pergunta: string): Promise<string> {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2, Video } from 'lucide-react'
+import { ArrowDown, ArrowUp, Pencil, Trash2, Video } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { WorkoutExerciseForm } from '@/components/workout/workout-exercise-form'
@@ -15,9 +15,21 @@ type WorkoutExerciseRowProps = {
   prescription: WorkoutExercise
   exercise: Exercise | undefined
   exercises: Exercise[]
+  isFirst?: boolean
+  isLast?: boolean
+  onMoveUp?: () => void
+  onMoveDown?: () => void
 }
 
-export function WorkoutExerciseRow({ prescription, exercise, exercises }: WorkoutExerciseRowProps) {
+export function WorkoutExerciseRow({
+  prescription,
+  exercise,
+  exercises,
+  isFirst,
+  isLast,
+  onMoveUp,
+  onMoveDown,
+}: WorkoutExerciseRowProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
   const updatePrescription = useUpdateWorkoutExercise()
@@ -61,7 +73,31 @@ export function WorkoutExerciseRow({ prescription, exercise, exercises }: Workou
             {prescription.cadencia_alvo ? ` · cadência ${prescription.cadencia_alvo}` : ''}
           </span>
         </div>
-        <div className="flex shrink-0 gap-3">
+        <div className="flex shrink-0 gap-1">
+          {onMoveUp && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Mover para cima"
+              disabled={isFirst}
+              onClick={onMoveUp}
+            >
+              <ArrowUp className="size-3.5" aria-hidden="true" />
+            </Button>
+          )}
+          {onMoveDown && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Mover para baixo"
+              disabled={isLast}
+              onClick={onMoveDown}
+            >
+              <ArrowDown className="size-3.5" aria-hidden="true" />
+            </Button>
+          )}
           {exercise?.youtube_video_id && (
             <Button
               type="button"

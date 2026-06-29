@@ -8,7 +8,9 @@ import { ErrorState } from '@/components/feedback/error-state'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CardioDistanceChart } from '@/components/workout/cardio-distance-chart'
 import { CardioForm } from '@/components/workout/cardio-form'
+import { CardioGoalCard } from '@/components/workout/cardio-goal-card'
 import { useCardioSessions, useCreateCardioSession, useDeleteCardioSession } from '@/hooks/use-cardio-sessions'
 import { useConfirm } from '@/hooks/use-confirm'
 
@@ -50,6 +52,17 @@ export function CardioTab() {
           onCancel={() => setIsAdding(false)}
           onSubmit={(values) => createSession.mutate(values, { onSuccess: () => setIsAdding(false) })}
         />
+      )}
+
+      {!sessions.isLoading && !sessions.isError && sessions.data && sessions.data.length > 0 && (
+        <>
+          <CardioGoalCard sessions={sessions.data} />
+          <Card size="sm">
+            <CardContent>
+              <CardioDistanceChart sessions={sessions.data} />
+            </CardContent>
+          </Card>
+        </>
       )}
 
       {sessions.isLoading ? (

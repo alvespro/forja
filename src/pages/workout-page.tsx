@@ -7,6 +7,7 @@ import { ExerciseLibrary } from '@/components/workout/exercise-library'
 import { FrequencyPanel } from '@/components/workout/frequency-panel'
 import { SessionRunner } from '@/components/workout/session-runner'
 import { WorkoutBuilder } from '@/components/workout/workout-builder'
+import { useActiveSession } from '@/hooks/use-active-session'
 import { cn } from '@/lib/utils'
 
 type WorkoutTab = 'visao_geral' | 'exercicios' | 'treinos' | 'sessao' | 'evolucao' | 'cardio'
@@ -21,7 +22,8 @@ const TABS: { id: WorkoutTab; label: string }[] = [
 ]
 
 export function WorkoutPage() {
-  const [tab, setTab] = useState<WorkoutTab>('visao_geral')
+  const { sessionId } = useActiveSession()
+  const [tab, setTab] = useState<WorkoutTab>(sessionId ? 'sessao' : 'visao_geral')
 
   return (
     <div className="flex flex-col gap-4">
@@ -49,7 +51,7 @@ export function WorkoutPage() {
 
       {tab === 'visao_geral' && <FrequencyPanel />}
       {tab === 'exercicios' && <ExerciseLibrary />}
-      {tab === 'treinos' && <WorkoutBuilder />}
+      {tab === 'treinos' && <WorkoutBuilder onStartSession={() => setTab('sessao')} />}
       {tab === 'sessao' && <SessionRunner />}
       {tab === 'evolucao' && <EvolutionTab />}
       {tab === 'cardio' && <CardioTab />}

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { TrendingUp } from 'lucide-react'
+import { Brain, TrendingUp } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Select } from '@/components/ui/select'
@@ -9,6 +10,7 @@ import { ExerciseProgressChart } from '@/components/workout/exercise-progress-ch
 import { useExerciseHistory } from '@/hooks/use-exercise-history'
 import { useExercises } from '@/hooks/use-exercises'
 import { useWorkoutExercisesByExercise } from '@/hooks/use-workout-exercises'
+import { launchForjaChat } from '@/lib/forja-chat-store'
 import { computeSessionAggregates, suggestOverload } from '@/lib/workout-metrics'
 
 export function EvolutionTab() {
@@ -41,24 +43,37 @@ export function EvolutionTab() {
     return <EmptyState message="Cadastre exercícios para acompanhar a evolução de carga." />
   }
 
+  const selectedExercise = exercises.data.find((exercise) => exercise.id === selectedId)
+
+  function handleAskCoach() {
+    const contexto = selectedExercise ? ` Estou olhando a evolução do exercício "${selectedExercise.nome}".` : ''
+    launchForjaChat({ agente: 'treino', pergunta: `Analise minha evolução de carga e me dê uma dica.${contexto}` })
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="evo-exercicio" className="text-xs text-aco-texto">
-          Exercício
-        </label>
-        <Select
-          id="evo-exercicio"
-          className="w-56"
-          value={selectedId}
-          onChange={(event) => setExerciseId(event.target.value)}
-        >
-          {exercises.data.map((exercise) => (
-            <option key={exercise.id} value={exercise.id}>
-              {exercise.nome}
-            </option>
-          ))}
-        </Select>
+      <div className="flex items-end justify-between gap-2">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="evo-exercicio" className="text-xs text-aco-texto">
+            Exercício
+          </label>
+          <Select
+            id="evo-exercicio"
+            className="w-56"
+            value={selectedId}
+            onChange={(event) => setExerciseId(event.target.value)}
+          >
+            {exercises.data.map((exercise) => (
+              <option key={exercise.id} value={exercise.id}>
+                {exercise.nome}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <Button type="button" variant="ghost" size="sm" onClick={handleAskCoach}>
+          <Brain className="size-3.5" aria-hidden="true" />
+          Perguntar ao coach
+        </Button>
       </div>
 
       {overloadMessage && (

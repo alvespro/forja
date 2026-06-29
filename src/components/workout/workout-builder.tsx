@@ -10,7 +10,11 @@ import { WorkoutForm } from '@/components/workout/workout-form'
 import { useExercises } from '@/hooks/use-exercises'
 import { useCreateWorkout, useWorkouts } from '@/hooks/use-workouts'
 
-export function WorkoutBuilder() {
+type WorkoutBuilderProps = {
+  onStartSession?: () => void
+}
+
+export function WorkoutBuilder({ onStartSession }: WorkoutBuilderProps) {
   const workouts = useWorkouts()
   const exercises = useExercises()
   const createWorkout = useCreateWorkout()
@@ -58,7 +62,12 @@ export function WorkoutBuilder() {
       ) : (
         <div className="flex flex-col gap-3">
           {workouts.data.map((workout) => (
-            <WorkoutCard key={workout.id} workout={workout} exercises={exercises.data ?? []} />
+            <WorkoutCard
+              key={workout.id}
+              workout={workout}
+              exercises={exercises.data ?? []}
+              onStartSession={onStartSession}
+            />
           ))}
         </div>
       )}

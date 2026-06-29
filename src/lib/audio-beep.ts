@@ -36,7 +36,11 @@ export function playBeep() {
 }
 
 export function vibrate(pattern: number[] = [200, 100, 200]) {
-  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    navigator.vibrate(pattern)
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(pattern)
+    }
+  } catch {
+    // navigator.vibrate pode lançar em alguns navegadores/contextos; ignora silenciosamente.
   }
 }

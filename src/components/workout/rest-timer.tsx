@@ -19,7 +19,7 @@ function formatSeconds(totalSeconds: number): string {
   return `${sign}${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
-/** Seção 6.4: cronômetro de pausa por timestamp, com beep + vibração ao zerar. */
+/** Seção 6.4: cronômetro de pausa por timestamp, fixo no rodapé — nunca sai do campo de visão. */
 export function RestTimer({ targetSeconds, onFinish }: RestTimerProps) {
   const [startedAt] = useState(() => Date.now())
   const elapsedSeconds = useElapsedSince(startedAt)
@@ -39,16 +39,23 @@ export function RestTimer({ targetSeconds, onFinish }: RestTimerProps) {
   return (
     <div
       className={cn(
-        'sticky top-2 z-10 flex items-center justify-between gap-3 rounded-lg border px-3 py-2',
-        isOvertime ? 'border-atencao/40 bg-atencao/10' : 'border-brasa/40 bg-brasa/10',
+        'fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t px-4 py-3 shadow-lg md:bottom-0',
+        isOvertime ? 'border-ok/40 bg-ok/10' : 'border-atencao/40 bg-atencao/10',
       )}
     >
-      <div className="flex items-center gap-2">
-        <Bell className={cn('size-4', isOvertime ? 'text-atencao' : 'text-brasa')} aria-hidden="true" />
-        <span className="font-mono text-lg tabular-nums text-foreground">
+      <div className="flex items-center gap-3">
+        <Bell className={cn('size-5 shrink-0', isOvertime ? 'text-ok' : 'text-atencao')} aria-hidden="true" />
+        <span
+          className={cn(
+            'font-mono text-[3rem] leading-none tabular-nums',
+            isOvertime ? 'text-ok' : 'text-atencao',
+          )}
+        >
           {formatSeconds(remainingSeconds)}
         </span>
-        <span className="text-xs text-aco-texto">{isOvertime ? 'pausa estendida' : 'pausa'}</span>
+        <span className={cn('text-sm', isOvertime ? 'text-ok' : 'text-aco-texto')}>
+          {isOvertime ? 'Pode começar!' : 'pausa'}
+        </span>
       </div>
       <Button type="button" size="sm" onClick={() => onFinish(Math.round(elapsedSeconds))}>
         Encerrar pausa

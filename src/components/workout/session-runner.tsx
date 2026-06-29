@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Brain, ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -13,6 +14,7 @@ import { SessionExerciseBlock } from '@/components/workout/session-exercise-bloc
 import { useActiveSession } from '@/hooks/use-active-session'
 import { useElapsedSince } from '@/hooks/use-elapsed-since'
 import { useExercises } from '@/hooks/use-exercises'
+import { useIsDesktop } from '@/hooks/use-media-query'
 import { useLastSetLogByExercise, useSetLogsForSession, useUpdateSetLogPausa } from '@/hooks/use-set-logs'
 import { useWakeLock } from '@/hooks/use-wake-lock'
 import { useWorkoutExercises } from '@/hooks/use-workout-exercises'
@@ -22,6 +24,7 @@ import {
   useWorkoutSession,
 } from '@/hooks/use-workout-sessions'
 import { useWorkouts } from '@/hooks/use-workouts'
+import { launchForjaChat } from '@/lib/forja-chat-store'
 import type { Exercise, SetLog } from '@/types/database'
 
 const PAUSA_PADRAO_STORAGE_KEY = 'forja:pausa-padrao-seg'
@@ -136,6 +139,8 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
   const lastLogs = useLastSetLogByExercise(exerciseIds)
   const finishSession = useFinishWorkoutSession()
   const updateSetLogPausa = useUpdateSetLogPausa()
+  const isDesktop = useIsDesktop()
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   useWakeLock(true)
 
@@ -212,8 +217,16 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
     )
   }
 
+  const currentPrescription = prescriptions.data?.[currentIndex]
+  const currentExercise = currentPrescription ? exercisesById.get(currentPrescription.exercise_id) : undefined
+
+  function handleAskCoach() {
+    const contexto = currentExercise ? ` Estou no exercício "${currentExercise.nome}".` : ''
+    launchForjaChat({ agente: 'treino', pergunta: `Me dê uma dica para o treino de hoje.${contexto}` })
+  }
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className={activeRest ? 'flex flex-col gap-3 pb-24' : 'flex flex-col gap-3'}>
       <div className="flex items-center gap-2">
         <label htmlFor="sr-pausa-padrao" className="text-xs text-aco-texto">
           Pausa padrão entre séries
@@ -229,24 +242,22 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
         <span className="text-xs text-aco-texto">s</span>
       </div>
 
-      {activeRest && (
-        <RestTimer
-          key={activeRest.logId}
-          targetSeconds={activeRest.targetSeconds}
-          onFinish={handleRestFinish}
-        />
-      )}
-
       <div className="flex items-center justify-between rounded-lg border border-brasa/40 bg-brasa/10 px-3 py-2">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground">Sessão em andamento</span>
           <span className="font-mono text-sm tabular-nums text-brasa">{formatDuration(elapsedSeconds)}</span>
         </div>
-        {!isFinishing && (
-          <Button type="button" size="sm" onClick={() => setIsFinishing(true)}>
-            Finalizar treino
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={handleAskCoach}>
+            <Brain className="size-3.5" aria-hidden="true" />
+            Perguntar ao coach
           </Button>
-        )}
+          {!isFinishing && (
+            <Button type="button" size="sm" onClick={() => setIsFinishing(true)}>
+              Finalizar treino
+            </Button>
+          )}
+        </div>
       </div>
 
       {isFinishing && (
@@ -284,7 +295,7 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
 
       {!prescriptions.data || prescriptions.data.length === 0 ? (
         <EmptyState message="Este treino não tem exercícios prescritos." />
-      ) : (
+      ) : isDesktop ? (
         prescriptions.data.map((prescription) => (
           <SessionExerciseBlock
             key={prescription.id}
@@ -297,6 +308,50 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
             onSetCompleted={handleSetCompleted}
           />
         ))
+      ) : (
+        currentPrescription && (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                aria-label="Exercício anterior"
+                disabled={currentIndex === 0}
+                onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+              >
+                <ChevronLeft className="size-4" aria-hidden="true" />
+              </Button>
+              <span className="text-xs font-medium text-aco-texto">
+                Exercício {currentIndex + 1} de {prescriptions.data.length}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                aria-label="Próximo exercício"
+                disabled={currentIndex === prescriptions.data.length - 1}
+                onClick={() => setCurrentIndex((i) => Math.min(prescriptions.data!.length - 1, i + 1))}
+              >
+                <ChevronRight className="size-4" aria-hidden="true" />
+              </Button>
+            </div>
+            <SessionExerciseBlock
+              key={currentPrescription.id}
+              sessionId={sessionId}
+              exercise={currentExercise}
+              prescription={currentPrescription}
+              logs={logsByExercise.get(currentPrescription.exercise_id) ?? []}
+              lastLog={lastLogs.data?.get(currentPrescription.exercise_id)}
+              pausaPadraoSeg={pausaPadraoSeg}
+              onSetCompleted={handleSetCompleted}
+            />
+          </div>
+        )
+      )}
+
+      {activeRest && (
+        <RestTimer key={activeRest.logId} targetSeconds={activeRest.targetSeconds} onFinish={handleRestFinish} />
       )}
     </div>
   )

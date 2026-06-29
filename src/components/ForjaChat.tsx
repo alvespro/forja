@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Brain, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -7,6 +7,7 @@ import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/use-auth'
 import { FORJA_AGENTES, useForjaAI, type ForjaAgente } from '@/hooks/useForjaAI'
+import { useForjaChatLaunchRequest } from '@/lib/forja-chat-store'
 
 export function ForjaChat() {
   const { user } = useAuth()
@@ -15,6 +16,15 @@ export function ForjaChat() {
   const [pergunta, setPergunta] = useState('')
   const [resposta, setResposta] = useState<string | null>(null)
   const perguntar = useForjaAI()
+  const launchRequest = useForjaChatLaunchRequest()
+
+  useEffect(() => {
+    if (!launchRequest) return
+    setAgente(launchRequest.agente)
+    setPergunta(launchRequest.pergunta ?? '')
+    setResposta(null)
+    setIsOpen(true)
+  }, [launchRequest])
 
   if (!user) return null
 

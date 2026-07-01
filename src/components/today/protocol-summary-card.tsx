@@ -7,7 +7,7 @@ import { useActiveProtocol } from '@/hooks/use-protocols'
 import { useProtocolCompounds } from '@/hooks/use-protocol-compounds'
 import { useProtocolExams } from '@/hooks/use-protocol-exams'
 import { useProtocolSupport } from '@/hooks/use-protocol-support'
-import { useCreateProtocolLog } from '@/hooks/use-protocol-logs'
+import { useCreateProtocolLog, useProtocolLogs } from '@/hooks/use-protocol-logs'
 import { todayInSaoPaulo } from '@/lib/date'
 
 function computeWeekNumber(dataInicio: string | null, today: string): number {
@@ -26,6 +26,7 @@ export function ProtocolSummaryCard() {
   const compounds = useProtocolCompounds(p?.id)
   const exams = useProtocolExams(p?.id)
   const support = useProtocolSupport(p?.id)
+  const logs = useProtocolLogs(p?.id, 10)
 
   const today = todayInSaoPaulo()
   const weekNum = p ? computeWeekNumber(p.data_inicio, today) : 0
@@ -47,8 +48,12 @@ export function ProtocolSummaryCard() {
   // Principal composto (primeiro da lista)
   const mainCompound = compounds.data?.[0]
 
+  const jaRegistradoHoje = (logs.data ?? []).some(
+    (l) => l.data_aplicacao === today && l.compound_id === mainCompound?.id,
+  )
+
   function handleRegistrarAplicacao() {
-    if (!p || !mainCompound) return
+    if (!p || !mainCompound || jaRegistradoHoje) return
     createLog.mutate({
       protocol_id: p.id,
       compound_id: mainCompound.id,
@@ -89,10 +94,10 @@ export function ProtocolSummaryCard() {
               size="sm"
               variant="outline"
               className="h-7 text-xs shrink-0"
-              disabled={createLog.isPending}
+              disabled={createLog.isPending || jaRegistradoHoje}
               onClick={handleRegistrarAplicacao}
             >
-              {createLog.isPending ? '…' : createLog.isSuccess ? '✓' : '✓ Registrar'}
+              {createLog.isPending ? '…' : jaRegistradoHoje ? '✓ Registrado' : '✓ Registrar'}
             </Button>
           </div>
         )}

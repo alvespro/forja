@@ -16,17 +16,19 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useActiveProtocol } from '@/hooks/use-protocols'
+import { useActiveProtocol, useUpdateProtocol } from '@/hooks/use-protocols'
 import { useProtocolCompounds, useCreateProtocolCompound, useDeleteProtocolCompound } from '@/hooks/use-protocol-compounds'
 import { useProtocolLogs, useCreateProtocolLog } from '@/hooks/use-protocol-logs'
 import { useProtocolExams, useUpdateProtocolExam } from '@/hooks/use-protocol-exams'
 import { useProtocolSupport, useCreateProtocolSupport } from '@/hooks/use-protocol-support'
 import { useProtocolGoals } from '@/hooks/use-protocol-goals'
-import { useProtocolAlerts, dismissAlert } from '@/hooks/use-protocol-alerts'
+import { useProtocolAlerts, checkCriticalMarkers, dismissAlert } from '@/hooks/use-protocol-alerts'
 import { useBodyMetrics } from '@/hooks/use-body-metrics'
+import { useCreateHealthMetric } from '@/hooks/use-health-metrics'
+import { useConfirm } from '@/hooks/use-confirm'
 import { useForjaAI } from '@/hooks/useForjaAI'
 import { todayInSaoPaulo } from '@/lib/date'
-import type { ProtocolExamStatus } from '@/types/database'
+import type { ProtocolExamStatus, ProtocolStatus } from '@/types/database'
 
 type Tab = 'protocolo' | 'compostos' | 'agenda' | 'monitoramento' | 'exames'
 
@@ -49,6 +51,19 @@ const LOCAL_OPTIONS = [
   'Glúteo direito', 'Glúteo esquerdo',
   'Deltoide direito', 'Deltoide esquerdo',
   'Vasto direito', 'Vasto esquerdo',
+]
+
+const EXAM_MARKERS = [
+  { key: 'hematocrito', label: 'Hematócrito', unit: '%' },
+  { key: 'hemoglobina', label: 'Hemoglobina', unit: 'g/dL' },
+  { key: 'ldl', label: 'LDL', unit: 'mg/dL' },
+  { key: 'hdl', label: 'HDL', unit: 'mg/dL' },
+  { key: 'colesterol_total', label: 'Colesterol Total', unit: 'mg/dL' },
+  { key: 'tgo', label: 'TGO/AST', unit: 'U/L' },
+  { key: 'tgp', label: 'TGP/ALT', unit: 'U/L' },
+  { key: 'estradiol', label: 'Estradiol', unit: 'pg/mL' },
+  { key: 'testosterona_total', label: 'Testosterona Total', unit: 'ng/dL' },
+  { key: 'psa', label: 'PSA', unit: 'ng/mL' },
 ]
 
 function statusBadge(status: string | null) {
@@ -111,6 +126,9 @@ export function ProtocoloPage() {
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
   const [showInsights, setShowInsights] = useState(false)
   const [insights, setInsights] = useState('')
+  const [showExamResultModal, setShowExamResultModal] = useState<string | null>(null)
+  const [examResultValues, setExamResultValues] = useState<Record<string, string>>({})
+  const [examResultCritical, setExamResultCritical] = useState<string[]>([])
 
   const protocol = useActiveProtocol()
   const p = protocol.data
@@ -122,13 +140,15 @@ export function ProtocoloPage() {
   const goals = useProtocolGoals(p?.id)
   const bodyMetrics = useBodyMetrics()
 
-  // const updateProtocol = useUpdateProtocol()
+  const updateProtocol = useUpdateProtocol()
   const createCompound = useCreateProtocolCompound()
+  const createHealthMetric = useCreateHealthMetric()
   const deleteCompound = useDeleteProtocolCompound()
   const createLog = useCreateProtocolLog()
   const updateExam = useUpdateProtocolExam()
   const createSupport = useCreateProtocolSupport()
   const gerarInsights = useForjaAI()
+  const { confirm, dialog } = useConfirm()
 
   const today = todayInSaoPaulo()
   const weekNum = p ? computeWeekNumber(p, today) : 0
@@ -252,6 +272,87 @@ export function ProtocoloPage() {
     })
   }
 
+  async function handleTransitionStatus() {
+    if (!p) return
+    const next: ProtocolStatus =
+      p.status === 'planejado' ? 'ativo' :
+      p.status === 'ativo' ? 'tpc' : 'concluido'
+
+    const preFaltando = (exams.data ?? []).filter(
+      (e) => (e.semana_alvo ?? 0) <= 0 && e.status !== 'realizado',
+    ).length
+
+    const confirmCfg =
+      next === 'ativo'
+        ? {
+            title: 'Iniciar o ciclo?',
+            description:
+              preFaltando > 0
+                ? `⚠️ Ainda faltam ${preFaltando} exame(s) pré-ciclo. Recomenda-se completá-los antes de iniciar. Confirmar mesmo assim?`
+                : `O ciclo começa hoje (${new Date(today + 'T12:00:00').toLocaleDateString('pt-BR')}) e a contagem de semanas será iniciada.`,
+          }
+        : next === 'tpc'
+          ? {
+              title: 'Iniciar TPC?',
+              description: 'O protocolo entra em fase de terapia pós-ciclo. Confirme apenas se orientado pelo seu médico.',
+            }
+          : {
+              title: 'Concluir o ciclo?',
+              description: 'O protocolo será marcado como concluído e sairá desta tela. Essa ação encerra o acompanhamento.',
+            }
+
+    const ok = await confirm(confirmCfg)
+    if (!ok) return
+
+    updateProtocol.mutate({
+      id: p.id,
+      values: {
+        status: next,
+        ...(next === 'ativo' && !p.data_inicio ? { data_inicio: today } : {}),
+      },
+    })
+  }
+
+  function handleExamResultSubmit(examId: string) {
+    const filledMarkers: Record<string, number> = {}
+    for (const [key, val] of Object.entries(examResultValues)) {
+      const n = parseFloat(val.replace(',', '.'))
+      if (!isNaN(n) && val.trim() !== '') filledMarkers[key] = n
+    }
+
+    for (const [chave, valor] of Object.entries(filledMarkers)) {
+      createHealthMetric.mutate({ chave, valor })
+    }
+
+    const alerts = checkCriticalMarkers(filledMarkers)
+    if (alerts.length > 0) {
+      setExamResultCritical(alerts.map((a) => a.message))
+    }
+
+    updateExam.mutate(
+      {
+        id: examId,
+        values: {
+          status: 'realizado',
+          data_realizada: today,
+          health_metric_snapshot: Object.keys(filledMarkers).length > 0
+            ? (filledMarkers as Record<string, unknown>)
+            : null,
+        },
+      },
+      {
+        onSuccess: () => {
+          const alerts = checkCriticalMarkers(filledMarkers)
+          if (alerts.length === 0) {
+            setShowExamResultModal(null)
+            setExamResultValues({})
+            setExamResultCritical([])
+          }
+        },
+      },
+    )
+  }
+
   function handleGerarInsights() {
     gerarInsights.mutate(
       { agente: 'protocolo', pergunta: 'Análise completa do ciclo atual: evolução corporal, bem-estar e exames.' },
@@ -328,17 +429,33 @@ export function ProtocoloPage() {
               )}
             </div>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleGerarInsights}
-            disabled={gerarInsights.isPending}
-            className="gap-1.5 shrink-0"
-          >
-            {gerarInsights.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5 text-brasa" />}
-            Análise do ciclo
-          </Button>
+          <div className="flex flex-col gap-2 shrink-0">
+            {p.status !== 'concluido' && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleTransitionStatus}
+                disabled={updateProtocol.isPending}
+                className="gap-1.5"
+              >
+                {p.status === 'planejado' && '▶ Iniciar ciclo'}
+                {p.status === 'ativo' && '🔄 Iniciar TPC'}
+                {p.status === 'tpc' && '✅ Concluir ciclo'}
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGerarInsights}
+              disabled={gerarInsights.isPending}
+              className="gap-1.5"
+            >
+              {gerarInsights.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5 text-brasa" />}
+              Análise do ciclo
+            </Button>
+          </div>
         </div>
 
         {/* Progresso */}
@@ -854,7 +971,7 @@ export function ProtocoloPage() {
                                 size="xs"
                                 variant="outline"
                                 className="h-6 text-xs px-2"
-                                onClick={() => handleRealizadoExam(exam.id)}
+                                onClick={() => { setShowExamResultModal(exam.id); setExamResultValues({}); setExamResultCritical([]) }}
                               >
                                 ✓ Realizado
                               </Button>
@@ -877,6 +994,92 @@ export function ProtocoloPage() {
               </Card>
             )
           })}
+        </div>
+      )}
+
+      {/* ════ MODAL: Resultado de exame ════ */}
+      {showExamResultModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <p className="font-heading text-base font-bold text-foreground">🧪 Registrar resultados</p>
+              <button
+                type="button"
+                onClick={() => { setShowExamResultModal(null); setExamResultValues({}); setExamResultCritical([]) }}
+                className="text-aco-texto hover:text-foreground"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <p className="text-xs text-aco-texto">
+              Preencha os marcadores disponíveis no resultado. Deixe em branco os que não constam no exame.
+            </p>
+
+            {examResultCritical.length > 0 && (
+              <div className="rounded-lg border border-red-700/60 bg-red-950/40 p-3 flex flex-col gap-1.5">
+                <p className="text-sm font-semibold text-red-300">⚠️ Marcadores críticos detectados</p>
+                {examResultCritical.map((msg) => (
+                  <p key={msg} className="text-xs text-red-200/80">{msg}</p>
+                ))}
+                <p className="text-xs text-red-200/60 mt-1">Contate seu médico responsável imediatamente.</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              {EXAM_MARKERS.map(({ key, label, unit }) => (
+                <div key={key}>
+                  <Label className="text-xs text-aco-texto">{label} <span className="text-aco-texto/50">({unit})</span></Label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={examResultValues[key] ?? ''}
+                    onChange={(e) => setExamResultValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                    placeholder="—"
+                    className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1 text-xs"
+                onClick={() => {
+                  handleRealizadoExam(showExamResultModal)
+                  setShowExamResultModal(null)
+                  setExamResultValues({})
+                  setExamResultCritical([])
+                }}
+              >
+                Pular valores
+              </Button>
+              {examResultCritical.length === 0 ? (
+                <Button
+                  type="button"
+                  className="flex-1"
+                  onClick={() => handleExamResultSubmit(showExamResultModal)}
+                  disabled={updateExam.isPending}
+                >
+                  {updateExam.isPending ? 'Salvando…' : 'Confirmar'}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border-red-700/60 text-red-300"
+                  onClick={() => {
+                    setShowExamResultModal(null)
+                    setExamResultValues({})
+                    setExamResultCritical([])
+                  }}
+                >
+                  Fechar
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1147,6 +1350,8 @@ export function ProtocoloPage() {
           </div>
         </div>
       )}
+
+      {dialog}
     </div>
   )
 }

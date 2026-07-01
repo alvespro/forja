@@ -8,6 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { SupplementCard } from '@/components/supplements/supplement-card'
 import { SupplementForm } from '@/components/supplements/supplement-form'
 import { useActiveCycle } from '@/hooks/use-active-cycle'
+import { useActiveProtocol } from '@/hooks/use-protocols'
+import { useProtocolSupport } from '@/hooks/use-protocol-support'
 import { useSupplementLogs } from '@/hooks/use-supplement-logs'
 import { useCreateSupplement, useSupplements } from '@/hooks/use-supplements'
 import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
@@ -17,6 +19,8 @@ export function SupplementsPage() {
   const supplements = useSupplements()
   const logs = useSupplementLogs()
   const activeCycle = useActiveCycle()
+  const activeProtocol = useActiveProtocol()
+  const protocolSupport = useProtocolSupport(activeProtocol.data?.id)
   const createSupplement = useCreateSupplement()
   const [isAdding, setIsAdding] = useState(false)
 
@@ -89,6 +93,41 @@ export function SupplementsPage() {
               adesaoPct={adesaoPorSuplemento.get(supplement.id) ?? null}
             />
           ))}
+        </div>
+      )}
+
+      {/* ── Suporte do ciclo (protocolo) ── */}
+      {activeProtocol.data && (protocolSupport.data?.filter((s) => s.ativo).length ?? 0) > 0 && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 mt-2">
+            <h2 className="text-sm font-semibold text-foreground">Suporte do ciclo</h2>
+            <span className="rounded-full bg-brasa/20 px-2 py-0.5 text-[10px] font-medium text-brasa">
+              🔬 Protocolo ativo
+            </span>
+          </div>
+          {protocolSupport.data!
+            .filter((s) => s.ativo)
+            .map((s) => (
+              <div
+                key={s.id}
+                className="flex items-center gap-3 rounded-xl border border-brasa/20 bg-brasa/5 p-3"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-sm font-medium text-foreground">{s.nome}</span>
+                    <span className="rounded-full bg-brasa/20 px-2 py-0.5 text-[10px] text-brasa">
+                      🔬 Suporte do ciclo
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-aco-texto">
+                    {[s.dose, s.momento, s.categoria].filter(Boolean).join(' · ')}
+                  </p>
+                  {s.motivo && (
+                    <p className="mt-0.5 text-xs text-aco-texto/60 italic">{s.motivo}</p>
+                  )}
+                </div>
+              </div>
+            ))}
         </div>
       )}
     </div>

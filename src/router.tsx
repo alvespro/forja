@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/app-shell'
 import { ProtectedRoute } from '@/components/auth/protected-route'
@@ -11,7 +11,6 @@ const GoalsPage = lazy(() => import('@/pages/goals-page').then((m) => ({ default
 const WorkoutPage = lazy(() => import('@/pages/workout-page').then((m) => ({ default: m.WorkoutPage })))
 const HealthPage = lazy(() => import('@/pages/health-page').then((m) => ({ default: m.HealthPage })))
 const HabitsPage = lazy(() => import('@/pages/habits-page').then((m) => ({ default: m.HabitsPage })))
-const LibraryPage = lazy(() => import('@/pages/library-page').then((m) => ({ default: m.LibraryPage })))
 const FocusPage = lazy(() => import('@/pages/focus-page').then((m) => ({ default: m.FocusPage })))
 const JournalPage = lazy(() => import('@/pages/journal-page').then((m) => ({ default: m.JournalPage })))
 const FinancesPage = lazy(() => import('@/pages/finances-page').then((m) => ({ default: m.FinancesPage })))
@@ -24,6 +23,7 @@ const ConfiguracoesPage = lazy(() => import('@/pages/configuracoes-page').then((
 const DesenvolvimentoPage = lazy(() => import('@/pages/desenvolvimento-page').then((m) => ({ default: m.DesenvolvimentoPage })))
 const LivroDetalhePage = lazy(() => import('@/pages/livro-detalhe-page').then((m) => ({ default: m.LivroDetalhePage })))
 const CursoDetalhePage = lazy(() => import('@/pages/curso-detalhe-page').then((m) => ({ default: m.CursoDetalhePage })))
+const TarefasPage = lazy(() => import('@/pages/tarefas-page').then((m) => ({ default: m.TarefasPage })))
 const ProtocoloPage = lazy(() => import('@/pages/protocolo-page').then((m) => ({ default: m.ProtocoloPage })))
 
 function withSuspense(element: React.ReactNode) {
@@ -44,9 +44,10 @@ export const router = createBrowserRouter([
           { path: 'goals', element: <GoalsPage /> },
           { path: 'workout', element: <WorkoutPage /> },
           { path: 'health', element: <HealthPage /> },
+          { path: 'tarefas', element: <TarefasPage /> },
           { path: 'protocolo', element: <ProtocoloPage /> },
           { path: 'habits', element: <HabitsPage /> },
-          { path: 'library', element: <LibraryPage /> },
+          { path: 'library', element: <Navigate to="/desenvolvimento" replace /> },
           { path: 'desenvolvimento', element: <DesenvolvimentoPage /> },
           { path: 'biblioteca/livro/:id', element: <LivroDetalhePage /> },
           { path: 'desenvolvimento/curso/:id', element: <CursoDetalhePage /> },

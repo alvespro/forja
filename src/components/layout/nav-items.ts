@@ -1,6 +1,6 @@
 import {
-  BookOpen,
   Brain,
+  CheckSquare,
   Dumbbell,
   FlaskConical,
   HeartPulse,
@@ -27,6 +27,7 @@ export type NavItem = {
 // Seção 4 do SPEC — mapa de telas (sidebar no desktop, tab bar no mobile)
 export const navItems: NavItem[] = [
   { to: '/', label: 'Hoje', icon: Sun },
+  { to: '/tarefas', label: 'Tarefas', icon: CheckSquare },
   { to: '/goals', label: 'Metas', icon: Target },
   { to: '/workout', label: 'Treino', icon: Dumbbell },
   { to: '/health', label: 'Saúde', icon: HeartPulse },
@@ -36,7 +37,6 @@ export const navItems: NavItem[] = [
   { to: '/nutricao', label: 'Nutrição 🥗', icon: Salad },
   { to: '/suplementos', label: 'Suplementos 💊', icon: Pill },
   { to: '/habits', label: 'Hábitos', icon: ListChecks },
-  { to: '/library', label: 'Biblioteca', icon: BookOpen },
   { to: '/desenvolvimento', label: 'Desenvolvimento 🧠', icon: Brain },
   { to: '/focus', label: 'Foco', icon: Timer },
   { to: '/journal', label: 'Diário & Revisão', icon: NotebookPen },

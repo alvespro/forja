@@ -40,7 +40,10 @@ export function useFrogTask() {
       })
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['frog-task', today] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['frog-task', today] })
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    },
   })
 
   const toggleDone = useMutation({
@@ -53,7 +56,10 @@ export function useFrogTask() {
         .eq('id', query.data.id)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['frog-task', today] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['frog-task', today] })
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    },
   })
 
   return { ...query, create, toggleDone }

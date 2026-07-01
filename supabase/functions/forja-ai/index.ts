@@ -21,9 +21,9 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento'
+type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento' | 'protocolo'
 
-const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas', 'desenvolvimento']
+const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas', 'desenvolvimento', 'protocolo']
 
 const SYSTEM_PROMPTS: Record<Agente, string> = {
   treino:
@@ -80,6 +80,32 @@ const SYSTEM_PROMPTS: Record<Agente, string> = {
     'REGRA CRÍTICA: Para o perfil 3w2, sempre priorizar Profundidade Humana e Interpessoal.\n' +
     'Hard Skills ele já desenvolve naturalmente — não priorizar.\n\n' +
     'Responda em português do Brasil. Seja direto e específico. Máximo 300 palavras.',
+  protocolo:
+    'Você é o Monitor de Protocolo do FORJA, sistema de Welber Alves.\n\n' +
+    'CONTEXTO:\n' +
+    '- Protocolo sob supervisão médica (médico responsável registrado)\n' +
+    '- Via: injetável\n' +
+    '- Objetivo: recomposição corporal\n' +
+    '- Ponto de partida: 84,4kg / 22,1% gordura / 47,2kg músculo\n\n' +
+    'SUAS FUNÇÕES:\n' +
+    '1. Analisar a evolução de composição corporal desde o início do ciclo\n' +
+    '2. Identificar padrões nos logs de bem-estar (humor/energia/libido)\n' +
+    '3. Verificar se os exames estão em dia e alertar sobre pendências\n' +
+    '4. Avaliar se treino e nutrição estão adequados para o objetivo do ciclo\n' +
+    '5. Alertar quando marcadores de saúde saírem de faixas seguras:\n' +
+    '   ALERTAS CRÍTICOS (avisar imediatamente):\n' +
+    '   - Hematócrito > 52%\n' +
+    '   - Pressão arterial > 140/90\n' +
+    '   - LDL > 160 mg/dL\n' +
+    '   - TGO ou TGP > 3x o limite superior\n' +
+    '   - Estradiol > 60 pg/mL (sintomas de aromatização)\n' +
+    '6. Celebrar conquistas reais de composição com dados precisos\n\n' +
+    'REGRA ABSOLUTA:\n' +
+    'NUNCA sugerir compostos, doses, protocolos ou alterações no protocolo médico.\n' +
+    'Se o usuário perguntar sobre isso, responder:\n' +
+    '"Esta decisão é do seu médico responsável."\n' +
+    'Você monitora e informa — não prescreve.\n\n' +
+    'Português do Brasil. Direto e específico. Máximo 300 palavras.',
   metas:
     'Você é o Analista de Objetivos do FORJA, sistema de Welber Alves.\n\n' +
     'REGRAS POR OBJETIVO:\n' +
@@ -349,6 +375,65 @@ async function buscarContextoDesenvolvimento(sb: SupabaseClient, userId: string)
   )
 }
 
+async function buscarContextoProtocolo(sb: SupabaseClient, userId: string): Promise<string> {
+  const [protocol, metricas, logs, exames, sessoes, refeicoes] = await Promise.all([
+    sb
+      .from('protocols')
+      .select('nome, objetivo, status, via, medico_responsavel, data_inicio, duracao_semanas, protocol_compounds(*), protocol_goals(*), protocol_support(*)')
+      .eq('user_id', userId)
+      .in('status', ['planejado', 'ativo', 'tpc'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    sb
+      .from('body_metrics')
+      .select('peso_kg, gordura_pct, musculo_pct, agua_pct, medido_em')
+      .eq('user_id', userId)
+      .order('medido_em', { ascending: false })
+      .limit(8),
+    sb
+      .from('protocol_logs')
+      .select('data_aplicacao, humor, energia, libido, efeitos_percebidos, dose_aplicada_mg')
+      .eq('user_id', userId)
+      .order('data_aplicacao', { ascending: false })
+      .limit(30),
+    sb
+      .from('protocol_exams')
+      .select('nome, semana_alvo, status, data_prevista, data_realizada')
+      .eq('user_id', userId)
+      .order('semana_alvo', { ascending: true }),
+    sb
+      .from('workout_sessions')
+      .select('performed_at')
+      .eq('user_id', userId)
+      .order('performed_at', { ascending: false })
+      .limit(20),
+    sb
+      .from('meal_logs')
+      .select('calorias, proteina_g, data')
+      .eq('user_id', userId)
+      .order('data', { ascending: false })
+      .limit(21),
+  ])
+
+  const refData = refeicoes.data ?? []
+  const diasComLog = new Set(refData.map((r) => r.data)).size || 1
+  const mediaProteinaDiaria = Math.round(refData.reduce((a, r) => a + (r.proteina_g ?? 0), 0) / diasComLog)
+
+  return JSON.stringify(
+    {
+      protocolo_ativo: protocol.data ?? null,
+      ultimas_8_pesagens: metricas.data ?? [],
+      ultimos_30_logs_bem_estar: logs.data ?? [],
+      checklist_exames: exames.data ?? [],
+      sessoes_treino_recentes: (sessoes.data ?? []).map((s) => s.performed_at),
+      media_proteina_diaria_7d: mediaProteinaDiaria,
+    },
+    null,
+    2,
+  )
+}
+
 const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Promise<string>> = {
   treino: buscarContextoTreino,
   biblioteca: buscarContextoBiblioteca,
@@ -356,6 +441,7 @@ const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Pr
   nutricao: buscarContextoNutricao,
   metas: buscarContextoMetas,
   desenvolvimento: buscarContextoDesenvolvimento,
+  protocolo: buscarContextoProtocolo,
 }
 
 async function perguntarAnthropic(systemPrompt: string, contexto: string, pergunta: string): Promise<string> {

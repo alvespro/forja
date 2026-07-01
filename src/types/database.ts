@@ -531,3 +531,97 @@ export type DocumentImport = {
   erro: string | null
   created_at: string
 }
+
+// ─── PROTOCOLO ────────────────────────────────────────────────────────────────
+
+export type ProtocolStatus = 'planejado' | 'ativo' | 'tpc' | 'concluido'
+export type ProtocolVia = 'injetavel' | 'oral' | 'topico'
+
+export type Protocol = {
+  id: string
+  user_id: string
+  nome: string
+  objetivo: string
+  status: ProtocolStatus | null
+  via: ProtocolVia | null
+  medico_responsavel: string | null
+  data_inicio: string | null
+  data_fim_prevista: string | null
+  duracao_semanas: number | null
+  notas: string | null
+  created_at: string | null
+}
+
+export type ProtocolCompound = {
+  id: string
+  user_id: string
+  protocol_id: string
+  nome: string
+  categoria: string | null
+  dose_mg: number | null
+  frequencia: string | null
+  via: string | null
+  semana_inicio: number | null
+  semana_fim: number | null
+  notas: string | null
+  ordem: number | null
+}
+
+export type ProtocolExamStatus = 'pendente' | 'agendado' | 'realizado' | 'atrasado'
+
+export type ProtocolExam = {
+  id: string
+  user_id: string
+  protocol_id: string
+  nome: string
+  tipo: string | null
+  semana_alvo: number | null
+  status: ProtocolExamStatus | null
+  data_prevista: string | null
+  data_realizada: string | null
+  observacoes: string | null
+  health_metric_snapshot: Record<string, unknown> | null
+}
+
+export type ProtocolLog = {
+  id: string
+  user_id: string
+  protocol_id: string
+  compound_id: string | null
+  data_aplicacao: string
+  dose_aplicada_mg: number | null
+  local_aplicacao: string | null
+  humor: number | null
+  energia: number | null
+  libido: number | null
+  efeitos_percebidos: string | null
+  observacoes: string | null
+}
+
+export type ProtocolSupport = {
+  id: string
+  user_id: string
+  protocol_id: string
+  nome: string
+  categoria: string | null
+  dose: string | null
+  momento: string | null
+  motivo: string | null
+  semana_inicio: number | null
+  semana_fim: number | null
+  ativo: boolean | null
+}
+
+export type ProtocolGoal = {
+  id: string
+  user_id: string
+  protocol_id: string
+  peso_inicial_kg: number | null
+  peso_meta_kg: number | null
+  gordura_inicial_pct: number | null
+  gordura_meta_pct: number | null
+  musculo_inicial_kg: number | null
+  musculo_meta_kg: number | null
+  forca_meta: string | null
+  notas: string | null
+}

@@ -24,6 +24,7 @@ const ConfiguracoesPage = lazy(() => import('@/pages/configuracoes-page').then((
 const DesenvolvimentoPage = lazy(() => import('@/pages/desenvolvimento-page').then((m) => ({ default: m.DesenvolvimentoPage })))
 const LivroDetalhePage = lazy(() => import('@/pages/livro-detalhe-page').then((m) => ({ default: m.LivroDetalhePage })))
 const CursoDetalhePage = lazy(() => import('@/pages/curso-detalhe-page').then((m) => ({ default: m.CursoDetalhePage })))
+const ProtocoloPage = lazy(() => import('@/pages/protocolo-page').then((m) => ({ default: m.ProtocoloPage })))
 
 function withSuspense(element: React.ReactNode) {
   return <Suspense fallback={null}>{element}</Suspense>
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
           { path: 'goals', element: <GoalsPage /> },
           { path: 'workout', element: <WorkoutPage /> },
           { path: 'health', element: <HealthPage /> },
+          { path: 'protocolo', element: <ProtocoloPage /> },
           { path: 'habits', element: <HabitsPage /> },
           { path: 'library', element: <LibraryPage /> },
           { path: 'desenvolvimento', element: <DesenvolvimentoPage /> },

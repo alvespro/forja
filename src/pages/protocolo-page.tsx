@@ -5,7 +5,6 @@ import {
   Legend,
   Line,
   LineChart,
-  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -887,9 +886,6 @@ export function ProtocoloPage() {
                       <YAxis tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} />
                       <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
-                      {[6, 14, 18].map((w) => (
-                        <ReferenceLine key={w} x={`sem${w}`} stroke="var(--border)" strokeDasharray="4 3" label={{ value: `Sem.${w}`, fontSize: 9, fill: 'var(--muted-foreground)' }} />
-                      ))}
                       <Line type="monotone" dataKey="peso" stroke="#F0A93B" dot={false} name="Peso (kg)" strokeWidth={2} />
                       <Line type="monotone" dataKey="gordura" stroke="#CB6A4E" dot={false} name="Gordura %" strokeWidth={2} />
                       <Line type="monotone" dataKey="musculo" stroke="#5FA88C" dot={false} name="Músculo (kg)" strokeWidth={2} />

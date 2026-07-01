@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertTriangle, CheckCircle2, Clock, FlaskConical, Loader2, Sparkles, X } from 'lucide-react'
 import {
   CartesianGrid,
@@ -23,7 +23,12 @@ import { useProtocolSupport, useCreateProtocolSupport } from '@/hooks/use-protoc
 import { useProtocolGoals } from '@/hooks/use-protocol-goals'
 import { useProtocolAlerts, checkCriticalMarkers, dismissAlert } from '@/hooks/use-protocol-alerts'
 import { useBodyMetrics } from '@/hooks/use-body-metrics'
-import { useCreateHealthMetric } from '@/hooks/use-health-metrics'
+import {
+  getLatestValue,
+  groupHealthMetricsByKey,
+  useCreateHealthMetric,
+  useHealthMetrics,
+} from '@/hooks/use-health-metrics'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useForjaAI } from '@/hooks/useForjaAI'
 import { todayInSaoPaulo } from '@/lib/date'
@@ -138,6 +143,7 @@ export function ProtocoloPage() {
   const support = useProtocolSupport(p?.id)
   const goals = useProtocolGoals(p?.id)
   const bodyMetrics = useBodyMetrics()
+  const healthMetrics = useHealthMetrics()
 
   const updateProtocol = useUpdateProtocol()
   const createCompound = useCreateProtocolCompound()
@@ -158,11 +164,23 @@ export function ProtocoloPage() {
 
   const lastLogDate = logs.data?.[0]?.data_aplicacao ?? null
 
+  // Último valor de cada marcador registrado em health_metrics
+  const latestMarkers = useMemo(() => {
+    const grouped = groupHealthMetricsByKey(healthMetrics.data)
+    const markers: Record<string, number> = {}
+    for (const [chave, readings] of grouped) {
+      const valor = getLatestValue(readings)
+      if (valor !== null) markers[chave] = valor
+    }
+    return markers
+  }, [healthMetrics.data])
+
   const alerts = useProtocolAlerts({
     protocol: p,
     latestMetric,
     exams: exams.data,
     lastLogDate,
+    latestMarkers,
   })
 
   const visibleAlerts = alerts.filter((a) => !dismissedAlerts.has(a.id))

@@ -41,20 +41,26 @@ type UseProtocolAlertsInput = {
   latestMetric: BodyMetric | null | undefined
   exams: ProtocolExam[] | undefined
   lastLogDate: string | null | undefined
+  /** Último valor de cada marcador em health_metrics (chave → valor). */
+  latestMarkers?: Record<string, number>
 }
 
-export function useProtocolAlerts({ protocol, latestMetric, exams, lastLogDate }: UseProtocolAlertsInput) {
+export function useProtocolAlerts({ protocol, latestMetric, exams, lastLogDate, latestMarkers }: UseProtocolAlertsInput) {
   const alerts = useMemo<ProtocolAlert[]>(() => {
     if (!protocol || protocol.status === 'concluido') return []
 
     const today = todayInSaoPaulo()
     const result: ProtocolAlert[] = []
 
-    // ── Alertas baseados em métricas de saúde ──────────────────────────
-    // Hematócrito: campo hematocrito_pct em health_metrics via BodyMetric snapshot
-    // Como não temos esse campo direto no body_metrics, vamos verificar se há
-    // alguma informação de exame realizado com hematocrito > 52%
-    // (implementação simplificada — em produção viria de health_metrics)
+    // ── Marcadores de exame (health_metrics) ───────────────────────────
+    // Críticos nunca são dispensáveis; os de atenção respeitam o dismiss de 24h.
+    if (latestMarkers) {
+      for (const alert of checkCriticalMarkers(latestMarkers)) {
+        if (alert.level === 'critico' || !isRecentlyDismissed(alert.id)) {
+          result.push(alert)
+        }
+      }
+    }
 
     // ── Exames atrasados ───────────────────────────────────────────────
     for (const exam of exams ?? []) {
@@ -108,7 +114,7 @@ export function useProtocolAlerts({ protocol, latestMetric, exams, lastLogDate }
     }
 
     return result
-  }, [protocol, latestMetric, exams, lastLogDate])
+  }, [protocol, latestMetric, exams, lastLogDate, latestMarkers])
 
   return alerts
 }

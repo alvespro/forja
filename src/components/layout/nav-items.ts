@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  Brain,
   Dumbbell,
   HeartPulse,
   ListChecks,
@@ -34,6 +35,7 @@ export const navItems: NavItem[] = [
   { to: '/suplementos', label: 'Suplementos 💊', icon: Pill },
   { to: '/habits', label: 'Hábitos', icon: ListChecks },
   { to: '/library', label: 'Biblioteca', icon: BookOpen },
+  { to: '/desenvolvimento', label: 'Desenvolvimento 🧠', icon: Brain },
   { to: '/focus', label: 'Foco', icon: Timer },
   { to: '/journal', label: 'Diário & Revisão', icon: NotebookPen },
   { to: '/finances', label: 'Finanças', icon: Wallet },

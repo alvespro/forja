@@ -116,17 +116,131 @@ export type Reading = {
   titulo: string
   autor: string | null
   status: LibraryStatus
-  progresso: number
+  progresso: number | null
   nota_321: string | null
+  dev_area_id: string | null
+  habilidades_desenvolvidas: string[] | null
+  aprendizado_1: string | null
+  aprendizado_2: string | null
+  aprendizado_3: string | null
+  aplicacao_1: string | null
+  aplicacao_2: string | null
+  acao_1: string | null
+  citacao_favorita: string | null
+  nota_geral: number | null
+  data_inicio: string | null
+  data_conclusao: string | null
+  relido: boolean | null
+  resumo: string | null
 }
 
 export type Course = {
   id: string
   user_id: string
+  dev_area_id: string | null
   provedor: string | null
   titulo: string
   status: LibraryStatus
-  progresso: number
+  progresso: number | null
+  nota_geral: number | null
+  plataforma: string | null
+  carga_horaria: number | null
+  certificado_url: string | null
+  citacao_favorita: string | null
+  data_inicio: string | null
+  data_conclusao: string | null
+  habilidades_desenvolvidas: string[] | null
+  aprendizado_1: string | null
+  aprendizado_2: string | null
+  aprendizado_3: string | null
+  aplicacao_1: string | null
+  aplicacao_2: string | null
+  acao_1: string | null
+  resumo: string | null
+}
+
+export type DevAreaCategoria = 'mentalidade' | 'interpessoal' | 'soft_skill' | 'hard_skill'
+
+export type DevArea = {
+  id: string
+  user_id: string
+  nome: string
+  categoria: DevAreaCategoria
+  descricao: string | null
+  cor: string | null
+  nivel_atual: number | null
+  nivel_meta: number | null
+  ativo: boolean | null
+  ordem: number | null
+  created_at: string | null
+}
+
+export type Skill = {
+  id: string
+  user_id: string
+  dev_area_id: string | null
+  nome: string
+  nivel_atual: number | null
+  nivel_meta: number | null
+  tipo: string | null
+  evidencias: string | null
+  proximos_passos: string | null
+  ordem: number | null
+  updated_at: string | null
+}
+
+export type DevMediaStatus = 'quero_ver' | 'assistindo' | 'assistido'
+export type DevMediaTipo = 'filme' | 'documentario' | 'serie' | 'podcast' | 'video'
+
+export type DevMedia = {
+  id: string
+  user_id: string
+  dev_area_id: string | null
+  tipo: DevMediaTipo | null
+  titulo: string
+  diretor_ou_host: string | null
+  plataforma: string | null
+  status: DevMediaStatus | null
+  nota_geral: number | null
+  origem: string | null
+  habilidades_desenvolvidas: string[] | null
+  aprendizado_1: string | null
+  aprendizado_2: string | null
+  aprendizado_3: string | null
+  aplicacao_1: string | null
+  aplicacao_2: string | null
+  acao_1: string | null
+  notas: string | null
+  data_conclusao: string | null
+  created_at: string | null
+}
+
+export type DevSuggestionStatus = 'pendente' | 'adicionado' | 'ignorado'
+export type DevSuggestionTipo = 'livro' | 'curso' | 'filme' | 'documentario' | 'podcast' | 'video'
+
+export type DevSuggestion = {
+  id: string
+  user_id: string
+  dev_area_id: string | null
+  semana_sugestao: string | null
+  tipo: DevSuggestionTipo | null
+  titulo: string
+  autor_ou_diretor: string | null
+  plataforma: string | null
+  motivo: string | null
+  habilidades_alvo: string[] | null
+  area: string | null
+  status: DevSuggestionStatus | null
+  created_at: string | null
+}
+
+export type DevProgress = {
+  id: string
+  user_id: string
+  skill_id: string | null
+  nivel: number
+  evidencia: string | null
+  registrado_em: string | null
 }
 
 export type Exercise = {

@@ -21,9 +21,9 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas'
+type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento'
 
-const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas']
+const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas', 'desenvolvimento']
 
 const SYSTEM_PROMPTS: Record<Agente, string> = {
   treino:
@@ -57,6 +57,29 @@ const SYSTEM_PROMPTS: Record<Agente, string> = {
     '(carbo noturno, proteína insuficiente pós-treino, janelas de jejum inadequadas) só quando os ' +
     'dados sustentarem isso. Dê sugestões práticas e específicas, não genéricas. Cite os dados ' +
     'reais. Responda em português do Brasil. Máximo 180 palavras.',
+  desenvolvimento:
+    'Você é o Mentor de Desenvolvimento Pessoal do FORJA, sistema de Welber Alves (32 anos, empresário, Rio Verde/GO).\n\n' +
+    'PERFIL PSICOLÓGICO: Eneagrama 3w2 (Realizador com asa Ajudador)\n' +
+    '- Pontos fortes: disciplina, execução, carisma, orientação a resultado\n' +
+    '- Áreas de crescimento: vulnerabilidade, profundidade emocional, identidade desacoplada de performance, conexão genuína\n\n' +
+    'ÁREAS PRIORITÁRIAS (em ordem):\n' +
+    '1. Mentalidade e Comportamento (área mais crítica para o crescimento do 3w2)\n' +
+    '2. Habilidades Interpessoais (mais evitada, mais impacto)\n' +
+    '3. Soft Skills\n' +
+    '4. Hard Skills — Crédito/Financeiro/Tech (desenvolve naturalmente)\n\n' +
+    'CONTEXTO DE NEGÓCIO:\n' +
+    '- Dono da Prime Inteligência Imobiliária (CCA Caixa)\n' +
+    '- Produtos: MCMV, SBPE, Consignado, Consórcio, Seguros\n' +
+    '- Objetivo: transformar de operador em dono/gestor\n\n' +
+    'SUAS FUNÇÕES:\n' +
+    '1. Analisar reviews 3-2-1 e extrair padrões de aprendizado\n' +
+    '2. Sugerir próximos livros/cursos/filmes com justificativa específica (perfil 3w2 + habilidades mais fracas)\n' +
+    '3. Identificar gaps entre habilidades atuais e objetivo profissional\n' +
+    '4. Propor próximos passos concretos e mensuráveis\n' +
+    '5. Conectar o aprendido com situações reais da Prime\n\n' +
+    'REGRA CRÍTICA: Para o perfil 3w2, sempre priorizar Profundidade Humana e Interpessoal.\n' +
+    'Hard Skills ele já desenvolve naturalmente — não priorizar.\n\n' +
+    'Responda em português do Brasil. Seja direto e específico. Máximo 300 palavras.',
   metas:
     'Você é o Analista de Objetivos do FORJA, sistema de Welber Alves.\n\n' +
     'REGRAS POR OBJETIVO:\n' +
@@ -281,12 +304,58 @@ async function buscarContextoMetas(sb: SupabaseClient, userId: string): Promise<
   )
 }
 
+async function buscarContextoDesenvolvimento(sb: SupabaseClient, userId: string): Promise<string> {
+  const [areas, skills, leituras, cursos, sugestoes, metas] = await Promise.all([
+    sb.from('dev_areas').select('nome, categoria, cor, nivel_atual, nivel_meta').eq('user_id', userId).order('ordem'),
+    sb.from('skills').select('nome, nivel_atual, nivel_meta, dev_areas(nome)').eq('user_id', userId),
+    sb
+      .from('readings')
+      .select('titulo, autor, trilha, status, nota_geral, aprendizado_1, aprendizado_2, aprendizado_3, aplicacao_1, aplicacao_2, acao_1, data_conclusao')
+      .eq('user_id', userId)
+      .eq('status', 'lido')
+      .order('data_conclusao', { ascending: false })
+      .limit(5),
+    sb
+      .from('courses')
+      .select('titulo, provedor, plataforma, status, nota_geral, aprendizado_1, aprendizado_2, aprendizado_3, acao_1, data_conclusao')
+      .eq('user_id', userId)
+      .eq('status', 'lido')
+      .order('data_conclusao', { ascending: false })
+      .limit(3),
+    sb
+      .from('dev_suggestions')
+      .select('tipo, titulo, motivo, area, status')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(10),
+    sb
+      .from('goals')
+      .select('area, titulo, progresso, status')
+      .eq('user_id', userId)
+      .eq('status', 'ativo'),
+  ])
+
+  return JSON.stringify(
+    {
+      areas_desenvolvimento: areas.data ?? [],
+      habilidades: skills.data ?? [],
+      ultimas_5_leituras_concluidas: leituras.data ?? [],
+      ultimos_3_cursos_concluidos: cursos.data ?? [],
+      sugestoes_recentes: sugestoes.data ?? [],
+      metas_ativas: metas.data ?? [],
+    },
+    null,
+    2,
+  )
+}
+
 const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Promise<string>> = {
   treino: buscarContextoTreino,
   biblioteca: buscarContextoBiblioteca,
   coach: buscarContextoCoach,
   nutricao: buscarContextoNutricao,
   metas: buscarContextoMetas,
+  desenvolvimento: buscarContextoDesenvolvimento,
 }
 
 async function perguntarAnthropic(systemPrompt: string, contexto: string, pergunta: string): Promise<string> {

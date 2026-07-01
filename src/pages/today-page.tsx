@@ -10,6 +10,7 @@ import { HabitChecklistCard } from '@/components/today/habit-checklist-card'
 import { MoodCheckinCard } from '@/components/today/mood-checkin-card'
 import { PretreinoAlertCard } from '@/components/today/pretreino-alert-card'
 import { WorkoutTodayCard } from '@/components/today/workout-today-card'
+import { DevSummaryCard } from '@/components/today/dev-summary-card'
 import { parseDateOnly, todayInSaoPaulo } from '@/lib/date'
 
 export function TodayPage() {
@@ -31,6 +32,7 @@ export function TodayPage() {
       <WorkoutTodayCard />
       <DietAdequacyCard collapsible />
       <PretreinoAlertCard />
+      <DevSummaryCard />
       <FrogTaskCard />
       <HabitChecklistCard />
       <MoodCheckinCard />

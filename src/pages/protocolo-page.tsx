@@ -13,6 +13,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { ProtocolCreateWizard } from '@/components/protocolo/protocol-create-wizard'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useActiveProtocol, useUpdateProtocol } from '@/hooks/use-protocols'
@@ -42,13 +43,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'agenda', label: '📅 Agenda' },
   { id: 'monitoramento', label: '📊 Monitoramento' },
   { id: 'exames', label: '🧪 Exames' },
-]
-
-const EXAM_FASES: { label: string; semanas: number[] }[] = [
-  { label: 'Pré-ciclo', semanas: [0] },
-  { label: 'Mid-ciclo Sem. 6', semanas: [6] },
-  { label: 'Pós-ciclo Sem. 14', semanas: [14] },
-  { label: 'TPC Sem. 18', semanas: [18] },
 ]
 
 const LOCAL_OPTIONS = [
@@ -133,6 +127,7 @@ export function ProtocoloPage() {
   const [showExamResultModal, setShowExamResultModal] = useState<string | null>(null)
   const [examResultValues, setExamResultValues] = useState<Record<string, string>>({})
   const [examResultCritical, setExamResultCritical] = useState<string[]>([])
+  const [showCreateWizard, setShowCreateWizard] = useState(false)
 
   const protocol = useActiveProtocol()
   const p = protocol.data
@@ -182,6 +177,23 @@ export function ProtocoloPage() {
     lastLogDate,
     latestMarkers,
   })
+
+  // Janelas de exames derivadas das semanas-alvo reais do checklist
+  const examFases = useMemo(() => {
+    const weeks = [...new Set((exams.data ?? []).map((e) => e.semana_alvo ?? 0))].sort((a, b) => a - b)
+    const dur = p?.duracao_semanas ?? 16
+    return weeks.map((w) => ({
+      label:
+        w <= 0
+          ? 'Pré-ciclo'
+          : w > dur
+            ? `Pós-TPC — Sem. ${w}`
+            : w === dur
+              ? `Fim do ciclo — Sem. ${w}`
+              : `Mid-ciclo — Sem. ${w}`,
+      semanas: [w],
+    }))
+  }, [exams.data, p?.duracao_semanas])
 
   const visibleAlerts = alerts.filter((a) => !dismissedAlerts.has(a.id))
 
@@ -394,9 +406,15 @@ export function ProtocoloPage() {
           <p className="font-heading text-lg font-semibold text-foreground">Nenhum protocolo ativo</p>
           <p className="mt-1 text-sm text-aco-texto">Nenhum protocolo planejado, ativo ou em TPC foi encontrado.</p>
         </div>
+        <Button type="button" onClick={() => setShowCreateWizard(true)} className="gap-1.5">
+          ➕ Cadastrar protocolo prescrito
+        </Button>
         <p className="text-xs text-aco-texto/70 max-w-xs">
           Este módulo registra protocolos prescritos por médico. O FORJA não recomenda compostos ou doses.
         </p>
+        {showCreateWizard && (
+          <ProtocolCreateWizard onClose={() => setShowCreateWizard(false)} latestMetric={latestMetric} />
+        )}
       </div>
     )
   }
@@ -757,7 +775,7 @@ export function ProtocoloPage() {
             <CardContent className="flex flex-col gap-3">
               <p className="text-sm font-semibold text-foreground">Janelas de exames</p>
               <div className="flex flex-col gap-2">
-                {EXAM_FASES.map((fase) => {
+                {examFases.map((fase) => {
                   const done = exams.data?.filter((e) => fase.semanas.includes(e.semana_alvo ?? -1) && e.status === 'realizado').length ?? 0
                   const total = exams.data?.filter((e) => fase.semanas.includes(e.semana_alvo ?? -1)).length ?? 0
                   const isCurrent = fase.semanas.some((s) => s <= weekNum && weekNum < s + 2)
@@ -943,7 +961,7 @@ export function ProtocoloPage() {
       {/* ════════════ TAB: EXAMES ════════════ */}
       {tab === 'exames' && (
         <div className="flex flex-col gap-4">
-          {EXAM_FASES.map((fase) => {
+          {examFases.map((fase) => {
             const faseExams = (exams.data ?? []).filter((e) => fase.semanas.includes(e.semana_alvo ?? -1))
             if (faseExams.length === 0) return null
             const realized = faseExams.filter((e) => e.status === 'realizado').length

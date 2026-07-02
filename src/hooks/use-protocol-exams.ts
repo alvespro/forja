@@ -22,6 +22,29 @@ export function useProtocolExams(protocolId?: string) {
   })
 }
 
+export type ProtocolExamInput = {
+  protocol_id: string
+  nome: string
+  tipo?: string | null
+  semana_alvo?: number | null
+  status?: ProtocolExamStatus
+}
+
+export function useCreateProtocolExams() {
+  const { user } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (exams: ProtocolExamInput[]) => {
+      if (!user) throw new Error('Não autenticado')
+      const { error } = await supabase
+        .from('protocol_exams')
+        .insert(exams.map((e) => ({ ...e, user_id: user.id })))
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['protocol-exams'] }),
+  })
+}
+
 export function useUpdateProtocolExam() {
   const qc = useQueryClient()
   return useMutation({

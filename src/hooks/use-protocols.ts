@@ -51,6 +51,26 @@ export type ProtocolInput = {
   notas?: string | null
 }
 
+export function useCreateProtocol() {
+  const { user } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (values: ProtocolInput) => {
+      if (!user) throw new Error('Não autenticado')
+      const { data, error } = await supabase
+        .from('protocols')
+        .insert({ ...values, user_id: user.id })
+        .select()
+        .single()
+      if (error) throw error
+      return data as Protocol
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['protocols'] })
+    },
+  })
+}
+
 export function useUpdateProtocol() {
   const qc = useQueryClient()
   return useMutation({

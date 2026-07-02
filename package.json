@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "types:gen": "supabase gen types typescript --project-id devwqshyiatvhwrudfpa > src/types/database.generated.ts"
+    "types:gen": "supabase gen types typescript --project-id devwqshyiatvhwrudfpa > src/types/database.generated.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.2.10",
@@ -48,6 +49,7 @@
     "supabase": "^2.108.0",
     "typescript": "~6.0.2",
     "vite": "^8.1.0",
-    "vite-plugin-pwa": "^1.3.0"
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^4.1.9"
   }
 }

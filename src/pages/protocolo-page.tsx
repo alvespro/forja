@@ -33,6 +33,7 @@ import {
 import { useConfirm } from '@/hooks/use-confirm'
 import { useForjaAI } from '@/hooks/useForjaAI'
 import { todayInSaoPaulo } from '@/lib/date'
+import { computeWeekNumber } from '@/lib/protocol'
 import type { ProtocolExamStatus, ProtocolStatus } from '@/types/database'
 
 type Tab = 'protocolo' | 'compostos' | 'agenda' | 'monitoramento' | 'exames'
@@ -108,13 +109,6 @@ function examStatusBadge(status: ProtocolExamStatus | string | null) {
   }
 }
 
-function computeWeekNumber(protocol: { data_inicio: string | null }, today: string): number {
-  if (!protocol.data_inicio) return 0
-  const start = new Date(protocol.data_inicio + 'T12:00:00')
-  const now = new Date(today + 'T12:00:00')
-  return Math.max(0, Math.floor((now.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1)
-}
-
 export function ProtocoloPage() {
   const [tab, setTab] = useState<Tab>('protocolo')
   const [showAddCompound, setShowAddCompound] = useState(false)
@@ -161,7 +155,7 @@ export function ProtocoloPage() {
   const { confirm, dialog } = useConfirm()
 
   const today = todayInSaoPaulo()
-  const weekNum = p ? computeWeekNumber(p, today) : 0
+  const weekNum = computeWeekNumber(p?.data_inicio, today)
   const totalWeeks = p?.duracao_semanas ?? 16
 
   const latestMetric = bodyMetrics.data?.[bodyMetrics.data.length - 1]

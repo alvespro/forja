@@ -76,6 +76,14 @@ async function gerarSugestoes(contexto: string): Promise<unknown[]> {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
 
+  // Guard anti-abuso: esta função gera custo (API Anthropic) e roda com service
+  // role. Com CRON_SECRET definido nas env vars, só o cron (que envia o header
+  // x-cron-secret) consegue invocar — a publishable key deixa de ser suficiente.
+  const cronSecret = Deno.env.get('CRON_SECRET')
+  if (cronSecret && req.headers.get('x-cron-secret') !== cronSecret) {
+    return jsonResponse({ ok: false, error: 'unauthorized' }, 401)
+  }
+
   // Usar service role para ter acesso a todos os usuários (função agendada)
   const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 

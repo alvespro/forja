@@ -51,6 +51,12 @@ type NotificationRow = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
 
+  // Guard anti-abuso: com CRON_SECRET definido, só o cron consegue invocar
+  const cronSecret = Deno.env.get('CRON_SECRET')
+  if (cronSecret && req.headers.get('x-cron-secret') !== cronSecret) {
+    return jsonResponse({ ok: false, error: 'unauthorized' }, 401)
+  }
+
   const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
   const today = todaySaoPaulo()
   const em3dias = addDays(today, 3)

@@ -9,13 +9,7 @@ import { useProtocolExams } from '@/hooks/use-protocol-exams'
 import { useProtocolSupport } from '@/hooks/use-protocol-support'
 import { useCreateProtocolLog, useProtocolLogs } from '@/hooks/use-protocol-logs'
 import { todayInSaoPaulo } from '@/lib/date'
-
-function computeWeekNumber(dataInicio: string | null, today: string): number {
-  if (!dataInicio) return 0
-  const start = new Date(dataInicio + 'T12:00:00')
-  const now = new Date(today + 'T12:00:00')
-  return Math.max(0, Math.floor((now.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1)
-}
+import { computeWeekNumber } from '@/lib/protocol'
 
 export function ProtocolSummaryCard() {
   const protocol = useActiveProtocol()

@@ -1,18 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/hooks/use-auth'
-import { todayInSaoPaulo } from '@/lib/date'
+import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 import type { SupplementLog } from '@/types/database'
 
-/** Todos os logs do usuário (usado pra calcular streak e % de adesão no ciclo). */
+/**
+ * Logs de suplementos numa janela de 180 dias — cobre o ciclo de 90 dias com
+ * folga para o cálculo de adesão/streak sem baixar o histórico inteiro.
+ */
 export function useSupplementLogs() {
   const { user } = useAuth()
+  const from = addDaysToDateString(todayInSaoPaulo(), -180)
 
   return useQuery({
-    queryKey: ['supplement-logs'],
+    queryKey: ['supplement-logs', from],
     queryFn: async () => {
-      const { data, error } = await supabase.from('supplement_logs').select('*').order('data', { ascending: false })
+      const { data, error } = await supabase
+        .from('supplement_logs')
+        .select('*')
+        .gte('data', from)
+        .order('data', { ascending: false })
       if (error) throw error
       return data as SupplementLog[]
     },

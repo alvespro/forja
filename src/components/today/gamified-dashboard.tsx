@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { useActiveProtocol } from '@/hooks/use-protocols'
+import { useDailyScores, useUpsertDailyScore } from '@/hooks/use-daily-scores'
 import { useFrogTask } from '@/hooks/use-frog-task'
 import { useHabits, useHabitLogs, groupLogsByHabit } from '@/hooks/use-habits'
 import { useJournalEntry } from '@/hooks/use-journal-entry'
@@ -16,6 +17,7 @@ import { useTasks } from '@/hooks/use-tasks'
 import { useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { quoteOfTheDay } from '@/lib/daily-quote'
 import { parseDateOnly, todayInSaoPaulo } from '@/lib/date'
+import { computeAchievements, computeStreak, last7Days, levelInfo } from '@/lib/gamification'
 import { weekdayAbbrevOf } from '@/lib/nutrition'
 import { cn } from '@/lib/utils'
 
@@ -66,6 +68,8 @@ export function GamifiedDashboard() {
   const tasks = useTasks({ data: today })
   const protocol = useActiveProtocol()
   const protocolLogs = useProtocolLogs(protocol.data?.id, 10)
+  const dailyScores = useDailyScores()
+  const upsertScore = useUpsertDailyScore()
 
   const { activities, pontos, total, bonus } = useMemo(() => {
     const list: Activity[] = []
@@ -175,6 +179,29 @@ export function GamifiedDashboard() {
   const pct = total > 0 ? Math.min(100, Math.round((pontos / total) * 100)) : 0
   const rank = rankOf(pct)
 
+  // ── Persistência do score do dia (upsert idempotente) ──
+  const carregando =
+    frog.isLoading || habits.isLoading || workoutSessions.isLoading || mealLogs.isLoading || journal.isLoading
+  const ultimoSalvo = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (carregando || total === 0) return
+    const chave = `${today}:${pontos}:${total}:${bonus}`
+    if (ultimoSalvo.current === chave) return
+    ultimoSalvo.current = chave
+    upsertScore.mutate({ data: today, pontos, total, bonus })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carregando, pontos, total, bonus, today])
+
+  // ── Streak, nível, histórico e conquistas ──
+  const scores = dailyScores.data ?? []
+  const streak = computeStreak(scores, today)
+  const totalXP = scores.reduce((s, d) => s + d.pontos + d.bonus, 0)
+  const nivel = levelInfo(totalXP)
+  const semana = last7Days(scores, today)
+  const conquistas = computeAchievements(scores, today)
+  const conquistadas = conquistas.filter((c) => c.earned)
+
   // Anel de progresso (SVG)
   const R = 34
   const CIRC = 2 * Math.PI * R
@@ -267,8 +294,89 @@ export function GamifiedDashboard() {
               </button>
             ))}
           </div>
+
+          {/* ── Streak + Nível ── */}
+          <div className="flex items-center gap-3 border-t border-border/30 pt-3">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className={cn('text-lg', streak === 0 && 'grayscale opacity-50')}>🔥</span>
+              <div>
+                <p className="text-sm font-bold text-foreground leading-none">{streak}</p>
+                <p className="text-[10px] text-aco-texto">
+                  dia{streak !== 1 ? 's' : ''} seguido{streak !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-semibold text-foreground">
+                  {nivel.emoji} Nv. {nivel.nivel} — {nivel.titulo}
+                </span>
+                <span className="text-aco-texto">{totalXP} XP</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-border/40">
+                <div
+                  className="h-full rounded-full bg-brasa transition-all duration-500"
+                  style={{ width: `${Math.round(nivel.progresso * 100)}%` }}
+                />
+              </div>
+              <p className="mt-0.5 text-[10px] text-aco-texto/70">
+                {nivel.xpParaProximo} XP para o nível {nivel.nivel + 1}
+              </p>
+            </div>
+          </div>
+
+          {/* ── Últimos 7 dias ── */}
+          <div className="flex items-end justify-between gap-1.5">
+            {semana.map((d) => (
+              <div key={d.data} className="flex flex-1 flex-col items-center gap-1">
+                <div className="flex h-10 w-full items-end overflow-hidden rounded-sm bg-border/25">
+                  <div
+                    className={cn('w-full rounded-sm transition-all duration-500')}
+                    style={{
+                      height: `${Math.max(d.pct, d.pct > 0 ? 8 : 0)}%`,
+                      backgroundColor: d.pct >= 80 ? '#F0A93B' : d.pct >= 50 ? '#5FA88C' : '#8E8E93',
+                    }}
+                  />
+                </div>
+                <span className={cn('text-[9px]', d.isToday ? 'font-bold text-brasa' : 'text-aco-texto/70')}>
+                  {format(parseDateOnly(d.data), 'EEEEEE', { locale: ptBR })}
+                </span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
+
+      {/* ── Conquistas ── */}
+      {conquistadas.length > 0 && (
+        <Card>
+          <CardContent className="flex flex-col gap-2.5 py-3.5">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-foreground">🏅 Conquistas</p>
+              <span className="text-xs text-aco-texto">
+                {conquistadas.length}/{conquistas.length}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {conquistas.map((c) => (
+                <div
+                  key={c.key}
+                  title={c.descricao}
+                  className={cn(
+                    'flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs',
+                    c.earned
+                      ? 'border-brasa/50 bg-brasa/10 text-foreground'
+                      : 'border-border/40 bg-card/30 text-aco-texto/50 grayscale',
+                  )}
+                >
+                  <span>{c.emoji}</span>
+                  <span className="font-medium">{c.titulo}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

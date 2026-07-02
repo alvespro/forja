@@ -613,6 +613,16 @@ export type ProtocolSupport = {
   ativo: boolean | null
 }
 
+export type DailyScore = {
+  id: string
+  user_id: string
+  data: string
+  pontos: number
+  total: number
+  bonus: number
+  updated_at: string
+}
+
 export type Notification = {
   id: string
   user_id: string

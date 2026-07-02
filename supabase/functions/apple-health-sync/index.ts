@@ -1,16 +1,17 @@
 // apple-health-sync — recebe o resumo diário do Apple Health via Shortcut
 // do iPhone e distribui os dados nas tabelas do FORJA.
-// Autenticação: Bearer token (JWT de sessão do usuário) — ver docs/APPLE_HEALTH.md.
+// Autenticação: header X-Forja-Secret (APPLE_HEALTH_SECRET) + user_id no body —
+// secret fixo porque Shortcuts não gerenciam JWT que expira. Ver docs/APPLE_HEALTH.md.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
+const APPLE_HEALTH_SECRET = Deno.env.get('APPLE_HEALTH_SECRET')
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-forja-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -34,6 +35,7 @@ type SonoPayload = {
 type DailySummary = {
   tipo?: string
   data?: string
+  user_id?: string
   peso_kg?: number
   fc_repouso?: number
   vo2max?: number
@@ -59,18 +61,14 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return jsonResponse({ status: 'erro', error: 'Use POST' }, 405)
 
   try {
-    // ── 1-2. Validar JWT e extrair usuário ──
-    const authHeader = req.headers.get('Authorization') ?? ''
-    if (!authHeader.startsWith('Bearer ')) {
-      return jsonResponse({ status: 'erro', error: 'Header Authorization: Bearer {token} obrigatório' }, 401)
+    // ── 1-2. Validar o secret fixo (Shortcuts não gerenciam JWT que expira) ──
+    if (!APPLE_HEALTH_SECRET) {
+      console.error('APPLE_HEALTH_SECRET não configurado nas env vars da função')
+      return jsonResponse({ status: 'erro', error: 'Função não configurada' }, 500)
     }
-    const sbAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    })
-    const {
-      data: { user },
-    } = await sbAuth.auth.getUser()
-    if (!user) return jsonResponse({ status: 'erro', error: 'Token inválido ou expirado' }, 401)
+    if (req.headers.get('X-Forja-Secret') !== APPLE_HEALTH_SECRET) {
+      return jsonResponse({ status: 'erro', error: 'Secret inválido' }, 401)
+    }
 
     // ── Validar body ──
     const body: DailySummary | null = await req.json().catch(() => null)
@@ -83,7 +81,14 @@ Deno.serve(async (req) => {
     if (!body.data || !/^\d{4}-\d{2}-\d{2}$/.test(body.data)) {
       return jsonResponse({ status: 'erro', error: 'data deve estar no formato YYYY-MM-DD' }, 400)
     }
+    if (
+      !body.user_id ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.user_id)
+    ) {
+      return jsonResponse({ status: 'erro', error: 'user_id (UUID) é obrigatório no body' }, 400)
+    }
 
+    const user = { id: body.user_id }
     const data = body.data
     const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
     let sincronizados = 0

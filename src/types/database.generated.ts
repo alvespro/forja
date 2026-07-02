@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          codigo: string
+          conquistado_em: string | null
+          descricao: string | null
+          emoji: string | null
+          id: string
+          nome: string
+          user_id: string
+          xp_bonus: number | null
+        }
+        Insert: {
+          codigo: string
+          conquistado_em?: string | null
+          descricao?: string | null
+          emoji?: string | null
+          id?: string
+          nome: string
+          user_id: string
+          xp_bonus?: number | null
+        }
+        Update: {
+          codigo?: string
+          conquistado_em?: string | null
+          descricao?: string | null
+          emoji?: string | null
+          id?: string
+          nome?: string
+          user_id?: string
+          xp_bonus?: number | null
+        }
+        Relationships: []
+      }
       body_goals: {
         Row: {
           agua_meta_pct: number | null
@@ -183,30 +216,86 @@ export type Database = {
       }
       courses: {
         Row: {
+          acao_1: string | null
+          aplicacao_1: string | null
+          aplicacao_2: string | null
+          aprendizado_1: string | null
+          aprendizado_2: string | null
+          aprendizado_3: string | null
+          carga_horaria: number | null
+          certificado_url: string | null
+          citacao_favorita: string | null
+          data_conclusao: string | null
+          data_inicio: string | null
+          dev_area_id: string | null
+          habilidades_desenvolvidas: string[] | null
           id: string
+          nota_geral: number | null
+          plataforma: string | null
           progresso: number | null
           provedor: string | null
+          resumo: string | null
           status: string | null
           titulo: string
           user_id: string
         }
         Insert: {
+          acao_1?: string | null
+          aplicacao_1?: string | null
+          aplicacao_2?: string | null
+          aprendizado_1?: string | null
+          aprendizado_2?: string | null
+          aprendizado_3?: string | null
+          carga_horaria?: number | null
+          certificado_url?: string | null
+          citacao_favorita?: string | null
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          dev_area_id?: string | null
+          habilidades_desenvolvidas?: string[] | null
           id?: string
+          nota_geral?: number | null
+          plataforma?: string | null
           progresso?: number | null
           provedor?: string | null
+          resumo?: string | null
           status?: string | null
           titulo: string
           user_id: string
         }
         Update: {
+          acao_1?: string | null
+          aplicacao_1?: string | null
+          aplicacao_2?: string | null
+          aprendizado_1?: string | null
+          aprendizado_2?: string | null
+          aprendizado_3?: string | null
+          carga_horaria?: number | null
+          certificado_url?: string | null
+          citacao_favorita?: string | null
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          dev_area_id?: string | null
+          habilidades_desenvolvidas?: string[] | null
           id?: string
+          nota_geral?: number | null
+          plataforma?: string | null
           progresso?: number | null
           provedor?: string | null
+          resumo?: string | null
           status?: string | null
           titulo?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "courses_dev_area_id_fkey"
+            columns: ["dev_area_id"]
+            isOneToOne: false
+            referencedRelation: "dev_areas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_clients: {
         Row: {
@@ -270,6 +359,213 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      dev_areas: {
+        Row: {
+          ativo: boolean | null
+          categoria: string
+          cor: string | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nivel_atual: number | null
+          nivel_meta: number | null
+          nome: string
+          ordem: number | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          categoria: string
+          cor?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nivel_atual?: number | null
+          nivel_meta?: number | null
+          nome: string
+          ordem?: number | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          categoria?: string
+          cor?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nivel_atual?: number | null
+          nivel_meta?: number | null
+          nome?: string
+          ordem?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dev_media: {
+        Row: {
+          acao_1: string | null
+          aplicacao_1: string | null
+          aplicacao_2: string | null
+          aprendizado_1: string | null
+          aprendizado_2: string | null
+          aprendizado_3: string | null
+          created_at: string | null
+          data_conclusao: string | null
+          dev_area_id: string | null
+          diretor_ou_host: string | null
+          habilidades_desenvolvidas: string[] | null
+          id: string
+          nota_geral: number | null
+          notas: string | null
+          origem: string | null
+          plataforma: string | null
+          status: string | null
+          tipo: string | null
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          acao_1?: string | null
+          aplicacao_1?: string | null
+          aplicacao_2?: string | null
+          aprendizado_1?: string | null
+          aprendizado_2?: string | null
+          aprendizado_3?: string | null
+          created_at?: string | null
+          data_conclusao?: string | null
+          dev_area_id?: string | null
+          diretor_ou_host?: string | null
+          habilidades_desenvolvidas?: string[] | null
+          id?: string
+          nota_geral?: number | null
+          notas?: string | null
+          origem?: string | null
+          plataforma?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          acao_1?: string | null
+          aplicacao_1?: string | null
+          aplicacao_2?: string | null
+          aprendizado_1?: string | null
+          aprendizado_2?: string | null
+          aprendizado_3?: string | null
+          created_at?: string | null
+          data_conclusao?: string | null
+          dev_area_id?: string | null
+          diretor_ou_host?: string | null
+          habilidades_desenvolvidas?: string[] | null
+          id?: string
+          nota_geral?: number | null
+          notas?: string | null
+          origem?: string | null
+          plataforma?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_media_dev_area_id_fkey"
+            columns: ["dev_area_id"]
+            isOneToOne: false
+            referencedRelation: "dev_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_progress: {
+        Row: {
+          evidencia: string | null
+          id: string
+          nivel: number
+          registrado_em: string | null
+          skill_id: string | null
+          user_id: string
+        }
+        Insert: {
+          evidencia?: string | null
+          id?: string
+          nivel: number
+          registrado_em?: string | null
+          skill_id?: string | null
+          user_id: string
+        }
+        Update: {
+          evidencia?: string | null
+          id?: string
+          nivel?: number
+          registrado_em?: string | null
+          skill_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_progress_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_suggestions: {
+        Row: {
+          autor_ou_diretor: string | null
+          created_at: string | null
+          dev_area_id: string | null
+          habilidades_alvo: string[] | null
+          id: string
+          motivo: string | null
+          plataforma: string | null
+          semana_sugestao: string | null
+          status: string | null
+          tipo: string | null
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          autor_ou_diretor?: string | null
+          created_at?: string | null
+          dev_area_id?: string | null
+          habilidades_alvo?: string[] | null
+          id?: string
+          motivo?: string | null
+          plataforma?: string | null
+          semana_sugestao?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          autor_ou_diretor?: string | null
+          created_at?: string | null
+          dev_area_id?: string | null
+          habilidades_alvo?: string[] | null
+          id?: string
+          motivo?: string | null
+          plataforma?: string | null
+          semana_sugestao?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_suggestions_dev_area_id_fkey"
+            columns: ["dev_area_id"]
+            isOneToOne: false
+            referencedRelation: "dev_areas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       diet_plans: {
         Row: {
@@ -1025,38 +1321,396 @@ export type Database = {
         }
         Relationships: []
       }
+      protocol_compounds: {
+        Row: {
+          categoria: string | null
+          dose_mg: number | null
+          frequencia: string | null
+          id: string
+          nome: string
+          notas: string | null
+          ordem: number | null
+          protocol_id: string
+          semana_fim: number | null
+          semana_inicio: number | null
+          user_id: string
+          via: string | null
+        }
+        Insert: {
+          categoria?: string | null
+          dose_mg?: number | null
+          frequencia?: string | null
+          id?: string
+          nome: string
+          notas?: string | null
+          ordem?: number | null
+          protocol_id: string
+          semana_fim?: number | null
+          semana_inicio?: number | null
+          user_id: string
+          via?: string | null
+        }
+        Update: {
+          categoria?: string | null
+          dose_mg?: number | null
+          frequencia?: string | null
+          id?: string
+          nome?: string
+          notas?: string | null
+          ordem?: number | null
+          protocol_id?: string
+          semana_fim?: number | null
+          semana_inicio?: number | null
+          user_id?: string
+          via?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocol_compounds_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "protocols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      protocol_exams: {
+        Row: {
+          data_prevista: string | null
+          data_realizada: string | null
+          health_metric_snapshot: Json | null
+          id: string
+          nome: string
+          observacoes: string | null
+          protocol_id: string
+          semana_alvo: number | null
+          status: string | null
+          tipo: string | null
+          user_id: string
+        }
+        Insert: {
+          data_prevista?: string | null
+          data_realizada?: string | null
+          health_metric_snapshot?: Json | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          protocol_id: string
+          semana_alvo?: number | null
+          status?: string | null
+          tipo?: string | null
+          user_id: string
+        }
+        Update: {
+          data_prevista?: string | null
+          data_realizada?: string | null
+          health_metric_snapshot?: Json | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          protocol_id?: string
+          semana_alvo?: number | null
+          status?: string | null
+          tipo?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocol_exams_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "protocols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      protocol_goals: {
+        Row: {
+          forca_meta: string | null
+          gordura_inicial_pct: number | null
+          gordura_meta_pct: number | null
+          id: string
+          musculo_inicial_kg: number | null
+          musculo_meta_kg: number | null
+          notas: string | null
+          peso_inicial_kg: number | null
+          peso_meta_kg: number | null
+          protocol_id: string
+          user_id: string
+        }
+        Insert: {
+          forca_meta?: string | null
+          gordura_inicial_pct?: number | null
+          gordura_meta_pct?: number | null
+          id?: string
+          musculo_inicial_kg?: number | null
+          musculo_meta_kg?: number | null
+          notas?: string | null
+          peso_inicial_kg?: number | null
+          peso_meta_kg?: number | null
+          protocol_id: string
+          user_id: string
+        }
+        Update: {
+          forca_meta?: string | null
+          gordura_inicial_pct?: number | null
+          gordura_meta_pct?: number | null
+          id?: string
+          musculo_inicial_kg?: number | null
+          musculo_meta_kg?: number | null
+          notas?: string | null
+          peso_inicial_kg?: number | null
+          peso_meta_kg?: number | null
+          protocol_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocol_goals_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "protocols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      protocol_logs: {
+        Row: {
+          compound_id: string | null
+          data_aplicacao: string
+          dose_aplicada_mg: number | null
+          efeitos_percebidos: string | null
+          energia: number | null
+          humor: number | null
+          id: string
+          libido: number | null
+          local_aplicacao: string | null
+          observacoes: string | null
+          protocol_id: string
+          user_id: string
+        }
+        Insert: {
+          compound_id?: string | null
+          data_aplicacao?: string
+          dose_aplicada_mg?: number | null
+          efeitos_percebidos?: string | null
+          energia?: number | null
+          humor?: number | null
+          id?: string
+          libido?: number | null
+          local_aplicacao?: string | null
+          observacoes?: string | null
+          protocol_id: string
+          user_id: string
+        }
+        Update: {
+          compound_id?: string | null
+          data_aplicacao?: string
+          dose_aplicada_mg?: number | null
+          efeitos_percebidos?: string | null
+          energia?: number | null
+          humor?: number | null
+          id?: string
+          libido?: number | null
+          local_aplicacao?: string | null
+          observacoes?: string | null
+          protocol_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocol_logs_compound_id_fkey"
+            columns: ["compound_id"]
+            isOneToOne: false
+            referencedRelation: "protocol_compounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "protocol_logs_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "protocols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      protocol_support: {
+        Row: {
+          ativo: boolean | null
+          categoria: string | null
+          dose: string | null
+          id: string
+          momento: string | null
+          motivo: string | null
+          nome: string
+          protocol_id: string
+          semana_fim: number | null
+          semana_inicio: number | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          categoria?: string | null
+          dose?: string | null
+          id?: string
+          momento?: string | null
+          motivo?: string | null
+          nome: string
+          protocol_id: string
+          semana_fim?: number | null
+          semana_inicio?: number | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          categoria?: string | null
+          dose?: string | null
+          id?: string
+          momento?: string | null
+          motivo?: string | null
+          nome?: string
+          protocol_id?: string
+          semana_fim?: number | null
+          semana_inicio?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocol_support_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "protocols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      protocols: {
+        Row: {
+          created_at: string | null
+          data_fim_prevista: string | null
+          data_inicio: string | null
+          duracao_semanas: number | null
+          id: string
+          medico_responsavel: string | null
+          nome: string
+          notas: string | null
+          objetivo: string
+          status: string | null
+          user_id: string
+          via: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_fim_prevista?: string | null
+          data_inicio?: string | null
+          duracao_semanas?: number | null
+          id?: string
+          medico_responsavel?: string | null
+          nome: string
+          notas?: string | null
+          objetivo: string
+          status?: string | null
+          user_id: string
+          via?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_fim_prevista?: string | null
+          data_inicio?: string | null
+          duracao_semanas?: number | null
+          id?: string
+          medico_responsavel?: string | null
+          nome?: string
+          notas?: string | null
+          objetivo?: string
+          status?: string | null
+          user_id?: string
+          via?: string | null
+        }
+        Relationships: []
+      }
       readings: {
         Row: {
+          acao_1: string | null
+          aplicacao_1: string | null
+          aplicacao_2: string | null
+          aprendizado_1: string | null
+          aprendizado_2: string | null
+          aprendizado_3: string | null
           autor: string | null
+          citacao_favorita: string | null
+          data_conclusao: string | null
+          data_inicio: string | null
+          dev_area_id: string | null
+          habilidades_desenvolvidas: string[] | null
           id: string
           nota_321: string | null
+          nota_geral: number | null
           progresso: number | null
+          relido: boolean | null
+          resumo: string | null
           status: string | null
           titulo: string
           trilha: string | null
           user_id: string
         }
         Insert: {
+          acao_1?: string | null
+          aplicacao_1?: string | null
+          aplicacao_2?: string | null
+          aprendizado_1?: string | null
+          aprendizado_2?: string | null
+          aprendizado_3?: string | null
           autor?: string | null
+          citacao_favorita?: string | null
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          dev_area_id?: string | null
+          habilidades_desenvolvidas?: string[] | null
           id?: string
           nota_321?: string | null
+          nota_geral?: number | null
           progresso?: number | null
+          relido?: boolean | null
+          resumo?: string | null
           status?: string | null
           titulo: string
           trilha?: string | null
           user_id: string
         }
         Update: {
+          acao_1?: string | null
+          aplicacao_1?: string | null
+          aplicacao_2?: string | null
+          aprendizado_1?: string | null
+          aprendizado_2?: string | null
+          aprendizado_3?: string | null
           autor?: string | null
+          citacao_favorita?: string | null
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          dev_area_id?: string | null
+          habilidades_desenvolvidas?: string[] | null
           id?: string
           nota_321?: string | null
+          nota_geral?: number | null
           progresso?: number | null
+          relido?: boolean | null
+          resumo?: string | null
           status?: string | null
           titulo?: string
           trilha?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "readings_dev_area_id_fkey"
+            columns: ["dev_area_id"]
+            isOneToOne: false
+            referencedRelation: "dev_areas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       set_logs: {
         Row: {
@@ -1114,6 +1768,56 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skills: {
+        Row: {
+          dev_area_id: string | null
+          evidencias: string | null
+          id: string
+          nivel_atual: number | null
+          nivel_meta: number | null
+          nome: string
+          ordem: number | null
+          proximos_passos: string | null
+          tipo: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          dev_area_id?: string | null
+          evidencias?: string | null
+          id?: string
+          nivel_atual?: number | null
+          nivel_meta?: number | null
+          nome: string
+          ordem?: number | null
+          proximos_passos?: string | null
+          tipo?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          dev_area_id?: string | null
+          evidencias?: string | null
+          id?: string
+          nivel_atual?: number | null
+          nivel_meta?: number | null
+          nome?: string
+          ordem?: number | null
+          proximos_passos?: string | null
+          tipo?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skills_dev_area_id_fkey"
+            columns: ["dev_area_id"]
+            isOneToOne: false
+            referencedRelation: "dev_areas"
             referencedColumns: ["id"]
           },
         ]
@@ -1222,6 +1926,36 @@ export type Database = {
           status?: string | null
           titulo?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_xp: {
+        Row: {
+          coins: number | null
+          id: string
+          nivel: number | null
+          streak_protegido: boolean | null
+          updated_at: string | null
+          user_id: string
+          xp_total: number | null
+        }
+        Insert: {
+          coins?: number | null
+          id?: string
+          nivel?: number | null
+          streak_protegido?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          xp_total?: number | null
+        }
+        Update: {
+          coins?: number | null
+          id?: string
+          nivel?: number | null
+          streak_protegido?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          xp_total?: number | null
         }
         Relationships: []
       }
@@ -1341,6 +2075,39 @@ export type Database = {
           nome?: string
           ordem?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      xp_logs: {
+        Row: {
+          acao: string
+          coins_ganho: number | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          referencia_id: string | null
+          user_id: string
+          xp_ganho: number
+        }
+        Insert: {
+          acao: string
+          coins_ganho?: number | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          referencia_id?: string | null
+          user_id: string
+          xp_ganho: number
+        }
+        Update: {
+          acao?: string
+          coins_ganho?: number | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          referencia_id?: string | null
+          user_id?: string
+          xp_ganho?: number
         }
         Relationships: []
       }

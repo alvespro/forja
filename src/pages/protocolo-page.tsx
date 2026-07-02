@@ -128,6 +128,16 @@ export function ProtocoloPage() {
   const [examResultValues, setExamResultValues] = useState<Record<string, string>>({})
   const [examResultCritical, setExamResultCritical] = useState<string[]>([])
   const [showCreateWizard, setShowCreateWizard] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+
+  // Formulário de edição do protocolo
+  const [eNome, setENome] = useState('')
+  const [eObjetivo, setEObjetivo] = useState('')
+  const [eMedico, setEMedico] = useState('')
+  const [eVia, setEVia] = useState('injetavel')
+  const [eDuracao, setEDuracao] = useState('')
+  const [eDataInicio, setEDataInicio] = useState('')
+  const [eNotas, setENotas] = useState('')
 
   const protocol = useActiveProtocol()
   const p = protocol.data
@@ -301,6 +311,37 @@ export function ProtocoloPage() {
     })
   }
 
+  function handleOpenEdit() {
+    if (!p) return
+    setENome(p.nome)
+    setEObjetivo(p.objetivo)
+    setEMedico(p.medico_responsavel ?? '')
+    setEVia(p.via ?? 'injetavel')
+    setEDuracao(p.duracao_semanas != null ? String(p.duracao_semanas) : '')
+    setEDataInicio(p.data_inicio ?? '')
+    setENotas(p.notas ?? '')
+    setShowEditModal(true)
+  }
+
+  function handleSaveEdit() {
+    if (!p || !eNome.trim() || !eObjetivo.trim()) return
+    updateProtocol.mutate(
+      {
+        id: p.id,
+        values: {
+          nome: eNome.trim(),
+          objetivo: eObjetivo.trim(),
+          medico_responsavel: eMedico.trim() || null,
+          via: eVia,
+          duracao_semanas: eDuracao ? Number(eDuracao) : null,
+          data_inicio: eDataInicio || null,
+          notas: eNotas.trim() || null,
+        },
+      },
+      { onSuccess: () => setShowEditModal(false) },
+    )
+  }
+
   async function handleTransitionStatus() {
     if (!p) return
     const next: ProtocolStatus =
@@ -458,7 +499,17 @@ export function ProtocoloPage() {
           <div className="flex flex-col gap-1.5">
             {statusBadge(p.status)}
             <div>
-              <h1 className="font-heading text-xl font-bold text-foreground">{p.nome}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-heading text-xl font-bold text-foreground">{p.nome}</h1>
+                <button
+                  type="button"
+                  onClick={handleOpenEdit}
+                  title="Editar protocolo"
+                  className="text-aco-texto/60 hover:text-foreground text-sm"
+                >
+                  ✏️
+                </button>
+              </div>
               {p.medico_responsavel && (
                 <p className="text-sm text-aco-texto">Dr. {p.medico_responsavel}</p>
               )}
@@ -1378,6 +1429,90 @@ export function ProtocoloPage() {
             <div className="flex gap-2">
               <Button type="button" variant="outline" className="flex-1" onClick={() => setShowScheduleModal(null)}>Cancelar</Button>
               <Button type="button" className="flex-1" onClick={() => handleScheduleExam(showScheduleModal)}>Agendar</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════ MODAL: Editar protocolo ════ */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4 sm:items-center">
+          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <p className="font-heading text-base font-bold text-foreground">✏️ Editar protocolo</p>
+              <button type="button" onClick={() => setShowEditModal(false)} className="text-aco-texto hover:text-foreground">
+                <X className="size-5" />
+              </button>
+            </div>
+            {[
+              { label: 'Nome *', value: eNome, set: setENome },
+              { label: 'Objetivo *', value: eObjetivo, set: setEObjetivo },
+              { label: 'Médico responsável', value: eMedico, set: setEMedico },
+            ].map(({ label, value, set }) => (
+              <div key={label}>
+                <Label className="text-xs text-aco-texto">{label}</Label>
+                <input
+                  type="text"
+                  value={value}
+                  onChange={(e) => set(e.target.value)}
+                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+            ))}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-aco-texto">Via principal</Label>
+                <select
+                  value={eVia}
+                  onChange={(e) => setEVia(e.target.value)}
+                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="injetavel">Injetável</option>
+                  <option value="oral">Oral</option>
+                  <option value="topico">Tópico</option>
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs text-aco-texto">Duração (semanas)</Label>
+                <input
+                  type="number"
+                  min={1}
+                  value={eDuracao}
+                  onChange={(e) => setEDuracao(e.target.value)}
+                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-aco-texto">Data de início</Label>
+              <input
+                type="date"
+                value={eDataInicio}
+                onChange={(e) => setEDataInicio(e.target.value)}
+                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-aco-texto">Notas</Label>
+              <textarea
+                value={eNotas}
+                onChange={(e) => setENotas(e.target.value)}
+                rows={2}
+                className="mt-1 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring resize-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" className="flex-1" onClick={() => setShowEditModal(false)}>
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                className="flex-1"
+                onClick={handleSaveEdit}
+                disabled={!eNome.trim() || !eObjetivo.trim() || updateProtocol.isPending}
+              >
+                {updateProtocol.isPending ? 'Salvando…' : 'Salvar alterações'}
+              </Button>
             </div>
           </div>
         </div>

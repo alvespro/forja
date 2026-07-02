@@ -33,12 +33,10 @@ executadas; as demais são o backlog priorizado.
 - [x] Componente `<Modal>` reutilizável (Radix Dialog): foco preso, Esc
       fecha, `aria-modal`, backdrop clicável — substitui os shells
       copiados-e-colados de modal
-- [x] Migrados como referência: modais de "Agendar exame" e "Editar
-      protocolo" na página de Protocolo
-- [ ] **Próximo**: migrar os demais modais artesanais para `<Modal>`:
-      protocolo-page (composto, suporte, aplicação, resultado de exame),
-      protocol-create-wizard, progress-photos-card (2), tarefas-page.
-      Padrão idêntico — trabalho mecânico, ~30min cada arquivo.
+- [x] TODOS os 9 modais migrados para `<Modal>`: protocolo-page (6:
+      composto, suporte, aplicação, resultado de exame, agendar, editar),
+      protocol-create-wizard, progress-photos-card (2). Zero shells
+      artesanais restantes no app.
 - [ ] **Próximo**: revisar contraste AA nos badges coloridos do iOS-style
       (tarefas) e nos chips do dashboard.
 
@@ -58,10 +56,11 @@ executadas; as demais são o backlog priorizado.
 
 Duplicações reais identificadas, em ordem de valor:
 
-1. **`<Modal>`** ✅ criado — 9 shells duplicados no app, 2 migrados.
-2. **`<FieldInput>` / `<FieldSelect>` / `<FieldTextarea>`**: a string de
-   classes `mt-1 flex h-9 w-full rounded-md border border-input...` está
-   repetida ~25×. Extrair para `components/ui/field.tsx`.
+1. **`<Modal>`** ✅ criado e adotado nos 9 shells.
+2. **`<FieldInput>` / `<FieldSelect>` / `<FieldTextarea>`** ✅ criados em
+   `components/ui/field.tsx` e adotados em protocolo-page, wizard e
+   fotos de progresso. Restam usos avulsos da classe em páginas antigas
+   (tarefas, suplementos etc.) — trocar conforme forem tocadas.
 3. **`<StatCard>`**: o padrão "label pequeno + valor grande + delta
    colorido" aparece em Corpo, Protocolo (monitoramento), Metas do ciclo.
 4. **`<SectionCard>`**: Card com header "título + botão de ação" repetido

@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
-import { Camera, Loader2, Sparkles, Trash2, X } from 'lucide-react'
+import { Camera, Loader2, Sparkles, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { FieldInput } from '@/components/ui/field'
 import { Label } from '@/components/ui/label'
+import { Modal } from '@/components/ui/modal'
 import { useConfirm } from '@/hooks/use-confirm'
 import {
   useAnalyzeProgressPhoto,
@@ -170,15 +172,9 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
         )}
 
         {/* ── Modal: confirmar upload ── */}
-        {pendingFile && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center">
-            <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <p className="font-heading text-base font-bold text-foreground">Nova foto</p>
-                <button type="button" onClick={() => setPendingFile(null)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
-                  <X className="size-5" />
-                </button>
-              </div>
+        <Modal open={!!pendingFile} onClose={() => setPendingFile(null)} title="Nova foto" maxWidth="sm">
+          {pendingFile && (
+            <>
               <img
                 src={URL.createObjectURL(pendingFile)}
                 alt="Pré-visualização"
@@ -202,16 +198,13 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                   ))}
                 </div>
               </div>
-              <div>
-                <Label className="text-xs text-aco-texto">Notas (opcional)</Label>
-                <input
-                  type="text"
-                  value={notas}
-                  onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Ex: fim da semana 6 do ciclo"
-                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-                />
-              </div>
+              <FieldInput
+                label="Notas (opcional)"
+                type="text"
+                value={notas}
+                onChange={(e) => setNotas(e.target.value)}
+                placeholder="Ex: fim da semana 6 do ciclo"
+              />
               {pesoAtual && (
                 <p className="text-xs text-aco-texto">
                   Peso registrado junto: <span className="font-semibold text-foreground">{pesoAtual}kg</span>
@@ -220,37 +213,32 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
               <Button type="button" onClick={handleUpload} disabled={upload.isPending} className="w-full">
                 {upload.isPending ? 'Enviando…' : '📤 Salvar e analisar com IA'}
               </Button>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </Modal>
 
         {/* ── Modal: detalhe da foto ── */}
-        {selecionada && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center">
-            <div className="flex max-h-[92vh] w-full max-w-md flex-col gap-3 overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-heading text-base font-bold text-foreground">
-                    {formatarData(selecionada.data)}
-                  </p>
-                  <p className="text-xs text-aco-texto capitalize">
-                    {selecionada.tipo ?? 'frente'}
-                    {selecionada.peso_kg && ` · ${selecionada.peso_kg}kg`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(selecionada)}
-                    className="text-aco-texto/50 hover:text-red-400"
-                    title="Excluir foto"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                  <button type="button" onClick={() => setSelecionada(null)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
-                    <X className="size-5" />
-                  </button>
-                </div>
+        <Modal
+          open={!!selecionada}
+          onClose={() => setSelecionada(null)}
+          title={selecionada ? formatarData(selecionada.data) : ''}
+        >
+          {selecionada && (
+            <>
+              <div className="-mt-3 flex items-center justify-between">
+                <p className="text-xs text-aco-texto capitalize">
+                  {selecionada.tipo ?? 'frente'}
+                  {selecionada.peso_kg && ` · ${selecionada.peso_kg}kg`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(selecionada)}
+                  className="text-aco-texto/50 hover:text-red-400"
+                  title="Excluir foto"
+                  aria-label="Excluir foto"
+                >
+                  <Trash2 className="size-4" />
+                </button>
               </div>
 
               {selecionada.signed_url && (
@@ -294,9 +282,9 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                   {analyze.isPending ? 'Analisando evolução…' : 'Gerar análise da evolução'}
                 </Button>
               )}
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </Modal>
 
         {dialog}
       </CardContent>

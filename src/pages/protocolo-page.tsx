@@ -13,6 +13,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { FieldInput, FieldSelect, FieldTextarea } from '@/components/ui/field'
 import { Modal } from '@/components/ui/modal'
 import { ProtocolCreateWizard } from '@/components/protocolo/protocol-create-wizard'
 import { Label } from '@/components/ui/label'
@@ -1076,19 +1077,13 @@ export function ProtocoloPage() {
       )}
 
       {/* ════ MODAL: Resultado de exame ════ */}
-      {showExamResultModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <p className="font-heading text-base font-bold text-foreground">🧪 Registrar resultados</p>
-              <button
-                type="button"
-                onClick={() => { setShowExamResultModal(null); setExamResultValues({}); setExamResultCritical([]) }}
-                aria-label="Fechar" className="text-aco-texto hover:text-foreground"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
+      <Modal
+        open={!!showExamResultModal}
+        onClose={() => { setShowExamResultModal(null); setExamResultValues({}); setExamResultCritical([]) }}
+        title="🧪 Registrar resultados"
+      >
+        {showExamResultModal && (
+          <>
             <p className="text-xs text-aco-texto">
               Preencha os marcadores disponíveis no resultado. Deixe em branco os que não constam no exame.
             </p>
@@ -1105,17 +1100,15 @@ export function ProtocoloPage() {
 
             <div className="grid grid-cols-2 gap-3">
               {EXAM_MARKERS.map(({ key, label, unit }) => (
-                <div key={key}>
-                  <Label className="text-xs text-aco-texto">{label} <span className="text-aco-texto/50">({unit})</span></Label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={examResultValues[key] ?? ''}
-                    onChange={(e) => setExamResultValues((prev) => ({ ...prev, [key]: e.target.value }))}
-                    placeholder="—"
-                    className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-                  />
-                </div>
+                <FieldInput
+                  key={key}
+                  label={<>{label} <span className="text-aco-texto/50">({unit})</span></>}
+                  type="number"
+                  step="0.1"
+                  value={examResultValues[key] ?? ''}
+                  onChange={(e) => setExamResultValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  placeholder="—"
+                />
               ))}
             </div>
 
@@ -1157,9 +1150,9 @@ export function ProtocoloPage() {
                 </Button>
               )}
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* ── AVISO LEGAL ── */}
       <div className="rounded-lg border border-border/30 bg-card/20 p-3 mt-2">
@@ -1170,193 +1163,120 @@ export function ProtocoloPage() {
       </div>
 
       {/* ════ MODAL: Adicionar Composto ════ */}
-      {showAddCompound && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <p className="font-heading text-base font-bold text-foreground">Registrar composto</p>
-              <button type="button" onClick={() => setShowAddCompound(false)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
-                <X className="size-5" />
-              </button>
-            </div>
-            <div className="rounded-lg border border-amber-700/40 bg-amber-950/20 p-3">
-              <p className="text-xs text-amber-300">
-                Registre apenas o que foi prescrito pelo seu médico. O FORJA não recomenda compostos ou doses.
-              </p>
-            </div>
-            {[
-              { label: 'Nome do composto *', value: cNome, set: setCNome, placeholder: 'Ex: Testosterona Cipionato' },
-              { label: 'Categoria', value: cCategoria, set: setCCategoria, placeholder: 'Ex: androgenico, esteroide...' },
-              { label: 'Dose (mg)', value: cDose, set: setCDose, placeholder: '200', type: 'number' },
-              { label: 'Frequência', value: cFreq, set: setCFreq, placeholder: '1x por semana, E3D...' },
-              { label: 'Semana início', value: cSemIni, set: setCSemIni, placeholder: '1', type: 'number' },
-              { label: 'Semana fim', value: cSemFim, set: setCSemFim, placeholder: '12', type: 'number' },
-            ].map(({ label, value, set, placeholder, type }) => (
-              <div key={label}>
-                <Label className="text-xs text-aco-texto">{label}</Label>
-                <input
-                  type={type ?? 'text'}
-                  value={value}
-                  onChange={(e) => set(e.target.value)}
-                  placeholder={placeholder}
-                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-                />
-              </div>
-            ))}
-            <div>
-              <Label className="text-xs text-aco-texto">Via</Label>
-              <select
-                value={cVia}
-                onChange={(e) => setCVia(e.target.value)}
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="injetavel">Injetável</option>
-                <option value="oral">Oral</option>
-                <option value="topico">Tópico</option>
-              </select>
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Notas</Label>
-              <textarea
-                value={cNotas}
-                onChange={(e) => setCNotas(e.target.value)}
-                placeholder="Observações..."
-                rows={2}
-                className="mt-1 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring resize-none"
-              />
-            </div>
-            <Button
-              type="button"
-              onClick={handleAddCompound}
-              disabled={!cNome.trim() || createCompound.isPending}
-              className="w-full"
-            >
-              {createCompound.isPending ? 'Salvando…' : 'Salvar composto'}
-            </Button>
-          </div>
+      <Modal open={showAddCompound} onClose={() => setShowAddCompound(false)} title="Registrar composto">
+        <div className="rounded-lg border border-amber-700/40 bg-amber-950/20 p-3">
+          <p className="text-xs text-amber-300">
+            Registre apenas o que foi prescrito pelo seu médico. O FORJA não recomenda compostos ou doses.
+          </p>
         </div>
-      )}
+        {[
+          { label: 'Nome do composto *', value: cNome, set: setCNome, placeholder: 'Ex: Testosterona Cipionato' },
+          { label: 'Categoria', value: cCategoria, set: setCCategoria, placeholder: 'Ex: androgenico, esteroide...' },
+          { label: 'Dose (mg)', value: cDose, set: setCDose, placeholder: '200', type: 'number' },
+          { label: 'Frequência', value: cFreq, set: setCFreq, placeholder: '1x por semana, E3D...' },
+          { label: 'Semana início', value: cSemIni, set: setCSemIni, placeholder: '1', type: 'number' },
+          { label: 'Semana fim', value: cSemFim, set: setCSemFim, placeholder: '12', type: 'number' },
+        ].map(({ label, value, set, placeholder, type }) => (
+          <FieldInput
+            key={label}
+            label={label}
+            type={type ?? 'text'}
+            value={value}
+            onChange={(e) => set(e.target.value)}
+            placeholder={placeholder}
+          />
+        ))}
+        <FieldSelect label="Via" value={cVia} onChange={(e) => setCVia(e.target.value)}>
+          <option value="injetavel">Injetável</option>
+          <option value="oral">Oral</option>
+          <option value="topico">Tópico</option>
+        </FieldSelect>
+        <FieldTextarea
+          label="Notas"
+          value={cNotas}
+          onChange={(e) => setCNotas(e.target.value)}
+          placeholder="Observações..."
+          rows={2}
+        />
+        <Button
+          type="button"
+          onClick={handleAddCompound}
+          disabled={!cNome.trim() || createCompound.isPending}
+          className="w-full"
+        >
+          {createCompound.isPending ? 'Salvando…' : 'Salvar composto'}
+        </Button>
+      </Modal>
 
       {/* ════ MODAL: Adicionar Suporte ════ */}
-      {showAddSupport && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5">
-            <div className="flex items-center justify-between">
-              <p className="font-heading text-base font-bold text-foreground">Adicionar suporte</p>
-              <button type="button" onClick={() => setShowAddSupport(false)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
-                <X className="size-5" />
-              </button>
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Nome *</Label>
-              <input
-                type="text"
-                value={sNome}
-                onChange={(e) => setSNome(e.target.value)}
-                placeholder="Ex: TUDCA, Omega-3..."
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Categoria</Label>
-              <select
-                value={sCategoria}
-                onChange={(e) => setSCategoria(e.target.value)}
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              >
-                {['hepatoprotetor', 'cardiovascular', 'antioxidante', 'hormonal', 'mineral', 'outros'].map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Dose</Label>
-              <input
-                type="text"
-                value={sDose}
-                onChange={(e) => setSDose(e.target.value)}
-                placeholder="Ex: 500mg 2x/dia"
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Momento</Label>
-              <input
-                type="text"
-                value={sMomento}
-                onChange={(e) => setSMomento(e.target.value)}
-                placeholder="Ex: com as refeições"
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Motivo (opcional)</Label>
-              <input
-                type="text"
-                value={sMotivo}
-                onChange={(e) => setSMotivo(e.target.value)}
-                placeholder="Por que este suporte?"
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-            <Button type="button" onClick={handleAddSupport} disabled={!sNome.trim() || createSupport.isPending} className="w-full">
-              {createSupport.isPending ? 'Salvando…' : 'Salvar suporte'}
-            </Button>
-          </div>
-        </div>
-      )}
+      <Modal open={showAddSupport} onClose={() => setShowAddSupport(false)} title="Adicionar suporte">
+        <FieldInput
+          label="Nome *"
+          type="text"
+          value={sNome}
+          onChange={(e) => setSNome(e.target.value)}
+          placeholder="Ex: TUDCA, Omega-3..."
+        />
+        <FieldSelect label="Categoria" value={sCategoria} onChange={(e) => setSCategoria(e.target.value)}>
+          {['hepatoprotetor', 'cardiovascular', 'antioxidante', 'hormonal', 'mineral', 'outros'].map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </FieldSelect>
+        <FieldInput
+          label="Dose"
+          type="text"
+          value={sDose}
+          onChange={(e) => setSDose(e.target.value)}
+          placeholder="Ex: 500mg 2x/dia"
+        />
+        <FieldInput
+          label="Momento"
+          type="text"
+          value={sMomento}
+          onChange={(e) => setSMomento(e.target.value)}
+          placeholder="Ex: com as refeições"
+        />
+        <FieldInput
+          label="Motivo (opcional)"
+          type="text"
+          value={sMotivo}
+          onChange={(e) => setSMotivo(e.target.value)}
+          placeholder="Por que este suporte?"
+        />
+        <Button type="button" onClick={handleAddSupport} disabled={!sNome.trim() || createSupport.isPending} className="w-full">
+          {createSupport.isPending ? 'Salvando…' : 'Salvar suporte'}
+        </Button>
+      </Modal>
 
       {/* ════ MODAL: Registrar Aplicação ════ */}
-      {showLogModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <p className="font-heading text-base font-bold text-foreground">💉 Registrar aplicação</p>
-              <button type="button" onClick={() => setShowLogModal(false)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
-                <X className="size-5" />
-              </button>
-            </div>
+      <Modal open={showLogModal} onClose={() => setShowLogModal(false)} title="💉 Registrar aplicação">
+        <FieldSelect
+          label="Composto"
+          value={logCompound}
+          onChange={(e) => {
+            setLogCompound(e.target.value)
+            const c = compounds.data?.find((x) => x.id === e.target.value)
+            if (c?.dose_mg) setLogDose(String(c.dose_mg))
+          }}
+        >
+          <option value="">Selecionar composto</option>
+          {(compounds.data ?? []).map((c) => (
+            <option key={c.id} value={c.id}>{c.nome}</option>
+          ))}
+        </FieldSelect>
 
-            <div>
-              <Label className="text-xs text-aco-texto">Composto</Label>
-              <select
-                value={logCompound}
-                onChange={(e) => {
-                  setLogCompound(e.target.value)
-                  const c = compounds.data?.find((x) => x.id === e.target.value)
-                  if (c?.dose_mg) setLogDose(String(c.dose_mg))
-                }}
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="">Selecionar composto</option>
-                {(compounds.data ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>{c.nome}</option>
-                ))}
-              </select>
-            </div>
+        <FieldInput
+          label="Dose aplicada (mg)"
+          type="number"
+          value={logDose}
+          onChange={(e) => setLogDose(e.target.value)}
+        />
 
-            <div>
-              <Label className="text-xs text-aco-texto">Dose aplicada (mg)</Label>
-              <input
-                type="number"
-                value={logDose}
-                onChange={(e) => setLogDose(e.target.value)}
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
+        <FieldSelect label="Local de aplicação" value={logLocal} onChange={(e) => setLogLocal(e.target.value)}>
+          {LOCAL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+        </FieldSelect>
 
-            <div>
-              <Label className="text-xs text-aco-texto">Local de aplicação</Label>
-              <select
-                value={logLocal}
-                onChange={(e) => setLogLocal(e.target.value)}
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              >
-                {LOCAL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
-
-            {[
+        {[
               { label: 'Humor', value: logHumor, set: setLogHumor },
               { label: 'Energia', value: logEnergia, set: setLogEnergia },
               { label: 'Libido', value: logLibido, set: setLogLibido },
@@ -1378,34 +1298,26 @@ export function ProtocoloPage() {
               </div>
             ))}
 
-            <div>
-              <Label className="text-xs text-aco-texto">Efeitos percebidos</Label>
-              <textarea
-                value={logEfeitos}
-                onChange={(e) => setLogEfeitos(e.target.value)}
-                placeholder="Como você está se sentindo..."
-                rows={2}
-                className="mt-1 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring resize-none"
-              />
-            </div>
+        <FieldTextarea
+          label="Efeitos percebidos"
+          value={logEfeitos}
+          onChange={(e) => setLogEfeitos(e.target.value)}
+          placeholder="Como você está se sentindo..."
+          rows={2}
+        />
 
-            <div>
-              <Label className="text-xs text-aco-texto">Observações</Label>
-              <textarea
-                value={logObs}
-                onChange={(e) => setLogObs(e.target.value)}
-                placeholder="Observações gerais..."
-                rows={2}
-                className="mt-1 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring resize-none"
-              />
-            </div>
+        <FieldTextarea
+          label="Observações"
+          value={logObs}
+          onChange={(e) => setLogObs(e.target.value)}
+          placeholder="Observações gerais..."
+          rows={2}
+        />
 
-            <Button type="button" onClick={handleRegistrarLog} disabled={createLog.isPending} className="w-full">
-              {createLog.isPending ? 'Registrando…' : 'Registrar aplicação'}
-            </Button>
-          </div>
-        </div>
-      )}
+        <Button type="button" onClick={handleRegistrarLog} disabled={createLog.isPending} className="w-full">
+          {createLog.isPending ? 'Registrando…' : 'Registrar aplicação'}
+        </Button>
+      </Modal>
 
       {/* ════ MODAL: Agendar exame ════ */}
       <Modal
@@ -1414,15 +1326,12 @@ export function ProtocoloPage() {
         title="📅 Agendar exame"
         maxWidth="sm"
       >
-        <div>
-          <Label className="text-xs text-aco-texto">Data prevista</Label>
-          <input
-            type="date"
-            value={scheduleDate}
-            onChange={(e) => setScheduleDate(e.target.value)}
-            className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
+        <FieldInput
+          label="Data prevista"
+          type="date"
+          value={scheduleDate}
+          onChange={(e) => setScheduleDate(e.target.value)}
+        />
         <div className="flex gap-2">
           <Button type="button" variant="outline" className="flex-1" onClick={() => setShowScheduleModal(null)}>Cancelar</Button>
           <Button type="button" className="flex-1" onClick={() => showScheduleModal && handleScheduleExam(showScheduleModal)}>Agendar</Button>
@@ -1437,58 +1346,29 @@ export function ProtocoloPage() {
               { label: 'Objetivo *', value: eObjetivo, set: setEObjetivo },
               { label: 'Médico responsável', value: eMedico, set: setEMedico },
             ].map(({ label, value, set }) => (
-              <div key={label}>
-                <Label className="text-xs text-aco-texto">{label}</Label>
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => set(e.target.value)}
-                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-                />
-              </div>
+              <FieldInput key={label} label={label} type="text" value={value} onChange={(e) => set(e.target.value)} />
             ))}
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-aco-texto">Via principal</Label>
-                <select
-                  value={eVia}
-                  onChange={(e) => setEVia(e.target.value)}
-                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="injetavel">Injetável</option>
-                  <option value="oral">Oral</option>
-                  <option value="topico">Tópico</option>
-                </select>
-              </div>
-              <div>
-                <Label className="text-xs text-aco-texto">Duração (semanas)</Label>
-                <input
-                  type="number"
-                  min={1}
-                  value={eDuracao}
-                  onChange={(e) => setEDuracao(e.target.value)}
-                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-                />
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Data de início</Label>
-              <input
-                type="date"
-                value={eDataInicio}
-                onChange={(e) => setEDataInicio(e.target.value)}
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+              <FieldSelect label="Via principal" value={eVia} onChange={(e) => setEVia(e.target.value)}>
+                <option value="injetavel">Injetável</option>
+                <option value="oral">Oral</option>
+                <option value="topico">Tópico</option>
+              </FieldSelect>
+              <FieldInput
+                label="Duração (semanas)"
+                type="number"
+                min={1}
+                value={eDuracao}
+                onChange={(e) => setEDuracao(e.target.value)}
               />
             </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Notas</Label>
-              <textarea
-                value={eNotas}
-                onChange={(e) => setENotas(e.target.value)}
-                rows={2}
-                className="mt-1 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring resize-none"
-              />
-            </div>
+            <FieldInput
+              label="Data de início"
+              type="date"
+              value={eDataInicio}
+              onChange={(e) => setEDataInicio(e.target.value)}
+            />
+            <FieldTextarea label="Notas" value={eNotas} onChange={(e) => setENotas(e.target.value)} rows={2} />
             <div className="flex gap-2">
               <Button type="button" variant="outline" className="flex-1" onClick={() => setShowEditModal(false)}>
                 Cancelar

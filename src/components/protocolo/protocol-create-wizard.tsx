@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import { X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
+import { FieldInput, FieldSelect, FieldTextarea } from '@/components/ui/field'
+import { Modal } from '@/components/ui/modal'
 import { useCreateProtocol } from '@/hooks/use-protocols'
 import { useCreateProtocolExams, type ProtocolExamInput } from '@/hooks/use-protocol-exams'
 import { useCreateProtocolGoal } from '@/hooks/use-protocol-goals'
@@ -42,9 +42,6 @@ function buildExamTemplate(duracao: number): ExamTemplateItem[] {
     { nome: 'Hemograma completo', semana: tpc, fase: `Pós-TPC (Sem. ${tpc})` },
   ]
 }
-
-const inputClass =
-  'mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring'
 
 type ProtocolCreateWizardProps = {
   onClose: () => void
@@ -154,17 +151,7 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
   const step1Valid = nome.trim().length > 0 && objetivo.trim().length > 0
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4 sm:items-center">
-      <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between">
-          <p className="font-heading text-base font-bold text-foreground">
-            🔬 Cadastrar protocolo — passo {step} de 3
-          </p>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
-            <X className="size-5" />
-          </button>
-        </div>
-
+    <Modal open onClose={onClose} title={`🔬 Cadastrar protocolo — passo ${step} de 3`}>
         {/* Indicador de progresso */}
         <div className="flex gap-1.5">
           {[1, 2, 3].map((s) => (
@@ -183,78 +170,59 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
                 compostos, doses ou protocolos.
               </p>
             </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Nome do protocolo *</Label>
-              <input
-                type="text"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                placeholder="Ex: Protocolo 2026.2"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Objetivo *</Label>
-              <input
-                type="text"
-                value={objetivo}
-                onChange={(e) => setObjetivo(e.target.value)}
-                placeholder="Ex: Recomposição corporal"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Médico responsável</Label>
-              <input
-                type="text"
-                value={medico}
-                onChange={(e) => setMedico(e.target.value)}
-                placeholder="Nome do médico"
-                className={inputClass}
-              />
-            </div>
+            <FieldInput
+              label="Nome do protocolo *"
+              type="text"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Ex: Protocolo 2026.2"
+            />
+            <FieldInput
+              label="Objetivo *"
+              type="text"
+              value={objetivo}
+              onChange={(e) => setObjetivo(e.target.value)}
+              placeholder="Ex: Recomposição corporal"
+            />
+            <FieldInput
+              label="Médico responsável"
+              type="text"
+              value={medico}
+              onChange={(e) => setMedico(e.target.value)}
+              placeholder="Nome do médico"
+            />
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-aco-texto">Via principal</Label>
-                <select value={via} onChange={(e) => setVia(e.target.value)} className={inputClass}>
-                  <option value="injetavel">Injetável</option>
-                  <option value="oral">Oral</option>
-                  <option value="topico">Tópico</option>
-                </select>
-              </div>
-              <div>
-                <Label className="text-xs text-aco-texto">Duração (semanas)</Label>
-                <input
-                  type="number"
-                  min={1}
-                  value={duracao}
-                  onChange={(e) => setDuracao(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
+              <FieldSelect label="Via principal" value={via} onChange={(e) => setVia(e.target.value)}>
+                <option value="injetavel">Injetável</option>
+                <option value="oral">Oral</option>
+                <option value="topico">Tópico</option>
+              </FieldSelect>
+              <FieldInput
+                label="Duração (semanas)"
+                type="number"
+                min={1}
+                value={duracao}
+                onChange={(e) => setDuracao(e.target.value)}
+              />
             </div>
             <div>
-              <Label className="text-xs text-aco-texto">Data de início (opcional)</Label>
-              <input
+              <FieldInput
+                label="Data de início (opcional)"
                 type="date"
                 value={dataInicio}
                 onChange={(e) => setDataInicio(e.target.value)}
-                className={inputClass}
               />
               <p className="mt-1 text-xs text-aco-texto/60">
                 Se vazio, será definida quando você iniciar o ciclo.
               </p>
             </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Notas</Label>
-              <textarea
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-                rows={2}
-                placeholder="Observações da prescrição..."
-                className="mt-1 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring resize-none"
-              />
-            </div>
+            <FieldTextarea
+              label="Notas"
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+              rows={2}
+              placeholder="Observações da prescrição..."
+            />
             <Button type="button" onClick={() => setStep(2)} disabled={!step1Valid} className="w-full">
               Próximo: exames →
             </Button>
@@ -326,29 +294,24 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
                 { label: 'Músculo inicial (kg)', value: musculoIni, set: setMusculoIni },
                 { label: 'Músculo meta (kg)', value: musculoMeta, set: setMusculoMeta },
               ].map(({ label, value, set }) => (
-                <div key={label}>
-                  <Label className="text-xs text-aco-texto">{label}</Label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={value}
-                    onChange={(e) => set(e.target.value)}
-                    placeholder="—"
-                    className={inputClass}
-                  />
-                </div>
+                <FieldInput
+                  key={label}
+                  label={label}
+                  type="number"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => set(e.target.value)}
+                  placeholder="—"
+                />
               ))}
             </div>
-            <div>
-              <Label className="text-xs text-aco-texto">Meta de força (opcional)</Label>
-              <input
-                type="text"
-                value={forcaMeta}
-                onChange={(e) => setForcaMeta(e.target.value)}
-                placeholder="Ex: Supino 120kg, Agachamento 160kg"
-                className={inputClass}
-              />
-            </div>
+            <FieldInput
+              label="Meta de força (opcional)"
+              type="text"
+              value={forcaMeta}
+              onChange={(e) => setForcaMeta(e.target.value)}
+              placeholder="Ex: Supino 120kg, Agachamento 160kg"
+            />
             {error && (
               <div className="rounded-lg border border-red-700/60 bg-red-950/40 p-3">
                 <p className="text-xs text-red-300">{error}</p>
@@ -364,7 +327,6 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
             </div>
           </>
         )}
-      </div>
-    </div>
+    </Modal>
   )
 }

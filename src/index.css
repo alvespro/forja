@@ -2,16 +2,27 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@import "@fontsource-variable/bricolage-grotesque/wght.css";
-@import "@fontsource/space-mono/400.css";
-@import "@fontsource/space-mono/700.css";
+/*
+ * Tipografia (referência: dark ember, Anthropic cookbooks):
+ * display condensado em caixa alta para títulos, Inter para UI e
+ * JetBrains Mono para tudo que é evidência (números, stats, ids).
+ */
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/700.css";
+@import "@fontsource/barlow-condensed/800.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'Bricolage Grotesque Variable', system-ui, sans-serif;
-  --font-heading: 'Bricolage Grotesque Variable', system-ui, sans-serif;
-  --font-mono: 'Space Mono', ui-monospace, monospace;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Barlow Condensed', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --color-meia-noite: var(--meia-noite);
   --color-aco: var(--aco);
@@ -115,6 +126,14 @@
   --sidebar-ring: var(--brasa);
 }
 
+:root {
+  /* motion (referência: cubic-bezier(0.2,0,0,1), 150/240ms) */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-1: 150ms;
+  --dur-2: 240ms;
+  --elev: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -127,6 +146,46 @@
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Display condensado: títulos em caixa alta com tracking, números tabulares */
+  .font-heading {
+    text-transform: uppercase;
+    letter-spacing: 0.035em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Números alinhados em stats, tabelas e gráficos */
+  .font-mono,
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scrollbars finas com thumb arredondado (padrão da referência) */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--aco-claro);
+    border-radius: 99px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Micro-label em caixa alta (chips de seção, cabeçalhos de grupo) */
+  .microlabel {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--aco-texto);
   }
 
   @media (prefers-reduced-motion: reduce) {

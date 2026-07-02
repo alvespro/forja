@@ -55,11 +55,33 @@ const QUOTES: string[] = [
   'Metade da vitória é aparecer. A outra metade é não se poupar.',
 ]
 
-/** Retorna a frase do dia — determinística pela data (YYYY-MM-DD). */
-export function quoteOfTheDay(dateStr: string): string {
+export type DailyQuote = {
+  texto: string
+  /** Origem da frase: null = frase original FORJA. */
+  fonte: string | null
+  emoji: string
+}
+
+function hashDate(dateStr: string): number {
   let hash = 0
   for (let i = 0; i < dateStr.length; i++) {
     hash = (hash * 31 + dateStr.charCodeAt(i)) >>> 0
   }
-  return QUOTES[hash % QUOTES.length]
+  return hash
+}
+
+/**
+ * Escolhe a frase do dia de um pool combinado (frases FORJA + trechos salvos
+ * pelo usuário em livros, cursos e filmes). Determinística pela data.
+ */
+export function pickQuoteOfDay(userQuotes: DailyQuote[], dateStr: string): DailyQuote {
+  const forja: DailyQuote[] = QUOTES.map((texto) => ({ texto, fonte: null, emoji: '⚒️' }))
+  // Intercala: com acervo pessoal, ~metade dos dias sai do que você salvou.
+  const pool = userQuotes.length > 0 ? [...userQuotes, ...forja.slice(0, userQuotes.length + 10)] : forja
+  return pool[hashDate(dateStr) % pool.length]
+}
+
+/** Retorna a frase do dia — determinística pela data (YYYY-MM-DD). */
+export function quoteOfTheDay(dateStr: string): string {
+  return QUOTES[hashDate(dateStr) % QUOTES.length]
 }

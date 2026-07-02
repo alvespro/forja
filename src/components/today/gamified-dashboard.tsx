@@ -15,7 +15,7 @@ import { useSupplementLogs } from '@/hooks/use-supplement-logs'
 import { useSupplements } from '@/hooks/use-supplements'
 import { useTasks } from '@/hooks/use-tasks'
 import { useWorkoutSessions } from '@/hooks/use-workout-sessions'
-import { quoteOfTheDay } from '@/lib/daily-quote'
+import { useDailyQuote } from '@/hooks/use-daily-quote'
 import { parseDateOnly, todayInSaoPaulo } from '@/lib/date'
 import { computeAchievements, computeStreak, last7Days, levelInfo } from '@/lib/gamification'
 import { weekdayAbbrevOf } from '@/lib/nutrition'
@@ -52,7 +52,7 @@ export function GamifiedDashboard() {
   const navigate = useNavigate()
   const today = todayInSaoPaulo()
   const dataFormatada = format(parseDateOnly(today), "EEEE, d 'de' MMMM", { locale: ptBR })
-  const frase = quoteOfTheDay(today)
+  const frase = useDailyQuote(today)
   const hora = new Date().getHours()
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
 
@@ -217,9 +217,11 @@ export function GamifiedDashboard() {
       <Card className="border-brasa/25 bg-gradient-to-br from-brasa/10 to-transparent">
         <CardContent className="py-3.5">
           <p className="font-heading text-base font-semibold leading-snug text-foreground">
-            "{frase}"
+            "{frase.texto}"
           </p>
-          <p className="mt-1 text-[11px] uppercase tracking-widest text-brasa/80">— Frase do dia</p>
+          <p className="mt-1 text-[11px] uppercase tracking-widest text-brasa/80">
+            {frase.emoji} {frase.fonte ?? 'Frase do dia'}
+          </p>
         </CardContent>
       </Card>
 

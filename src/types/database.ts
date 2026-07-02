@@ -612,6 +612,18 @@ export type ProtocolSupport = {
   ativo: boolean | null
 }
 
+export type Notification = {
+  id: string
+  user_id: string
+  tipo: string
+  titulo: string
+  corpo: string | null
+  link: string | null
+  dedupe_key: string
+  lida: boolean
+  created_at: string
+}
+
 export type ProtocolGoal = {
   id: string
   user_id: string

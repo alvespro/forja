@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/app-shell'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { RouteError } from '@/components/feedback/route-error'
 
 const LoginPage = lazy(() => import('@/pages/auth/login-page').then((m) => ({ default: m.LoginPage })))
 const SignupPage = lazy(() => import('@/pages/auth/signup-page').then((m) => ({ default: m.SignupPage })))
@@ -31,14 +32,16 @@ function withSuspense(element: React.ReactNode) {
 }
 
 export const router = createBrowserRouter([
-  { path: '/login', element: withSuspense(<LoginPage />) },
-  { path: '/signup', element: withSuspense(<SignupPage />) },
+  { path: '/login', element: withSuspense(<LoginPage />), errorElement: <RouteError /> },
+  { path: '/signup', element: withSuspense(<SignupPage />), errorElement: <RouteError /> },
   {
     path: '/',
     element: <ProtectedRoute />,
+    errorElement: <RouteError />,
     children: [
       {
         element: <AppShell />,
+        errorElement: <RouteError />,
         children: [
           { index: true, element: <TodayPage /> },
           { path: 'goals', element: <GoalsPage /> },
@@ -60,6 +63,7 @@ export const router = createBrowserRouter([
           { path: 'nutricao', element: <NutricaoPage /> },
           { path: 'suplementos', element: <SupplementsPage /> },
           { path: 'configuracoes', element: <ConfiguracoesPage /> },
+          { path: '*', element: <Navigate to="/" replace /> },
         ],
       },
     ],

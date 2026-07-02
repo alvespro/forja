@@ -24,9 +24,14 @@ function getDismissed(): Record<string, number> {
 }
 
 export function dismissAlert(id: string) {
-  const dismissed = getDismissed()
-  dismissed[id] = Date.now()
-  localStorage.setItem(DISMISS_KEY, JSON.stringify(dismissed))
+  try {
+    const dismissed = getDismissed()
+    dismissed[id] = Date.now()
+    localStorage.setItem(DISMISS_KEY, JSON.stringify(dismissed))
+  } catch {
+    // localStorage indisponível (modo privado/quota): o alerta volta a aparecer,
+    // que é o comportamento seguro para um módulo de saúde.
+  }
 }
 
 function isRecentlyDismissed(id: string): boolean {

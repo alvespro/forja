@@ -22,6 +22,7 @@ type PerguntarInput = {
 
 export function useForjaAI() {
   return useMutation({
+    meta: { errorMessage: 'O agente não respondeu' },
     mutationFn: async ({ agente, pergunta }: PerguntarInput) => {
       const { data, error } = await supabase.functions.invoke<{ resposta?: string; error?: string }>(
         'forja-ai',

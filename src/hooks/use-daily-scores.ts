@@ -39,6 +39,8 @@ export function useUpsertDailyScore() {
   const qc = useQueryClient()
 
   return useMutation({
+    // Upsert automático de telemetria: falha não deve interromper o usuário
+    meta: { silent: true },
     mutationFn: async (input: DailyScoreInput) => {
       if (!user) throw new Error('Não autenticado')
       const { error } = await supabase

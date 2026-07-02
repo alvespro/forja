@@ -31,6 +31,7 @@ export function useTasks(filters?: TaskFilters) {
         .eq('user_id', user!.id)
         .order('data', { ascending: false })
         .order('e_frog', { ascending: false })
+        .order('created_at', { ascending: false })
 
       if (filters?.area) q = q.eq('area', filters.area)
       if (filters?.data) q = q.eq('data', filters.data)

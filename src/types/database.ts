@@ -36,6 +36,7 @@ export type Task = {
   e_frog: boolean
   status: 'aberto' | 'feito'
   data: string
+  created_at: string
 }
 
 export type FocusTechnique = 'pomodoro' | 'frog'

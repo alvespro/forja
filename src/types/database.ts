@@ -613,6 +613,22 @@ export type ProtocolSupport = {
   ativo: boolean | null
 }
 
+export type ProgressPhotoTipo = 'frente' | 'costas' | 'lado'
+
+export type ProgressPhoto = {
+  id: string
+  user_id: string
+  data: string
+  storage_path: string
+  tipo: ProgressPhotoTipo | null
+  peso_kg: number | null
+  notas: string | null
+  relatorio_ia: string | null
+  created_at: string
+  /** URL assinada gerada no cliente para exibição (não persiste no banco). */
+  signed_url?: string
+}
+
 export type DailyScore = {
   id: string
   user_id: string

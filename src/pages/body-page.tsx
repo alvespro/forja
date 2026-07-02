@@ -13,6 +13,7 @@ import { BodyMetricsChart } from '@/components/body/body-metrics-chart'
 import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { ObjectiveCard } from '@/components/body/objective-card'
 import { GoalProgressCards } from '@/components/body/goal-progress-cards'
+import { ProgressPhotosCard } from '@/components/body/progress-photos-card'
 import { useBodyMetrics, useCreateBodyMetric, useDeleteBodyMetric } from '@/hooks/use-body-metrics'
 import { useConfirm } from '@/hooks/use-confirm'
 import { parseDateOnly } from '@/lib/date'
@@ -52,6 +53,7 @@ export function BodyPage() {
 
       <ObjectiveCard />
       <GoalProgressCards metrics={metrics.data ?? []} />
+      <ProgressPhotosCard pesoAtual={latest?.peso_kg} />
 
       {latest && !metrics.isLoading && !metrics.isError && (
         <div className="grid grid-cols-2 gap-3">

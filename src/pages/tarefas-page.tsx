@@ -1,263 +1,355 @@
-import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Briefcase, Brain, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Dumbbell, HandHeart, Inbox, Plus, Wallet } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import { useTasks, useCreateTask, useUpdateTask } from '@/hooks/use-tasks'
 import { todayInSaoPaulo } from '@/lib/date'
 import { cn } from '@/lib/utils'
 import type { Task } from '@/types/database'
 
-const AREAS = [
-  { value: null as string | null, label: 'Todas' },
-  { value: 'fisico', label: '💪 Físico' },
-  { value: 'mental', label: '🧠 Mental' },
-  { value: 'financeiro', label: '💰 Financeiro' },
-  { value: 'vinculos', label: '🤝 Vínculos' },
-  { value: 'negocio', label: '🏢 Negócio' },
-]
+// ─── Listas por área (estilo "Minhas Listas" do iOS) ────────────────────────
 
-const AREA_COLORS: Record<string, string> = {
-  fisico: 'text-blue-400 bg-blue-900/30',
-  mental: 'text-purple-400 bg-purple-900/30',
-  financeiro: 'text-yellow-400 bg-yellow-900/30',
-  vinculos: 'text-pink-400 bg-pink-900/30',
-  negocio: 'text-cyan-400 bg-cyan-900/30',
+type AreaDef = {
+  key: string
+  label: string
+  icon: LucideIcon
+  /** Cor do círculo do ícone e da lista */
+  color: string
+  bg: string
 }
 
+const AREAS: AreaDef[] = [
+  { key: 'fisico', label: 'Físico', icon: Dumbbell, color: '#0A84FF', bg: 'rgba(10,132,255,0.16)' },
+  { key: 'mental', label: 'Mental', icon: Brain, color: '#BF5AF2', bg: 'rgba(191,90,242,0.16)' },
+  { key: 'financeiro', label: 'Financeiro', icon: Wallet, color: '#FFD60A', bg: 'rgba(255,214,10,0.16)' },
+  { key: 'vinculos', label: 'Vínculos', icon: HandHeart, color: '#FF375F', bg: 'rgba(255,55,95,0.16)' },
+  { key: 'negocio', label: 'Negócio', icon: Briefcase, color: '#64D2FF', bg: 'rgba(100,210,255,0.16)' },
+]
+
+function areaDef(key: string | null): AreaDef | undefined {
+  return AREAS.find((a) => a.key === key)
+}
+
+// ─── Listas inteligentes (grid do topo, estilo iOS) ─────────────────────────
+
+type SmartKey = 'hoje' | 'sapo' | 'todas' | 'concluidas'
+
+type SmartDef = {
+  key: SmartKey
+  label: string
+  icon: LucideIcon
+  color: string
+  emoji?: string
+}
+
+const SMART: SmartDef[] = [
+  { key: 'hoje', label: 'Hoje', icon: Calendar, color: '#0A84FF' },
+  { key: 'sapo', label: 'Sapo', icon: Calendar, color: '#30D158', emoji: '🐸' },
+  { key: 'todas', label: 'Todas', icon: Inbox, color: '#8E8E93' },
+  { key: 'concluidas', label: 'Concluídas', icon: CheckCircle2, color: '#98989D' },
+]
+
+type View = { kind: 'home' } | { kind: 'smart'; smart: SmartKey } | { kind: 'area'; area: string }
+
 export function TarefasPage() {
-  const [areaFilter, setAreaFilter] = useState<string | null>(null)
-  const [showAll, setShowAll] = useState(false)
-  const [isAdding, setIsAdding] = useState(false)
-  const [novoTitulo, setNovoTitulo] = useState('')
-  const [novaArea, setNovaArea] = useState('')
-  const [novaFrog, setNovaFrog] = useState(false)
+  const [view, setView] = useState<View>({ kind: 'home' })
 
-  const today = todayInSaoPaulo()
-
-  const tasks = useTasks({
-    area: areaFilter ?? undefined,
-    data: showAll ? undefined : today,
-  })
-
+  const tasks = useTasks()
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
 
-  function handleToggle(id: string, current: 'aberto' | 'feito') {
-    updateTask.mutate({ id, values: { status: current === 'aberto' ? 'feito' : 'aberto' } })
+  const today = todayInSaoPaulo()
+  const all = tasks.data ?? []
+
+  const counts = useMemo(
+    () => ({
+      hoje: all.filter((t) => t.data === today && t.status === 'aberto').length,
+      sapo: all.filter((t) => t.e_frog && t.status === 'aberto').length,
+      todas: all.filter((t) => t.status === 'aberto').length,
+      concluidas: all.filter((t) => t.status === 'feito').length,
+      porArea: Object.fromEntries(
+        AREAS.map((a) => [a.key, all.filter((t) => t.area === a.key && t.status === 'aberto').length]),
+      ) as Record<string, number>,
+    }),
+    [all, today],
+  )
+
+  function toggle(task: Task) {
+    updateTask.mutate({ id: task.id, values: { status: task.status === 'aberto' ? 'feito' : 'aberto' } })
   }
 
-  function handleAdd() {
-    if (!novoTitulo.trim()) return
-    createTask.mutate(
-      { titulo: novoTitulo, area: novaArea || null, e_frog: novaFrog },
-      {
-        onSuccess: () => {
-          setNovoTitulo('')
-          setNovaArea('')
-          setNovaFrog(false)
-          setIsAdding(false)
-        },
-      },
+  // ── Visão HOME (grid + minhas listas) ──────────────────────────────────────
+  if (view.kind === 'home') {
+    return (
+      <div className="flex flex-col gap-5">
+        <h1 className="font-heading text-3xl font-bold text-foreground">Tarefas</h1>
+
+        {/* Grid de listas inteligentes */}
+        <div className="grid grid-cols-2 gap-3">
+          {SMART.map((s) => {
+            const Icon = s.icon
+            const count =
+              s.key === 'hoje' ? counts.hoje : s.key === 'sapo' ? counts.sapo : s.key === 'todas' ? counts.todas : counts.concluidas
+            return (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => setView({ kind: 'smart', smart: s.key })}
+                className="flex flex-col gap-2 rounded-2xl bg-card border border-border/40 p-3.5 text-left active:scale-[0.97] transition-transform"
+              >
+                <div className="flex items-center justify-between">
+                  <div
+                    className="flex size-8 items-center justify-center rounded-full text-white"
+                    style={{ backgroundColor: s.color }}
+                  >
+                    {s.emoji ? <span className="text-base leading-none">{s.emoji}</span> : <Icon className="size-4.5" />}
+                  </div>
+                  <span className="text-2xl font-bold text-foreground">{count}</span>
+                </div>
+                <span className="text-sm font-semibold text-aco-texto">{s.label}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Minhas listas */}
+        <div>
+          <p className="mb-2 px-1 text-sm font-semibold text-aco-texto">Minhas Listas</p>
+          <div className="overflow-hidden rounded-2xl bg-card border border-border/40">
+            {AREAS.map((a, i) => {
+              const Icon = a.icon
+              return (
+                <button
+                  key={a.key}
+                  type="button"
+                  onClick={() => setView({ kind: 'area', area: a.key })}
+                  className={cn(
+                    'flex w-full items-center gap-3 px-4 py-3 text-left active:bg-border/20 transition-colors',
+                    i > 0 && 'border-t border-border/30',
+                  )}
+                >
+                  <div
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full"
+                    style={{ backgroundColor: a.color }}
+                  >
+                    <Icon className="size-4.5 text-white" />
+                  </div>
+                  <span className="flex-1 text-sm font-medium text-foreground">{a.label}</span>
+                  <span className="text-sm text-aco-texto">{counts.porArea[a.key] ?? 0}</span>
+                  <ChevronRight className="size-4 text-aco-texto/50" />
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
     )
   }
 
-  const abertas = (tasks.data ?? []).filter((t) => t.status === 'aberto')
-  const feitas = (tasks.data ?? []).filter((t) => t.status === 'feito')
+  // ── Visão LISTA (smart ou área) ────────────────────────────────────────────
+  const smart = view.kind === 'smart' ? SMART.find((s) => s.key === view.smart)! : null
+  const areaKey = view.kind === 'area' ? view.area : null
+  const area = areaKey ? areaDef(areaKey) : undefined
+
+  const titulo = smart?.label ?? area?.label ?? 'Tarefas'
+  const cor = smart?.color ?? area?.color ?? '#0A84FF'
+
+  const filtered = all.filter((t) => {
+    if (smart) {
+      if (smart.key === 'hoje') return t.data === today
+      if (smart.key === 'sapo') return t.e_frog
+      if (smart.key === 'concluidas') return t.status === 'feito'
+      return true // todas
+    }
+    return t.area === areaKey
+  })
+
+  const abertas = filtered.filter((t) => t.status === 'aberto')
+  const feitas = filtered.filter((t) => t.status === 'feito')
+  const mostrarFeitas = smart?.key === 'concluidas'
+  const listaPrincipal = mostrarFeitas ? feitas : abertas
+
+  return (
+    <ListView
+      titulo={titulo}
+      cor={cor}
+      tarefas={listaPrincipal}
+      feitasCount={mostrarFeitas ? 0 : feitas.length}
+      isLoading={tasks.isLoading}
+      onBack={() => setView({ kind: 'home' })}
+      onToggle={toggle}
+      onAdd={
+        mostrarFeitas
+          ? undefined
+          : (titulo) =>
+              createTask.mutate({
+                titulo,
+                area: area?.key ?? null,
+                e_frog: smart?.key === 'sapo',
+              })
+      }
+      isAdding={createTask.isPending}
+    />
+  )
+}
+
+// ─── Visão de lista estilo iOS ───────────────────────────────────────────────
+
+type ListViewProps = {
+  titulo: string
+  cor: string
+  tarefas: Task[]
+  feitasCount: number
+  isLoading: boolean
+  onBack: () => void
+  onToggle: (task: Task) => void
+  onAdd?: (titulo: string) => void
+  isAdding: boolean
+}
+
+function ListView({ titulo, cor, tarefas, feitasCount, isLoading, onBack, onToggle, onAdd, isAdding }: ListViewProps) {
+  const [novoTitulo, setNovoTitulo] = useState('')
+  const [inputAberto, setInputAberto] = useState(false)
+
+  function submeter() {
+    const t = novoTitulo.trim()
+    if (!t || !onAdd) return
+    onAdd(t)
+    setNovoTitulo('')
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Tarefas</h1>
-          <p className="text-sm text-aco-texto">{showAll ? 'Todas as tarefas' : 'Tarefas de hoje'}</p>
+      {/* Header com voltar */}
+      <div>
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-0.5 text-sm font-medium mb-1"
+          style={{ color: cor }}
+        >
+          <ChevronLeft className="size-4.5" />
+          Listas
+        </button>
+        <h1 className="font-heading text-3xl font-bold" style={{ color: cor }}>
+          {titulo}
+        </h1>
+      </div>
+
+      {/* Lista */}
+      {isLoading ? (
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-11 rounded-xl bg-border/20 animate-pulse" />
+          ))}
         </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowAll((v) => !v)}
-            className="text-xs text-aco-texto"
-          >
-            {showAll ? 'Só hoje' : 'Ver todas'}
-          </Button>
-          {!isAdding && (
-            <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-              <Plus className="size-3.5" />
-              Nova tarefa
-            </Button>
+      ) : (
+        <div className="overflow-hidden rounded-2xl bg-card border border-border/40">
+          {tarefas.length === 0 && !inputAberto && (
+            <p className="px-4 py-6 text-center text-sm text-aco-texto">Nenhuma tarefa.</p>
           )}
-        </div>
-      </div>
+          {tarefas.map((task, i) => (
+            <TaskRow key={task.id} task={task} cor={cor} divider={i > 0} onToggle={onToggle} />
+          ))}
 
-      {/* Area filter */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-        {AREAS.map((a) => (
-          <button
-            key={String(a.value)}
-            type="button"
-            onClick={() => setAreaFilter(a.value)}
-            className={cn(
-              'shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors',
-              areaFilter === a.value
-                ? 'bg-brasa text-white'
-                : 'bg-border/30 text-aco-texto hover:bg-border/60',
-            )}
-          >
-            {a.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Add form */}
-      {isAdding && (
-        <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
-          <input
-            type="text"
-            value={novoTitulo}
-            onChange={(e) => setNovoTitulo(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAdd()
-              if (e.key === 'Escape') setIsAdding(false)
-            }}
-            placeholder="Título da tarefa..."
-            autoFocus
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-          />
-          <div className="flex gap-2 items-center">
-            <select
-              value={novaArea}
-              onChange={(e) => setNovaArea(e.target.value)}
-              className="flex h-9 flex-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">Área (opcional)</option>
-              <option value="fisico">💪 Físico</option>
-              <option value="mental">🧠 Mental</option>
-              <option value="financeiro">💰 Financeiro</option>
-              <option value="vinculos">🤝 Vínculos</option>
-              <option value="negocio">🏢 Negócio</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => setNovaFrog((v) => !v)}
-              title="Marcar como sapo (tarefa prioritária do dia)"
-              className={cn(
-                'flex size-9 shrink-0 items-center justify-center rounded-md border text-base transition-colors',
-                novaFrog
-                  ? 'border-green-600 bg-green-900/30 text-green-400'
-                  : 'border-input text-aco-texto hover:border-green-600/60',
-              )}
-            >
-              🐸
-            </button>
-          </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={() => setIsAdding(false)}>
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              className="flex-1"
-              onClick={handleAdd}
-              disabled={!novoTitulo.trim() || createTask.isPending}
-            >
-              {createTask.isPending ? 'Salvando…' : 'Adicionar'}
-            </Button>
-          </div>
+          {/* Nova tarefa inline */}
+          {onAdd && inputAberto && (
+            <div className={cn('flex items-center gap-3 px-4 py-2.5', tarefas.length > 0 && 'border-t border-border/30')}>
+              <div className="size-[22px] shrink-0 rounded-full border-2 border-border/60" />
+              <input
+                type="text"
+                value={novoTitulo}
+                onChange={(e) => setNovoTitulo(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') submeter()
+                  if (e.key === 'Escape') {
+                    setInputAberto(false)
+                    setNovoTitulo('')
+                  }
+                }}
+                onBlur={() => {
+                  if (!novoTitulo.trim()) setInputAberto(false)
+                }}
+                placeholder="Nova tarefa"
+                autoFocus
+                disabled={isAdding}
+                className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-aco-texto/50"
+              />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Task list */}
-      {tasks.isLoading ? (
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 rounded-xl bg-border/20 animate-pulse" />
-          ))}
-        </div>
-      ) : (tasks.data ?? []).length === 0 ? (
-        <div className="py-12 text-center">
-          <p className="text-sm text-aco-texto">
-            {isAdding ? null : `Nenhuma tarefa${!showAll ? ' para hoje' : ''}.`}
-          </p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {abertas.map((task) => (
-            <TaskItem key={task.id} task={task} areaColors={AREA_COLORS} onToggle={handleToggle} />
-          ))}
-          {feitas.length > 0 && abertas.length > 0 && (
-            <div className="flex items-center gap-2 py-1">
-              <div className="flex-1 border-t border-border/30" />
-              <span className="text-xs text-aco-texto">
-                {feitas.length} concluída{feitas.length > 1 ? 's' : ''}
-              </span>
-              <div className="flex-1 border-t border-border/30" />
-            </div>
-          )}
-          {feitas.map((task) => (
-            <TaskItem key={task.id} task={task} areaColors={AREA_COLORS} onToggle={handleToggle} />
-          ))}
-        </div>
+      {/* Botão + Nova Tarefa (estilo iOS, canto inferior) */}
+      {onAdd && !inputAberto && (
+        <button
+          type="button"
+          onClick={() => setInputAberto(true)}
+          className="flex items-center gap-2 px-1 text-sm font-semibold active:opacity-60"
+          style={{ color: cor }}
+        >
+          <span
+            className="flex size-6 items-center justify-center rounded-full text-white"
+            style={{ backgroundColor: cor }}
+          >
+            <Plus className="size-4" />
+          </span>
+          Nova Tarefa
+        </button>
+      )}
+
+      {feitasCount > 0 && (
+        <p className="px-1 text-xs text-aco-texto">
+          {feitasCount} concluída{feitasCount > 1 ? 's' : ''} — veja em "Concluídas"
+        </p>
       )}
     </div>
   )
 }
 
-type TaskItemProps = {
+// ─── Linha de tarefa com checkbox redondo iOS ────────────────────────────────
+
+type TaskRowProps = {
   task: Task
-  areaColors: Record<string, string>
-  onToggle: (id: string, status: 'aberto' | 'feito') => void
+  cor: string
+  divider: boolean
+  onToggle: (task: Task) => void
 }
 
-function TaskItem({ task, areaColors, onToggle }: TaskItemProps) {
+function TaskRow({ task, cor, divider, onToggle }: TaskRowProps) {
   const done = task.status === 'feito'
+  const aDef = areaDef(task.area)
+
   return (
-    <button
-      type="button"
-      onClick={() => onToggle(task.id, task.status)}
-      className={cn(
-        'flex items-center gap-3 rounded-xl border p-3 text-left transition-all w-full',
-        done
-          ? 'border-border/20 bg-card/20 opacity-60'
-          : 'border-border/40 bg-card/60 hover:border-brasa/40',
-      )}
-    >
-      <div
-        className={cn(
-          'flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-          done
-            ? 'border-green-500 bg-green-500/20 text-green-400'
-            : 'border-border/60',
-        )}
+    <div className={cn('flex items-center gap-3 px-4 py-2.5', divider && 'border-t border-border/30')}>
+      <button
+        type="button"
+        onClick={() => onToggle(task)}
+        aria-label={done ? 'Reabrir tarefa' : 'Concluir tarefa'}
+        className="flex size-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200"
+        style={{
+          borderColor: done ? cor : 'var(--border)',
+          backgroundColor: done ? cor : 'transparent',
+        }}
       >
-        {done && <span className="text-[10px] leading-none">✓</span>}
-      </div>
+        {done && <span className="text-[11px] leading-none text-white">✓</span>}
+      </button>
       <div className="flex-1 min-w-0">
-        <span
+        <p
           className={cn(
-            'text-sm',
-            done ? 'line-through text-aco-texto' : 'text-foreground',
+            'text-sm transition-all duration-200',
+            done ? 'text-aco-texto/50 line-through' : 'text-foreground',
           )}
         >
+          {task.e_frog && <span className="mr-1">🐸</span>}
           {task.titulo}
-        </span>
-        <div className="flex flex-wrap gap-1.5 mt-0.5">
-          {task.area && (
-            <span
-              className={cn(
-                'rounded-full px-2 py-0.5 text-[10px] font-medium',
-                areaColors[task.area] ?? 'text-aco-texto bg-border/30',
-              )}
-            >
-              {task.area}
-            </span>
-          )}
-          {task.e_frog && (
-            <span className="text-[10px] text-green-400">🐸 sapo</span>
-          )}
-        </div>
+        </p>
+        {aDef && (
+          <p className="text-[11px]" style={{ color: aDef.color }}>
+            {aDef.label}
+          </p>
+        )}
       </div>
-    </button>
+    </div>
   )
 }

@@ -160,7 +160,7 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
           <p className="font-heading text-base font-bold text-foreground">
             🔬 Cadastrar protocolo — passo {step} de 3
           </p>
-          <button type="button" onClick={onClose} className="text-aco-texto hover:text-foreground">
+          <button type="button" onClick={onClose} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
             <X className="size-5" />
           </button>
         </div>

@@ -179,6 +179,14 @@
     background: transparent;
   }
 
+  /* Acessibilidade: navegação por teclado sempre visível (anel brasa),
+     sem afetar cliques de mouse (focus-visible, não focus) */
+  :focus-visible {
+    outline: 2px solid var(--brasa);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   /* Micro-label em caixa alta (chips de seção, cabeçalhos de grupo) */
   .microlabel {
     font-size: 11px;

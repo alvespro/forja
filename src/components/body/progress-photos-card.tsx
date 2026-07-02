@@ -175,7 +175,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
             <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-2xl">
               <div className="flex items-center justify-between">
                 <p className="font-heading text-base font-bold text-foreground">Nova foto</p>
-                <button type="button" onClick={() => setPendingFile(null)} className="text-aco-texto hover:text-foreground">
+                <button type="button" onClick={() => setPendingFile(null)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
                   <X className="size-5" />
                 </button>
               </div>
@@ -247,7 +247,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                   >
                     <Trash2 className="size-4" />
                   </button>
-                  <button type="button" onClick={() => setSelecionada(null)} className="text-aco-texto hover:text-foreground">
+                  <button type="button" onClick={() => setSelecionada(null)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
                     <X className="size-5" />
                   </button>
                 </div>

@@ -13,6 +13,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
 import { ProtocolCreateWizard } from '@/components/protocolo/protocol-create-wizard'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -624,7 +625,7 @@ export function ProtocoloPage() {
                 <Sparkles className="size-4 text-brasa" />
                 <span className="text-sm font-semibold">Análise do Monitor</span>
               </div>
-              <button type="button" onClick={() => setShowInsights(false)} className="text-aco-texto hover:text-foreground">
+              <button type="button" onClick={() => setShowInsights(false)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
                 <X className="size-4" />
               </button>
             </div>
@@ -1083,7 +1084,7 @@ export function ProtocoloPage() {
               <button
                 type="button"
                 onClick={() => { setShowExamResultModal(null); setExamResultValues({}); setExamResultCritical([]) }}
-                className="text-aco-texto hover:text-foreground"
+                aria-label="Fechar" className="text-aco-texto hover:text-foreground"
               >
                 <X className="size-5" />
               </button>
@@ -1174,7 +1175,7 @@ export function ProtocoloPage() {
           <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <p className="font-heading text-base font-bold text-foreground">Registrar composto</p>
-              <button type="button" onClick={() => setShowAddCompound(false)} className="text-aco-texto hover:text-foreground">
+              <button type="button" onClick={() => setShowAddCompound(false)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
                 <X className="size-5" />
               </button>
             </div>
@@ -1242,7 +1243,7 @@ export function ProtocoloPage() {
           <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5">
             <div className="flex items-center justify-between">
               <p className="font-heading text-base font-bold text-foreground">Adicionar suporte</p>
-              <button type="button" onClick={() => setShowAddSupport(false)} className="text-aco-texto hover:text-foreground">
+              <button type="button" onClick={() => setShowAddSupport(false)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
                 <X className="size-5" />
               </button>
             </div>
@@ -1311,7 +1312,7 @@ export function ProtocoloPage() {
           <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <p className="font-heading text-base font-bold text-foreground">💉 Registrar aplicação</p>
-              <button type="button" onClick={() => setShowLogModal(false)} className="text-aco-texto hover:text-foreground">
+              <button type="button" onClick={() => setShowLogModal(false)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
                 <X className="size-5" />
               </button>
             </div>
@@ -1407,37 +1408,30 @@ export function ProtocoloPage() {
       )}
 
       {/* ════ MODAL: Agendar exame ════ */}
-      {showScheduleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5">
-            <p className="font-heading text-base font-bold text-foreground">📅 Agendar exame</p>
-            <div>
-              <Label className="text-xs text-aco-texto">Data prevista</Label>
-              <input
-                type="date"
-                value={scheduleDate}
-                onChange={(e) => setScheduleDate(e.target.value)}
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => setShowScheduleModal(null)}>Cancelar</Button>
-              <Button type="button" className="flex-1" onClick={() => handleScheduleExam(showScheduleModal)}>Agendar</Button>
-            </div>
-          </div>
+      <Modal
+        open={!!showScheduleModal}
+        onClose={() => setShowScheduleModal(null)}
+        title="📅 Agendar exame"
+        maxWidth="sm"
+      >
+        <div>
+          <Label className="text-xs text-aco-texto">Data prevista</Label>
+          <input
+            type="date"
+            value={scheduleDate}
+            onChange={(e) => setScheduleDate(e.target.value)}
+            className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus:ring-1 focus:ring-ring"
+          />
         </div>
-      )}
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" className="flex-1" onClick={() => setShowScheduleModal(null)}>Cancelar</Button>
+          <Button type="button" className="flex-1" onClick={() => showScheduleModal && handleScheduleExam(showScheduleModal)}>Agendar</Button>
+        </div>
+      </Modal>
 
       {/* ════ MODAL: Editar protocolo ════ */}
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4 sm:items-center">
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl flex flex-col gap-4 p-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <p className="font-heading text-base font-bold text-foreground">✏️ Editar protocolo</p>
-              <button type="button" onClick={() => setShowEditModal(false)} className="text-aco-texto hover:text-foreground">
-                <X className="size-5" />
-              </button>
-            </div>
+      <Modal open={showEditModal} onClose={() => setShowEditModal(false)} title="✏️ Editar protocolo">
+        <>
             {[
               { label: 'Nome *', value: eNome, set: setENome },
               { label: 'Objetivo *', value: eObjetivo, set: setEObjetivo },
@@ -1508,9 +1502,8 @@ export function ProtocoloPage() {
                 {updateProtocol.isPending ? 'Salvando…' : 'Salvar alterações'}
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+        </>
+      </Modal>
 
       {dialog}
     </div>

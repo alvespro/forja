@@ -61,18 +61,18 @@ export function TarefasPage() {
   const today = todayInSaoPaulo()
   const all = tasks.data ?? []
 
-  const counts = useMemo(
-    () => ({
-      hoje: all.filter((t) => t.data === today && t.status === 'aberto').length,
-      sapo: all.filter((t) => t.e_frog && t.status === 'aberto').length,
-      todas: all.filter((t) => t.status === 'aberto').length,
-      concluidas: all.filter((t) => t.status === 'feito').length,
+  const counts = useMemo(() => {
+    const lista = tasks.data ?? []
+    return {
+      hoje: lista.filter((t) => t.data === today && t.status === 'aberto').length,
+      sapo: lista.filter((t) => t.e_frog && t.status === 'aberto').length,
+      todas: lista.filter((t) => t.status === 'aberto').length,
+      concluidas: lista.filter((t) => t.status === 'feito').length,
       porArea: Object.fromEntries(
-        AREAS.map((a) => [a.key, all.filter((t) => t.area === a.key && t.status === 'aberto').length]),
+        AREAS.map((a) => [a.key, lista.filter((t) => t.area === a.key && t.status === 'aberto').length]),
       ) as Record<string, number>,
-    }),
-    [all, today],
-  )
+    }
+  }, [tasks.data, today])
 
   function toggle(task: Task) {
     updateTask.mutate({ id: task.id, values: { status: task.status === 'aberto' ? 'feito' : 'aberto' } })

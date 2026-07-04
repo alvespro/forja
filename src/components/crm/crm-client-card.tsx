@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { CrmClientForm } from '@/components/crm/crm-client-form'
 import { useConfirm } from '@/hooks/use-confirm'
+import { useCreateFinance } from '@/hooks/use-finances'
 import { useDeleteCrmClient, useUpdateCrmClient, type CrmClientInput } from '@/hooks/use-crm-clients'
-import { parseDateOnly } from '@/lib/date'
+import { parseDateOnly, todayInSaoPaulo } from '@/lib/date'
 import type { CrmClient } from '@/types/database'
 
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -21,6 +22,7 @@ export function CrmClientCard({ client }: CrmClientCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const updateClient = useUpdateCrmClient()
   const deleteClient = useDeleteCrmClient()
+  const createFinance = useCreateFinance()
   const { confirm, dialog } = useConfirm()
 
   async function handleDelete() {
@@ -33,7 +35,31 @@ export function CrmClientCard({ client }: CrmClientCardProps) {
   }
 
   function handleUpdate(values: CrmClientInput) {
-    updateClient.mutate({ id: client.id, values }, { onSuccess: () => setIsEditing(false) })
+    const fechouAgora = values.fase === 'fechado' && client.fase !== 'fechado'
+    updateClient.mutate(
+      { id: client.id, values },
+      {
+        onSuccess: async () => {
+          setIsEditing(false)
+          // Fechou negócio → oferece registrar a receita em 1 clique
+          if (fechouAgora && values.valor_estimado) {
+            const ok = await confirm({
+              title: `Registrar receita de ${currency.format(values.valor_estimado)}?`,
+              description: `Fechamento de "${client.nome}" vira lançamento em Finanças (categoria: comissão).`,
+            })
+            if (ok) {
+              createFinance.mutate({
+                tipo: 'receita',
+                categoria: 'comissão',
+                valor: values.valor_estimado,
+                descricao: `Fechamento — ${client.nome}`,
+                data: todayInSaoPaulo(),
+              })
+            }
+          }
+        },
+      },
+    )
   }
 
   if (isEditing) {

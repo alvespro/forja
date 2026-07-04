@@ -1,5 +1,6 @@
 import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
 import { ObjectiveBadge } from '@/components/body/objective-badge'
+import { CrmActionsCard } from '@/components/today/crm-actions-card'
 import { CycleEndAlertCard } from '@/components/today/cycle-end-alert-card'
 import { CycleProgressCard } from '@/components/today/cycle-progress-card'
 import { FrogTaskCard } from '@/components/today/frog-task-card'
@@ -22,6 +23,7 @@ export function TodayPage() {
       <GamifiedDashboard />
 
       <NotificationsCard />
+      <CrmActionsCard />
       <CycleEndAlertCard />
       <CycleProgressCard />
       <WorkoutTodayCard />

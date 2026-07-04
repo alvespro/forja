@@ -12,6 +12,7 @@ import { WorkoutTodayCard } from '@/components/today/workout-today-card'
 import { DevSummaryCard } from '@/components/today/dev-summary-card'
 import { NotificationsCard } from '@/components/today/notifications-card'
 import { ProtocolSummaryCard } from '@/components/today/protocol-summary-card'
+import { SpacedReviewCard } from '@/components/today/spaced-review-card'
 
 export function TodayPage() {
   return (
@@ -30,6 +31,7 @@ export function TodayPage() {
       <DietAdequacyCard collapsible />
       <PretreinoAlertCard />
       <ProtocolSummaryCard />
+      <SpacedReviewCard />
       <DevSummaryCard />
       <FrogTaskCard />
       <HabitChecklistCard />

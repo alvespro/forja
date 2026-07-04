@@ -11,6 +11,8 @@ export type SessionAggregate = {
   cargaMaxima: number
   melhor1RM: number
   volume: number
+  /** RPE médio das séries que registraram RPE (null se nenhuma). */
+  rpeMedio: number | null
   isPR: boolean
 }
 
@@ -33,6 +35,8 @@ export function computeSessionAggregates(logs: SetLogWithSession[]): SessionAggr
     let cargaMaxima = 0
     let melhor1RM = 0
     let volume = 0
+    let rpeSoma = 0
+    let rpeCount = 0
 
     for (const log of sessionLogs) {
       const carga = log.carga_kg ?? 0
@@ -41,9 +45,20 @@ export function computeSessionAggregates(logs: SetLogWithSession[]): SessionAggr
       const oneRm = epley1RM(carga, reps)
       if (oneRm > melhor1RM) melhor1RM = oneRm
       volume += carga * reps
+      if (log.rpe != null) {
+        rpeSoma += log.rpe
+        rpeCount += 1
+      }
     }
 
-    aggregates.push({ sessionId, performedAt: sessionLogs[0].performed_at, cargaMaxima, melhor1RM, volume })
+    aggregates.push({
+      sessionId,
+      performedAt: sessionLogs[0].performed_at,
+      cargaMaxima,
+      melhor1RM,
+      volume,
+      rpeMedio: rpeCount > 0 ? Math.round((rpeSoma / rpeCount) * 10) / 10 : null,
+    })
   }
 
   aggregates.sort((a, b) => new Date(a.performedAt).getTime() - new Date(b.performedAt).getTime())
@@ -54,6 +69,47 @@ export function computeSessionAggregates(logs: SetLogWithSession[]): SessionAggr
     if (aggregate.melhor1RM > best1RM) best1RM = aggregate.melhor1RM
     return { ...aggregate, isPR }
   })
+}
+
+export type TrainingTrend = {
+  estagnado: boolean
+  deloadSugerido: boolean
+  motivo: string | null
+}
+
+/**
+ * Primeiro uso real do RPE coletado: tendência das últimas sessões de um
+ * exercício. Estagnado = 3+ sessões sem o 1RM subir. Deload sugerido =
+ * estagnado E RPE médio subindo (esforço maior pelo mesmo resultado —
+ * assinatura clássica de fadiga acumulada).
+ */
+export function analyzeTrainingTrend(aggregates: SessionAggregate[]): TrainingTrend {
+  if (aggregates.length < 4) return { estagnado: false, deloadSugerido: false, motivo: null }
+
+  const tres = aggregates.slice(-3)
+  const anteriores = aggregates.slice(0, -3)
+  const pico = anteriores.reduce((best, a) => (a.melhor1RM > best.melhor1RM ? a : best))
+  const estagnado = tres.every((a) => a.melhor1RM <= pico.melhor1RM)
+  if (!estagnado) return { estagnado: false, deloadSugerido: false, motivo: null }
+
+  const rpes = aggregates
+    .slice(-4)
+    .map((a) => a.rpeMedio)
+    .filter((r): r is number => r !== null)
+  const rpeSubindo = rpes.length >= 3 && rpes[rpes.length - 1] > rpes[0] && rpes[rpes.length - 1] >= 8
+
+  if (rpeSubindo) {
+    return {
+      estagnado: true,
+      deloadSugerido: true,
+      motivo: `1RM parado há ${tres.length} sessões com RPE subindo (${rpes[0]} → ${rpes[rpes.length - 1]}) — esforço maior, mesmo resultado. Sinal de deload.`,
+    }
+  }
+  return {
+    estagnado: true,
+    deloadSugerido: false,
+    motivo: `1RM não sobe há ${tres.length} sessões (pico: ${Math.round(pico.melhor1RM)}kg em ${pico.performedAt.slice(0, 10)}). Revise carga, sono ou volume.`,
+  }
 }
 
 /** Extrai o maior número de uma notação de reps (ex: '15' -> 15, '6-12' -> 12). */

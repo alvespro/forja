@@ -11,7 +11,7 @@ import { useExerciseHistory } from '@/hooks/use-exercise-history'
 import { useExercises } from '@/hooks/use-exercises'
 import { useWorkoutExercisesByExercise } from '@/hooks/use-workout-exercises'
 import { launchForjaChat } from '@/lib/forja-chat-store'
-import { computeSessionAggregates, suggestOverload } from '@/lib/workout-metrics'
+import { analyzeTrainingTrend, computeSessionAggregates, suggestOverload } from '@/lib/workout-metrics'
 
 export function EvolutionTab() {
   const exercises = useExercises()
@@ -30,6 +30,8 @@ export function EvolutionTab() {
     const lastSessionLogs = (history.data ?? []).filter((log) => log.session_id === lastSessionId)
     return suggestOverload(lastSessionLogs, prescription)
   }, [prescriptions.data, aggregates, history.data])
+
+  const trend = useMemo(() => analyzeTrainingTrend(aggregates), [aggregates])
 
   if (exercises.isLoading) {
     return <Skeleton className="h-10 w-56" />
@@ -80,6 +82,23 @@ export function EvolutionTab() {
         <div className="flex items-start gap-2 rounded-lg border border-brasa/40 bg-brasa/10 px-3 py-2">
           <TrendingUp className="mt-0.5 size-4 shrink-0 text-brasa" aria-hidden="true" />
           <p className="text-sm text-foreground">{overloadMessage}</p>
+        </div>
+      )}
+
+      {/* Detector de estagnação/deload — primeiro uso real do RPE coletado */}
+      {trend.motivo && (
+        <div
+          className={`flex items-start gap-2 rounded-lg border px-3 py-2 ${
+            trend.deloadSugerido ? 'border-alerta/50 bg-alerta/10' : 'border-atencao/50 bg-atencao/10'
+          }`}
+        >
+          <span className="mt-0.5 shrink-0 text-sm" aria-hidden="true">
+            {trend.deloadSugerido ? '🛑' : '⚠️'}
+          </span>
+          <p className="text-sm text-foreground">
+            <span className="font-semibold">{trend.deloadSugerido ? 'Deload sugerido: ' : 'Estagnação: '}</span>
+            {trend.motivo}
+          </p>
         </div>
       )}
 

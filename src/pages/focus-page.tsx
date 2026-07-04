@@ -9,11 +9,21 @@ import { useFrogTask } from '@/hooks/use-frog-task'
 export function FocusPage() {
   const { data: frog } = useFrogTask()
   const [tarefa, setTarefa] = useState('')
+  const [taskId, setTaskId] = useState<string | null>(null)
   const [sessaoIniciada, setSessaoIniciada] = useState(false)
 
   function handleReady() {
-    setTarefa((current) => current || frog?.titulo || '')
+    // Sem tarefa escolhida, o sapo do dia assume (com vínculo real)
+    if (!tarefa && frog) {
+      setTarefa(frog.titulo)
+      setTaskId(frog.status === 'aberto' ? frog.id : null)
+    }
     setSessaoIniciada(true)
+  }
+
+  function handlePick(titulo: string, id: string | null) {
+    setTarefa(titulo)
+    setTaskId(id)
   }
 
   return (
@@ -27,8 +37,8 @@ export function FocusPage() {
 
       {sessaoIniciada ? (
         <>
-          <FocusTaskPicker value={tarefa} onChange={setTarefa} />
-          <PomodoroTimer tarefa={tarefa} onExit={() => setSessaoIniciada(false)} />
+          <FocusTaskPicker value={tarefa} taskId={taskId} onChange={handlePick} />
+          <PomodoroTimer tarefa={tarefa} taskId={taskId} onExit={() => setSessaoIniciada(false)} />
         </>
       ) : (
         <FrictionChecklistCard onReady={handleReady} />

@@ -5,6 +5,8 @@ const RECENT_LIMIT = 200
 
 export type CreateFocusSessionInput = {
   tarefa: string | null
+  /** Tarefa real vinculada — habilita 'concluir tarefa' pós-pomodoro. */
+  task_id?: string | null
   tecnica: FocusTechnique
   duracao_min: number
 }

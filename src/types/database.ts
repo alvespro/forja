@@ -36,6 +36,8 @@ export type Task = {
   e_frog: boolean
   status: 'aberto' | 'feito'
   data: string
+  /** Meta RPM que esta tarefa move (fecha o ciclo meta→tarefa). */
+  goal_id: string | null
   created_at: string
 }
 
@@ -45,6 +47,8 @@ export type FocusSession = {
   id: string
   user_id: string
   tarefa: string | null
+  /** Tarefa real vinculada (antes era só o texto livre acima). */
+  task_id: string | null
   tecnica: FocusTechnique | null
   duracao_min: number | null
   data: string

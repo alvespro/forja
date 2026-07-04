@@ -11,6 +11,7 @@ export type TaskInput = {
   area?: string | null
   e_frog?: boolean
   data?: string
+  goal_id?: string | null
 }
 
 type TaskFilters = {
@@ -56,6 +57,7 @@ export function useCreateTask() {
         area: input.area ?? null,
         e_frog: input.e_frog ?? false,
         data: input.data ?? today,
+        goal_id: input.goal_id ?? null,
         status: 'aberto',
         user_id: user.id,
       })

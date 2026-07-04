@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCountdownTimer } from '@/hooks/use-countdown-timer'
 import { useCreateFocusSession } from '@/hooks/use-focus-sessions'
+import { useUpdateTask } from '@/hooks/use-tasks'
 import { useWakeLock } from '@/hooks/use-wake-lock'
 import { playBeep, vibrate } from '@/lib/audio-beep'
 
@@ -100,21 +101,31 @@ function PomodoroPhaseRunner({
 
 type PomodoroTimerProps = {
   tarefa: string
+  /** Tarefa real vinculada — habilita o 'concluir' pós-pomodoro. */
+  taskId?: string | null
   onExit: () => void
 }
 
 /** Seção 6.4: pomodoro por timestamp, com ciclos foco/pausa e registro automático em focus_sessions. */
-export function PomodoroTimer({ tarefa, onExit }: PomodoroTimerProps) {
+export function PomodoroTimer({ tarefa, taskId, onExit }: PomodoroTimerProps) {
   const [phase, setPhase] = useState<Phase>('foco')
   const [phaseInstance, setPhaseInstance] = useState(0)
   const [ciclosConcluidos, setCiclosConcluidos] = useState(0)
+  const [perguntarConclusao, setPerguntarConclusao] = useState(false)
   const createSession = useCreateFocusSession()
+  const updateTask = useUpdateTask()
   useWakeLock(true)
 
   function handlePhaseComplete(elapsedSeconds: number) {
     if (phase === 'foco') {
       const duracaoMin = Math.max(1, Math.round(elapsedSeconds / 60))
-      createSession.mutate({ tarefa: tarefa.trim() || null, tecnica: 'pomodoro', duracao_min: duracaoMin })
+      createSession.mutate({
+        tarefa: tarefa.trim() || null,
+        task_id: taskId ?? null,
+        tecnica: 'pomodoro',
+        duracao_min: duracaoMin,
+      })
+      if (taskId) setPerguntarConclusao(true)
       const novosCiclos = ciclosConcluidos + 1
       setCiclosConcluidos(novosCiclos)
       setPhase(novosCiclos % CICLOS_PARA_PAUSA_LONGA === 0 ? 'pausa_longa' : 'pausa_curta')
@@ -124,6 +135,11 @@ export function PomodoroTimer({ tarefa, onExit }: PomodoroTimerProps) {
     setPhaseInstance((key) => key + 1)
   }
 
+  function handleConcluirTarefa() {
+    if (!taskId) return
+    updateTask.mutate({ id: taskId, values: { status: 'feito' } }, { onSuccess: () => setPerguntarConclusao(false) })
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -131,6 +147,33 @@ export function PomodoroTimer({ tarefa, onExit }: PomodoroTimerProps) {
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {tarefa && <p className="text-center text-sm text-aco-texto">Foco: {tarefa}</p>}
+
+        {/* Fecha o ciclo tarefa→foco→feito num gesto, na pausa */}
+        {perguntarConclusao && taskId && (
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-ok/40 bg-ok/10 px-3 py-2">
+            <span className="text-sm text-foreground">Terminou "{tarefa}"?</span>
+            <div className="flex gap-1.5">
+              <Button
+                type="button"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={handleConcluirTarefa}
+                disabled={updateTask.isPending}
+              >
+                ✓ Concluir
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs"
+                onClick={() => setPerguntarConclusao(false)}
+              >
+                Ainda não
+              </Button>
+            </div>
+          </div>
+        )}
         <PomodoroPhaseRunner
           key={`${phase}-${phaseInstance}`}
           phase={phase}

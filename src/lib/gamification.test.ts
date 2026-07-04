@@ -104,4 +104,29 @@ describe('computeAchievements', () => {
     const scores = [score('2026-07-01', 550, 700, 100), score(today, 400)]
     expect(computeAchievements(scores, today).find((a) => a.key === 'xp_1000')?.earned).toBe(false)
   })
+
+  it('De volta à forja: exige streak 3+, queda e retorno a 50%+', () => {
+    const streakEQueda = [
+      score('2026-06-25', 80),
+      score('2026-06-26', 80),
+      score('2026-06-27', 80),
+      score('2026-06-28', 10), // quebra
+    ]
+    expect(computeAchievements(streakEQueda, today).find((a) => a.key === 'volta_por_cima')?.earned).toBe(false)
+
+    const comRetorno = [...streakEQueda, score('2026-06-30', 60)]
+    expect(computeAchievements(comRetorno, today).find((a) => a.key === 'volta_por_cima')?.earned).toBe(true)
+
+    // queda sem streak prévio de 3+ não conta
+    const quedaCurta = [score('2026-06-26', 80), score('2026-06-27', 10), score('2026-06-28', 60)]
+    expect(computeAchievements(quedaCurta, today).find((a) => a.key === 'volta_por_cima')?.earned).toBe(false)
+  })
+
+  it('Descanso é treino: 4 rest days marcados', () => {
+    const tres = [1, 2, 3].map((i) => ({ ...score(`2026-06-0${i}`, 80), rest_day: true }))
+    expect(computeAchievements(tres, today).find((a) => a.key === 'descanso_consciente')?.earned).toBe(false)
+
+    const quatro = [...tres, { ...score('2026-06-04', 80), rest_day: true }]
+    expect(computeAchievements(quatro, today).find((a) => a.key === 'descanso_consciente')?.earned).toBe(true)
+  })
 })

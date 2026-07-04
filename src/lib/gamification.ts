@@ -121,6 +121,27 @@ export function computeAchievements(scores: DailyScore[], today: string): Achiev
     }
   }
 
+  // Volta por cima: quebrou um streak de 3+ e voltou a fechar 50%+ depois.
+  // Conquista anti-abandono — o que importa não é nunca cair, é voltar.
+  const ordenados = [...scores].sort((a, b) => a.data.localeCompare(b.data))
+  let voltaPorCima = false
+  let streakCorrente = 0
+  let quebrouAposStreak = false
+  for (const s of ordenados) {
+    if (pctOf(s) >= STREAK_MIN_PCT) {
+      if (quebrouAposStreak) {
+        voltaPorCima = true
+        break
+      }
+      streakCorrente += 1
+    } else {
+      if (streakCorrente >= 3) quebrouAposStreak = true
+      streakCorrente = 0
+    }
+  }
+
+  const restDays = scores.filter((s) => s.rest_day).length
+
   return [
     { key: 'primeiro_forjado', emoji: '🔥', titulo: 'Primeiro FORJADO', descricao: 'Feche um dia com 80%+', earned: diasForjados >= 1 },
     { key: 'streak_7', emoji: '📅', titulo: '7 dias na brasa', descricao: 'Streak de 7 dias (50%+)', earned: streak >= 7 },
@@ -130,5 +151,7 @@ export function computeAchievements(scores: DailyScore[], today: string): Achiev
     { key: 'xp_1000', emoji: '⚒️', titulo: '1.000 XP', descricao: 'Acumule 1.000 XP', earned: totalXP >= 1000 },
     { key: 'xp_5000', emoji: '💎', titulo: '5.000 XP', descricao: 'Acumule 5.000 XP', earned: totalXP >= 5000 },
     { key: 'forjado_50', emoji: '👑', titulo: 'Meio século', descricao: '50 dias com 80%+', earned: diasForjados >= 50 },
+    { key: 'volta_por_cima', emoji: '🧗', titulo: 'De volta à forja', descricao: 'Quebrou um streak de 3+ e voltou — cair não é o fim', earned: voltaPorCima },
+    { key: 'descanso_consciente', emoji: '🛌', titulo: 'Descanso é treino', descricao: '4 dias de descanso planejado marcados', earned: restDays >= 4 },
   ]
 }

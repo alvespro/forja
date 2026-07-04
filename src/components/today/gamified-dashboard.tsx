@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+import { toast } from 'sonner'
+
 import { Card, CardContent } from '@/components/ui/card'
+import { useAchievements, usePersistAchievements } from '@/hooks/use-achievements'
 import { useActiveProtocol } from '@/hooks/use-protocols'
 import { useDailyScores, useUpsertDailyScore } from '@/hooks/use-daily-scores'
 import { useHabits, useHabitLogs, groupLogsByHabit } from '@/hooks/use-habits'
@@ -247,8 +250,40 @@ export function GamifiedDashboard() {
   const totalXP = scores.reduce((s, d) => s + d.pontos, 0)
   const nivel = levelInfo(totalXP)
   const semana = last7Days(scores, today)
-  const conquistas = computeAchievements(scores, today)
+
+  // Conquista desbloqueada é definitiva: o cálculo da janela é sobreposto
+  // pelo que está persistido em `achievements` (não "desconquista" mais).
+  const persisted = useAchievements()
+  const persistAchievements = usePersistAchievements()
+  const persistedKeys = useMemo(
+    () => new Set((persisted.data ?? []).map((a) => a.key)),
+    [persisted.data],
+  )
+  const conquistas = useMemo(
+    () =>
+      computeAchievements(dailyScores.data ?? [], today).map((c) => ({
+        ...c,
+        earned: c.earned || persistedKeys.has(c.key),
+      })),
+    [dailyScores.data, today, persistedKeys],
+  )
   const conquistadas = conquistas.filter((c) => c.earned)
+
+  // Celebração no momento do desbloqueio (antes só aparecia no card, mudo)
+  const celebrados = useRef<Set<string>>(new Set())
+  useEffect(() => {
+    if (persisted.isLoading || dailyScores.isLoading) return
+    const novos = conquistas.filter(
+      (c) => c.earned && !persistedKeys.has(c.key) && !celebrados.current.has(c.key),
+    )
+    if (novos.length === 0) return
+    for (const c of novos) celebrados.current.add(c.key)
+    persistAchievements.mutate(novos.map((c) => c.key))
+    for (const c of novos) {
+      toast.success(`🏅 Conquista desbloqueada: ${c.emoji} ${c.titulo}`, { description: c.descricao })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conquistas, persistedKeys, persisted.isLoading, dailyScores.isLoading])
 
   // Anel de progresso (SVG)
   const R = 34

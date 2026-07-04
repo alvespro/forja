@@ -9,9 +9,10 @@ usuário (3w2, empresário imobiliário, recomposição corporal + protocolo).
 ## 1. Nota executiva
 
 O FORJA está **funcional de ponta a ponta**: 16 páginas, 7 agentes de IA com
-contexto real, 4 integrações (Yazio, Apple Health, vision de documentos e de
-fotos), gamificação persistida e um módulo de protocolo médico com segurança
-em 3 camadas. A engenharia é acima da média (RLS auditada, testes nos limiares
+contexto real, 3 integrações (Yazio, vision de documentos e de fotos; a
+integração Apple Health foi construída e depois **removida por decisão de
+04/07/2026**), gamificação persistida e um módulo de protocolo médico com
+segurança em 3 camadas. A engenharia é acima da média (RLS auditada, testes nos limiares
 médicos, tratamento de erros global, janelas de query, índices).
 
 Os problemas encontrados se dividem em três categorias:
@@ -107,14 +108,14 @@ chat single-turn e efêmero, alertas críticos não geram notificação.
 3. health_metric_defs para os 10 marcadores → Saúde mostra o ciclo
 4. Completar checkCriticalMarkers (PSA >4, TGO/TGP atenção, E2 baixo, Hb >18)
 5. Sugestão de overload DENTRO da sessão de treino
-6. Sono+atividade no contexto do coach e do agente treino
+6. ~~Sono+atividade no contexto do coach~~ (cancelado — Apple Health removido)
 7. Resumo financeiro mensal + barra da meta
 8. Pipeline fixo no CRM + ordenação por próxima ação
 9. Placar da semana com tarefas/sapos/metas
 10. Rest day no score (treino sai do denominador em dia planejado de descanso)
 
 **Esforço MÉDIO (próximas semanas):**
-11. Card de Recuperação no Hoje (sono, FC repouso, passos — Apple Health)
+11. ~~Card de Recuperação no Hoje~~ (cancelado — Apple Health removido)
 12. Briefing diário automático do coach às 5h (cron + notification)
 13. Recálculo retroativo de daily_scores (últimos 7 dias)
 14. Conquistas persistidas com earned_at + celebração + conquistas de retorno

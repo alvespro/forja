@@ -6,17 +6,17 @@ import { ptBR } from 'date-fns/locale'
 import { Card, CardContent } from '@/components/ui/card'
 import { useActiveProtocol } from '@/hooks/use-protocols'
 import { useDailyScores, useUpsertDailyScore } from '@/hooks/use-daily-scores'
-import { useFrogTask } from '@/hooks/use-frog-task'
 import { useHabits, useHabitLogs, groupLogsByHabit } from '@/hooks/use-habits'
-import { useJournalEntry } from '@/hooks/use-journal-entry'
-import { useMealLogsToday } from '@/hooks/use-meal-logs'
+import { useJournalHistory } from '@/hooks/use-journal-history'
+import { useMealLogsRange } from '@/hooks/use-meal-logs'
 import { useProtocolLogs } from '@/hooks/use-protocol-logs'
 import { useSupplementLogs } from '@/hooks/use-supplement-logs'
 import { useSupplements } from '@/hooks/use-supplements'
 import { useTasks } from '@/hooks/use-tasks'
 import { useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { useDailyQuote } from '@/hooks/use-daily-quote'
-import { parseDateOnly, todayInSaoPaulo } from '@/lib/date'
+import { computeDayScore, PTS, type DayScoreInputs } from '@/lib/daily-score'
+import { addDaysToDateString, parseDateOnly, todayInSaoPaulo } from '@/lib/date'
 import { computeAchievements, computeStreak, last7Days, levelInfo } from '@/lib/gamification'
 import { weekdayAbbrevOf } from '@/lib/nutrition'
 import { cn } from '@/lib/utils'
@@ -57,148 +57,188 @@ export function GamifiedDashboard() {
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
 
   // ── Dados ──
-  const frog = useFrogTask()
   const habits = useHabits()
   const habitLogs = useHabitLogs()
   const workoutSessions = useWorkoutSessions()
-  const mealLogs = useMealLogsToday()
+  const mealRange = useMealLogsRange(8)
   const supplements = useSupplements()
   const supplementLogs = useSupplementLogs()
-  const journal = useJournalEntry(today, 'diario')
-  const tasks = useTasks({ data: today })
+  const journalHistory = useJournalHistory()
+  const tasks = useTasks()
   const protocol = useActiveProtocol()
-  const protocolLogs = useProtocolLogs(protocol.data?.id, 10)
+  const protocolLogs = useProtocolLogs(protocol.data?.id, 30)
   const dailyScores = useDailyScores()
   const upsertScore = useUpsertDailyScore()
 
   // Dia de descanso planejado (flag persistida no score de hoje)
   const restDay = (dailyScores.data ?? []).find((s) => s.data === today)?.rest_day ?? false
 
-  const { activities, pontos, total, bonus } = useMemo(() => {
-    const list: Activity[] = []
+  // Janela do recálculo retroativo: 7 dias atrás → hoje. Dia executado sem
+  // abrir o app deixa de quebrar o streak; edição retroativa entra no placar.
+  const janela = useMemo(
+    () => Array.from({ length: 8 }, (_, i) => addDaysToDateString(today, -(7 - i))),
+    [today],
+  )
 
-    // 🐸 Sapo do dia — 20 pts
-    const sapoFeito = frog.data?.status === 'feito'
-    list.push({ key: 'sapo', emoji: '🐸', label: 'Sapo', pts: 20, earned: sapoFeito ? 20 : 0, done: !!sapoFeito, to: '/tarefas' })
-
-    // 💪 Treino — 25 pts; em dia de descanso planejado sai do denominador
-    // (recuperação é parte do programa — dia de recovery perfeito pode ser FORJADO)
-    if (!restDay) {
-      const treinoHoje = (workoutSessions.data ?? []).some((s) => s.performed_at?.slice(0, 10) === today)
-      list.push({ key: 'treino', emoji: '💪', label: 'Treino', pts: 25, earned: treinoHoje ? 25 : 0, done: treinoHoje, to: '/workout' })
-    }
-
-    // ✅ Hábitos — 5 pts cada
+  // Insumos de pontuação por dia — fonte única (lib/daily-score) para hoje e retro
+  const inputsPorDia = useMemo(() => {
     const ativos = (habits.data ?? []).filter((h) => h.ativo)
     const porHabito = groupLogsByHabit(habitLogs.data)
-    const habitosFeitos = ativos.filter((h) => porHabito.get(h.id)?.has(today)).length
-    if (ativos.length > 0) {
+    const treinoDates = new Set((workoutSessions.data ?? []).map((s) => s.performed_at?.slice(0, 10)))
+    const mealCount = new Map<string, number>()
+    for (const m of mealRange.data ?? []) mealCount.set(m.data, (mealCount.get(m.data) ?? 0) + 1)
+    const diarioDates = new Set((journalHistory.data ?? []).map((j) => j.data))
+    const protocolLogDates = new Set((protocolLogs.data ?? []).map((l) => l.data_aplicacao))
+    const restDayByDate = new Map((dailyScores.data ?? []).map((s) => [s.data, s.rest_day]))
+
+    const map = new Map<string, DayScoreInputs>()
+    for (const d of janela) {
+      const doDia = (supplements.data ?? []).filter(
+        (s) => s.ativo && (s.dias_semana ?? []).includes(weekdayAbbrevOf(d)),
+      )
+      const tomados = doDia.filter((s) =>
+        (supplementLogs.data ?? []).some((l) => l.supplement_id === s.id && l.data === d && l.tomado),
+      ).length
+      const tarefasDoDia = (tasks.data ?? []).filter((t) => t.data === d)
+
+      map.set(d, {
+        frogDone: tarefasDoDia.some((t) => t.e_frog && t.status === 'feito'),
+        habitosAtivos: ativos.length,
+        habitosFeitos: ativos.filter((h) => porHabito.get(h.id)?.has(d)).length,
+        treinou: treinoDates.has(d),
+        restDay: restDayByDate.get(d) ?? false,
+        nRefeicoes: mealCount.get(d) ?? 0,
+        suplementosDoDia: doDia.length,
+        suplementosTomados: tomados,
+        diarioFeito: diarioDates.has(d),
+        protocoloAtivo: protocol.data?.status === 'ativo',
+        protocoloLogado: protocolLogDates.has(d),
+        tarefasFeitas: tarefasDoDia.filter((t) => t.status === 'feito' && !t.e_frog).length,
+      })
+    }
+    return map
+  }, [
+    janela,
+    habits.data,
+    habitLogs.data,
+    workoutSessions.data,
+    mealRange.data,
+    supplements.data,
+    supplementLogs.data,
+    journalHistory.data,
+    tasks.data,
+    protocol.data,
+    protocolLogs.data,
+    dailyScores.data,
+  ])
+
+  const hoje = inputsPorDia.get(today)
+
+  // Chips do dia — visual; os NÚMEROS vêm todos de computeDayScore (fonte única)
+  const activities = useMemo(() => {
+    const i = hoje
+    if (!i) return [] as Activity[]
+    const list: Activity[] = []
+
+    list.push({ key: 'sapo', emoji: '🐸', label: 'Sapo', pts: PTS.sapo, earned: i.frogDone ? PTS.sapo : 0, done: i.frogDone, to: '/tarefas' })
+
+    if (!i.restDay) {
+      list.push({ key: 'treino', emoji: '💪', label: 'Treino', pts: PTS.treino, earned: i.treinou ? PTS.treino : 0, done: i.treinou, to: '/workout' })
+    }
+
+    if (i.habitosAtivos > 0) {
       list.push({
         key: 'habitos',
         emoji: '✅',
-        label: `Hábitos ${habitosFeitos}/${ativos.length}`,
-        pts: ativos.length * 5,
-        earned: habitosFeitos * 5,
-        done: habitosFeitos === ativos.length,
+        label: `Hábitos ${i.habitosFeitos}/${i.habitosAtivos}`,
+        pts: i.habitosAtivos * PTS.habito,
+        earned: i.habitosFeitos * PTS.habito,
+        done: i.habitosFeitos === i.habitosAtivos,
         to: '/habits',
       })
     }
 
-    // 🍽️ Refeições — 15 pts (3+ registros)
-    const nRefeicoes = (mealLogs.data ?? []).length
-    const ptsRefeicoes = Math.min(15, nRefeicoes * 5)
     list.push({
       key: 'refeicoes',
       emoji: '🍽️',
-      label: `Refeições ${nRefeicoes}`,
-      pts: 15,
-      earned: ptsRefeicoes,
-      done: nRefeicoes >= 3,
-      to: '/meals',
+      label: `Refeições ${i.nRefeicoes}`,
+      pts: PTS.refeicoes,
+      earned: Math.min(PTS.refeicoes, i.nRefeicoes * 5),
+      done: i.nRefeicoes >= 3,
+      to: '/nutricao',
     })
 
-    // 💊 Suplementos — 10 pts (todos do dia tomados)
-    const doDia = (supplements.data ?? []).filter(
-      (s) => s.ativo && (s.dias_semana ?? []).includes(weekdayAbbrevOf(today)),
-    )
-    if (doDia.length > 0) {
-      const tomados = doDia.filter((s) =>
-        (supplementLogs.data ?? []).some((l) => l.supplement_id === s.id && l.data === today && l.tomado),
-      ).length
-      const doneSup = tomados === doDia.length
+    if (i.suplementosDoDia > 0) {
+      const doneSup = i.suplementosTomados === i.suplementosDoDia
       list.push({
         key: 'suplementos',
         emoji: '💊',
-        label: `Suplementos ${tomados}/${doDia.length}`,
-        pts: 10,
-        earned: doneSup ? 10 : Math.round((tomados / doDia.length) * 10),
+        label: `Suplementos ${i.suplementosTomados}/${i.suplementosDoDia}`,
+        pts: PTS.suplementos,
+        earned: doneSup ? PTS.suplementos : Math.round((i.suplementosTomados / i.suplementosDoDia) * PTS.suplementos),
         done: doneSup,
         to: '/suplementos',
       })
     }
 
-    // 📓 Diário — 10 pts
-    const diarioFeito = !!journal.data
-    list.push({ key: 'diario', emoji: '📓', label: 'Diário', pts: 10, earned: diarioFeito ? 10 : 0, done: diarioFeito, to: '/journal' })
+    list.push({ key: 'diario', emoji: '📓', label: 'Diário', pts: PTS.diario, earned: i.diarioFeito ? PTS.diario : 0, done: i.diarioFeito, to: '/journal' })
 
-    // 💉 Protocolo — 10 pts (só se ciclo ativo)
-    if (protocol.data?.status === 'ativo') {
-      const logHoje = (protocolLogs.data ?? []).some((l) => l.data_aplicacao === today)
-      list.push({ key: 'protocolo', emoji: '💉', label: 'Protocolo', pts: 10, earned: logHoje ? 10 : 0, done: logHoje, to: '/protocolo' })
+    if (i.protocoloAtivo) {
+      list.push({ key: 'protocolo', emoji: '💉', label: 'Protocolo', pts: PTS.protocolo, earned: i.protocoloLogado ? PTS.protocolo : 0, done: i.protocoloLogado, to: '/protocolo' })
     }
 
-    // ✔️ Tarefas concluídas — bônus +5 cada (não entra no total)
-    const tarefasFeitas = (tasks.data ?? []).filter((t) => t.status === 'feito' && !t.e_frog).length
-    const bonusPts = tarefasFeitas * 5
-    if (tarefasFeitas > 0) {
+    if (i.tarefasFeitas > 0) {
       list.push({
         key: 'tarefas',
         emoji: '✔️',
-        label: `Tarefas +${tarefasFeitas}`,
+        label: `Tarefas +${i.tarefasFeitas}`,
         pts: 0,
-        earned: bonusPts,
+        earned: i.tarefasFeitas * PTS.tarefaBonus,
         done: true,
         bonus: true,
         to: '/tarefas',
       })
     }
 
-    const totalBase = list.filter((a) => !a.bonus).reduce((s, a) => s + a.pts, 0)
-    const ganhos = list.reduce((s, a) => s + a.earned, 0)
+    return list
+  }, [hoje])
 
-    return { activities: list, pontos: ganhos, total: totalBase, bonus: bonusPts }
-  }, [
-    frog.data,
-    habits.data,
-    habitLogs.data,
-    workoutSessions.data,
-    mealLogs.data,
-    supplements.data,
-    supplementLogs.data,
-    journal.data,
-    tasks.data,
-    protocol.data,
-    protocolLogs.data,
-    restDay,
-    today,
-  ])
+  const { pontos, total, bonus } = hoje ? computeDayScore(hoje) : { pontos: 0, total: 0, bonus: 0 }
 
   const pct = total > 0 ? Math.min(100, Math.round((pontos / total) * 100)) : 0
   const rank = rankOf(pct)
 
-  // ── Persistência do score do dia (upsert idempotente) ──
+  // ── Persistência: recálculo retroativo da janela de 8 dias ──
+  // Grava só o que divergiu do armazenado; rest_day não é enviado nos dias
+  // passados, então a flag existente é preservada pelo upsert.
   const carregando =
-    frog.isLoading || habits.isLoading || workoutSessions.isLoading || mealLogs.isLoading || journal.isLoading
-  const ultimoSalvo = useRef<string | null>(null)
+    habits.isLoading ||
+    habitLogs.isLoading ||
+    workoutSessions.isLoading ||
+    mealRange.isLoading ||
+    supplementLogs.isLoading ||
+    journalHistory.isLoading ||
+    tasks.isLoading ||
+    dailyScores.isLoading
+  const salvos = useRef<Set<string>>(new Set())
 
   useEffect(() => {
-    if (carregando || total === 0) return
-    const chave = `${today}:${pontos}:${total}:${bonus}`
-    if (ultimoSalvo.current === chave) return
-    ultimoSalvo.current = chave
-    upsertScore.mutate({ data: today, pontos, total, bonus })
+    if (carregando) return
+    const armazenados = new Map((dailyScores.data ?? []).map((s) => [s.data, s]))
+    for (const d of janela) {
+      const inp = inputsPorDia.get(d)
+      if (!inp) continue
+      const calc = computeDayScore(inp)
+      if (calc.total === 0) continue
+      const chave = `${d}:${calc.pontos}:${calc.total}:${calc.bonus}`
+      if (salvos.current.has(chave)) continue
+      salvos.current.add(chave)
+      const atual = armazenados.get(d)
+      if (atual && atual.pontos === calc.pontos && atual.total === calc.total && atual.bonus === calc.bonus) continue
+      upsertScore.mutate({ data: d, pontos: calc.pontos, total: calc.total, bonus: calc.bonus })
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [carregando, pontos, total, bonus, today])
+  }, [carregando, inputsPorDia, janela])
 
   // ── Streak, nível, histórico e conquistas ──
   const scores = dailyScores.data ?? []

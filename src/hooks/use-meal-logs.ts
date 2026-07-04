@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/hooks/use-auth'
-import { todayInSaoPaulo } from '@/lib/date'
+import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 import type { MealLog } from '@/types/database'
 
@@ -26,6 +26,25 @@ export function useMealLogsToday() {
       const { data, error } = await supabase.from('meal_logs').select('*').eq('data', today)
       if (error) throw error
       return data as MealLog[]
+    },
+    enabled: !!user,
+  })
+}
+
+/** Refeições dos últimos `days` dias — usado pelo recálculo retroativo do score. */
+export function useMealLogsRange(days = 8) {
+  const { user } = useAuth()
+  const today = todayInSaoPaulo()
+
+  return useQuery({
+    queryKey: ['meal-logs', 'range', days, today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('meal_logs')
+        .select('data')
+        .gte('data', addDaysToDateString(today, -days))
+      if (error) throw error
+      return data as Pick<MealLog, 'data'>[]
     },
     enabled: !!user,
   })

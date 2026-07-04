@@ -71,6 +71,9 @@ export function GamifiedDashboard() {
   const dailyScores = useDailyScores()
   const upsertScore = useUpsertDailyScore()
 
+  // Dia de descanso planejado (flag persistida no score de hoje)
+  const restDay = (dailyScores.data ?? []).find((s) => s.data === today)?.rest_day ?? false
+
   const { activities, pontos, total, bonus } = useMemo(() => {
     const list: Activity[] = []
 
@@ -78,9 +81,12 @@ export function GamifiedDashboard() {
     const sapoFeito = frog.data?.status === 'feito'
     list.push({ key: 'sapo', emoji: '🐸', label: 'Sapo', pts: 20, earned: sapoFeito ? 20 : 0, done: !!sapoFeito, to: '/tarefas' })
 
-    // 💪 Treino — 25 pts
-    const treinoHoje = (workoutSessions.data ?? []).some((s) => s.performed_at?.slice(0, 10) === today)
-    list.push({ key: 'treino', emoji: '💪', label: 'Treino', pts: 25, earned: treinoHoje ? 25 : 0, done: treinoHoje, to: '/workout' })
+    // 💪 Treino — 25 pts; em dia de descanso planejado sai do denominador
+    // (recuperação é parte do programa — dia de recovery perfeito pode ser FORJADO)
+    if (!restDay) {
+      const treinoHoje = (workoutSessions.data ?? []).some((s) => s.performed_at?.slice(0, 10) === today)
+      list.push({ key: 'treino', emoji: '💪', label: 'Treino', pts: 25, earned: treinoHoje ? 25 : 0, done: treinoHoje, to: '/workout' })
+    }
 
     // ✅ Hábitos — 5 pts cada
     const ativos = (habits.data ?? []).filter((h) => h.ativo)
@@ -173,6 +179,7 @@ export function GamifiedDashboard() {
     tasks.data,
     protocol.data,
     protocolLogs.data,
+    restDay,
     today,
   ])
 
@@ -296,6 +303,25 @@ export function GamifiedDashboard() {
                 </span>
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() =>
+                upsertScore.mutate({ data: today, pontos, total, bonus, rest_day: !restDay })
+              }
+              className={cn(
+                'flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                restDay
+                  ? 'border-sky-700/60 bg-sky-950/40 text-sky-300'
+                  : 'border-border/40 bg-card/30 text-aco-texto/60 hover:border-border',
+              )}
+              title={
+                restDay
+                  ? 'Dia de descanso planejado: treino fora do placar de hoje'
+                  : 'Marcar hoje como dia de descanso planejado (treino sai do total)'
+              }
+            >
+              🛌 {restDay ? 'Descanso planejado' : 'Dia de descanso?'}
+            </button>
           </div>
 
           {/* ── Streak + Nível ── */}

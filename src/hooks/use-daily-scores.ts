@@ -34,6 +34,7 @@ export type DailyScoreInput = {
   pontos: number
   total: number
   bonus: number
+  rest_day?: boolean
 }
 
 export function useUpsertDailyScore() {

@@ -636,6 +636,8 @@ export type DailyScore = {
   pontos: number
   total: number
   bonus: number
+  /** Dia de descanso planejado: treino não entra no total do dia. */
+  rest_day: boolean
   updated_at: string
 }
 

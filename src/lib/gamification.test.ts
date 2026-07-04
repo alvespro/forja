@@ -4,7 +4,7 @@ import { computeAchievements, computeStreak, last7Days, levelInfo, XP_POR_NIVEL 
 import type { DailyScore } from '@/types/database'
 
 function score(data: string, pontos: number, total = 100, bonus = 0): DailyScore {
-  return { id: data, user_id: 'u', data, pontos, total, bonus, updated_at: '' }
+  return { id: data, user_id: 'u', data, pontos, total, bonus, rest_day: false, updated_at: '' }
 }
 
 describe('levelInfo', () => {

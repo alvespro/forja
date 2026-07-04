@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { CrmClientInput } from '@/hooks/use-crm-clients'
+import { FASES_FUNIL } from '@/lib/crm'
 import type { CrmClient } from '@/types/database'
 
 type CrmClientFormProps = {
@@ -45,12 +46,19 @@ export function CrmClientForm({ client, onSubmit, onCancel, isSubmitting }: CrmC
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="crm-fase">Fase</Label>
-          <Input
+          <select
             id="crm-fase"
-            placeholder="ex: prospecção, proposta, fechado"
             value={fase}
             onChange={(event) => setFase(event.target.value)}
-          />
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm capitalize outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Selecionar fase</option>
+            {FASES_FUNIL.map((f) => (
+              <option key={f} value={f} className="capitalize">
+                {f}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

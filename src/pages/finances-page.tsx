@@ -12,10 +12,14 @@ import { FinanceForm } from '@/components/finances/finance-form'
 import { FinanceGoalCard } from '@/components/finances/finance-goal-card'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useCreateFinance, useDeleteFinance, useFinances } from '@/hooks/use-finances'
-import { parseDateOnly } from '@/lib/date'
-import { computeFinanceSummary } from '@/lib/finance-summary'
+import { parseDateOnly, todayInSaoPaulo } from '@/lib/date'
+import { computeFinanceSummary, filterByMonth, monthsAvailable } from '@/lib/finance-summary'
 
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+
+function labelDoMes(ym: string): string {
+  return format(parseDateOnly(ym + '-01'), 'MMMM yyyy', { locale: ptBR })
+}
 
 export function FinancesPage() {
   const finances = useFinances()
@@ -24,7 +28,17 @@ export function FinancesPage() {
   const { confirm, dialog } = useConfirm()
   const [isAdding, setIsAdding] = useState(false)
 
-  const summary = useMemo(() => computeFinanceSummary(finances.data ?? []), [finances.data])
+  const mesAtual = todayInSaoPaulo().slice(0, 7)
+  const [mes, setMes] = useState(mesAtual)
+
+  // Seletor sempre inclui o mês corrente, mesmo sem lançamentos ainda
+  const meses = useMemo(() => {
+    const list = monthsAvailable(finances.data ?? [])
+    return list.includes(mesAtual) ? list : [mesAtual, ...list]
+  }, [finances.data, mesAtual])
+
+  const doMes = useMemo(() => filterByMonth(finances.data ?? [], mes), [finances.data, mes])
+  const summary = useMemo(() => computeFinanceSummary(doMes), [doMes])
 
   async function handleDelete(id: string, descricao: string | null) {
     const ok = await confirm({
@@ -41,14 +55,28 @@ export function FinancesPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-heading text-2xl font-bold text-foreground">Finanças</h1>
-          <p className="text-sm text-aco-texto">Receitas, gastos e o saldo do período.</p>
+          <p className="text-sm text-aco-texto">Receitas, gastos e saldo do mês.</p>
         </div>
-        {!isAdding && (
-          <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-            <Plus className="size-3.5" aria-hidden="true" />
-            Novo lançamento
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <select
+            value={mes}
+            onChange={(e) => setMes(e.target.value)}
+            aria-label="Mês"
+            className="flex h-8 rounded-md border border-input bg-transparent px-2 text-sm capitalize outline-none focus:ring-1 focus:ring-ring"
+          >
+            {meses.map((m) => (
+              <option key={m} value={m} className="capitalize">
+                {labelDoMes(m)}
+              </option>
+            ))}
+          </select>
+          {!isAdding && (
+            <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
+              <Plus className="size-3.5" aria-hidden="true" />
+              Novo lançamento
+            </Button>
+          )}
+        </div>
       </div>
 
       {!finances.isLoading && !finances.isError && (
@@ -76,7 +104,7 @@ export function FinancesPage() {
         </div>
       )}
 
-      <FinanceGoalCard />
+      <FinanceGoalCard receitasDoMes={summary.receitas} />
 
       {isAdding && (
         <FinanceForm
@@ -94,11 +122,11 @@ export function FinancesPage() {
         </div>
       ) : finances.isError ? (
         <ErrorState message="Não foi possível carregar os lançamentos." onRetry={() => finances.refetch()} />
-      ) : !finances.data || finances.data.length === 0 ? (
-        !isAdding && <EmptyState message="Nenhum lançamento registrado ainda." />
+      ) : doMes.length === 0 ? (
+        !isAdding && <EmptyState message={`Nenhum lançamento em ${labelDoMes(mes)}.`} />
       ) : (
         <div className="flex flex-col gap-2">
-          {finances.data.map((finance) => (
+          {doMes.map((finance) => (
             <Card key={finance.id} size="sm">
               <CardContent className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-col">

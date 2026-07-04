@@ -9,6 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CrmClientCard } from '@/components/crm/crm-client-card'
 import { CrmClientForm } from '@/components/crm/crm-client-form'
 import { useCreateCrmClient, useCrmClients } from '@/hooks/use-crm-clients'
+import { todayInSaoPaulo } from '@/lib/date'
+import { FASES_FUNIL, isAcaoAtrasada, sortByProximaAcao } from '@/lib/crm'
 
 const TODAS_AS_FASES = '__todas__'
 
@@ -18,18 +20,21 @@ export function CrmPage() {
   const [isAdding, setIsAdding] = useState(false)
   const [faseFiltro, setFaseFiltro] = useState(TODAS_AS_FASES)
 
-  const fases = useMemo(() => {
-    const unique = new Set<string>()
-    for (const client of clients.data ?? []) {
-      if (client.fase) unique.add(client.fase)
-    }
-    return Array.from(unique).sort()
-  }, [clients.data])
+  const today = todayInSaoPaulo()
 
+  // Cliente urgente no topo: ordenado por data da próxima ação, não por criação
   const filteredClients = useMemo(() => {
-    if (faseFiltro === TODAS_AS_FASES) return clients.data ?? []
-    return (clients.data ?? []).filter((client) => client.fase === faseFiltro)
+    const base =
+      faseFiltro === TODAS_AS_FASES
+        ? (clients.data ?? [])
+        : (clients.data ?? []).filter((client) => client.fase === faseFiltro)
+    return sortByProximaAcao(base)
   }, [clients.data, faseFiltro])
+
+  const atrasadas = useMemo(
+    () => (clients.data ?? []).filter((c) => isAcaoAtrasada(c, today)).length,
+    [clients.data, today],
+  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -46,12 +51,20 @@ export function CrmPage() {
         )}
       </div>
 
-      {!clients.isLoading && !clients.isError && fases.length > 0 && (
+      {atrasadas > 0 && (
+        <div className="rounded-lg border border-alerta/50 bg-alerta/10 px-3 py-2">
+          <p className="text-sm font-medium text-alerta">
+            ⚠️ {atrasadas} cliente{atrasadas > 1 ? 's' : ''} com próxima ação vencida
+          </p>
+        </div>
+      )}
+
+      {!clients.isLoading && !clients.isError && (clients.data?.length ?? 0) > 0 && (
         <div className="flex max-w-48 flex-col gap-1.5">
           <Select value={faseFiltro} onChange={(event) => setFaseFiltro(event.target.value)}>
             <option value={TODAS_AS_FASES}>Todas as fases</option>
-            {fases.map((fase) => (
-              <option key={fase} value={fase}>
+            {FASES_FUNIL.map((fase) => (
+              <option key={fase} value={fase} className="capitalize">
                 {fase}
               </option>
             ))}

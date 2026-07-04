@@ -13,7 +13,12 @@ import {
 
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
-export function FinanceGoalCard() {
+type FinanceGoalCardProps = {
+  /** Receitas do mês selecionado — vira barra de progresso contra a meta. */
+  receitasDoMes?: number
+}
+
+export function FinanceGoalCard({ receitasDoMes }: FinanceGoalCardProps) {
   const goals = useFinanceGoals()
   const createGoal = useCreateFinanceGoal()
   const updateGoal = useUpdateFinanceGoal()
@@ -90,28 +95,57 @@ export function FinanceGoalCard() {
     )
   }
 
+  const meta = goal?.meta_mensal ?? null
+  const progressoPct =
+    meta && meta > 0 && receitasDoMes !== undefined ? Math.min(100, Math.round((receitasDoMes / meta) * 100)) : null
+
   return (
     <Card size="sm">
-      <CardContent className="flex items-center justify-between gap-3">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-aco-texto">Meta mensal</span>
-            <span className="font-mono text-lg text-foreground">
-              {goal?.meta_mensal !== null && goal?.meta_mensal !== undefined ? currency.format(goal.meta_mensal) : '—'}
-            </span>
+      <CardContent className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-aco-texto">Meta mensal</span>
+              <span className="font-mono text-lg text-foreground">
+                {meta !== null ? currency.format(meta) : '—'}
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-aco-texto">Número da liberdade</span>
+              <span className="font-mono text-lg text-foreground">
+                {goal?.numero_liberdade !== null && goal?.numero_liberdade !== undefined
+                  ? currency.format(goal.numero_liberdade)
+                  : '—'}
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-aco-texto">Número da liberdade</span>
-            <span className="font-mono text-lg text-foreground">
-              {goal?.numero_liberdade !== null && goal?.numero_liberdade !== undefined
-                ? currency.format(goal.numero_liberdade)
-                : '—'}
-            </span>
-          </div>
+          <Button type="button" variant="outline" size="sm" onClick={startEditing}>
+            {goal ? 'Editar' : 'Definir metas'}
+          </Button>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={startEditing}>
-          {goal ? 'Editar' : 'Definir metas'}
-        </Button>
+
+        {/* Progresso da meta: receitas do mês vs. meta — antes a meta era um número decorativo */}
+        {progressoPct !== null && receitasDoMes !== undefined && meta !== null && (
+          <div>
+            <div className="mb-1 flex justify-between text-xs text-aco-texto">
+              <span>
+                {currency.format(receitasDoMes)} de {currency.format(meta)}
+              </span>
+              <span className={progressoPct >= 100 ? 'font-semibold text-ok' : ''}>{progressoPct}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-border/40">
+              <div
+                className={`h-full rounded-full transition-all ${progressoPct >= 100 ? 'bg-ok' : 'bg-brasa'}`}
+                style={{ width: `${progressoPct}%` }}
+              />
+            </div>
+            {progressoPct < 100 && (
+              <p className="mt-1 text-[11px] text-aco-texto/70">
+                Faltam {currency.format(meta - receitasDoMes)} para a meta do mês
+              </p>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

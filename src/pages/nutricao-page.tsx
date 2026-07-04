@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DailySummaryBar } from '@/components/nutrition/daily-summary-bar'
+import { FoodBodyChart } from '@/components/nutrition/food-body-chart'
 import { MealSlotCard } from '@/components/nutrition/meal-slot-card'
 import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
 import { ObjectiveBadge } from '@/components/body/objective-badge'
@@ -88,6 +89,8 @@ export function NutricaoPage() {
             carbo={{ label: 'Carbo', consumido: consumido.carbo_g, meta: dietPlan.data.carbo_g ?? 0, unidade: 'g' }}
             gordura={{ label: 'Gordura', consumido: consumido.gordura_g, meta: dietPlan.data.gordura_g ?? 0, unidade: 'g' }}
           />
+
+          <FoodBodyChart plan={dietPlan.data} />
 
           {!mealSlots.data || mealSlots.data.length === 0 ? (
             <EmptyState message="Nenhuma refeição configurada no plano ativo." />

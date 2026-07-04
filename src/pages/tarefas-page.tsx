@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { Briefcase, Brain, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Dumbbell, HandHeart, Inbox, Plus, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
+import { useActiveCycle } from '@/hooks/use-active-cycle'
+import { useGoals } from '@/hooks/use-goals'
 import { useTasks, useCreateTask, useUpdateTask } from '@/hooks/use-tasks'
 import { todayInSaoPaulo } from '@/lib/date'
 import { cn } from '@/lib/utils'
@@ -181,11 +183,12 @@ export function TarefasPage() {
       onAdd={
         mostrarFeitas
           ? undefined
-          : (titulo) =>
+          : (titulo, goalId) =>
               createTask.mutate({
                 titulo,
                 area: area?.key ?? null,
                 e_frog: smart?.key === 'sapo',
+                goal_id: goalId,
               })
       }
       isAdding={createTask.isPending}
@@ -203,19 +206,25 @@ type ListViewProps = {
   isLoading: boolean
   onBack: () => void
   onToggle: (task: Task) => void
-  onAdd?: (titulo: string) => void
+  onAdd?: (titulo: string, goalId: string | null) => void
   isAdding: boolean
 }
 
 function ListView({ titulo, cor, tarefas, feitasCount, isLoading, onBack, onToggle, onAdd, isAdding }: ListViewProps) {
   const [novoTitulo, setNovoTitulo] = useState('')
   const [inputAberto, setInputAberto] = useState(false)
+  const [goalId, setGoalId] = useState<string | null>(null)
+
+  const activeCycle = useActiveCycle()
+  const goals = useGoals(activeCycle.data?.id ?? '')
+  const metasAtivas = (goals.data ?? []).filter((g) => g.status === 'ativo')
 
   function submeter() {
     const t = novoTitulo.trim()
     if (!t || !onAdd) return
-    onAdd(t)
+    onAdd(t, goalId)
     setNovoTitulo('')
+    setGoalId(null)
   }
 
   return (
@@ -275,6 +284,25 @@ function ListView({ titulo, cor, tarefas, feitasCount, isLoading, onBack, onTogg
                 disabled={isAdding}
                 className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-aco-texto/50"
               />
+            </div>
+          )}
+
+          {/* Vínculo com meta: qual meta este item move? (regra do sapo com propósito) */}
+          {onAdd && inputAberto && metasAtivas.length > 0 && (
+            <div className="border-t border-border/20 px-4 py-2">
+              <select
+                value={goalId ?? ''}
+                onChange={(e) => setGoalId(e.target.value || null)}
+                aria-label="Vincular a uma meta"
+                className="w-full bg-transparent text-xs text-aco-texto outline-none"
+              >
+                <option value="">🎯 Vincular a uma meta (opcional)</option>
+                {metasAtivas.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.titulo}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
         </div>

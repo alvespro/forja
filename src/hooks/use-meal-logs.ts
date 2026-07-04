@@ -31,7 +31,7 @@ export function useMealLogsToday() {
   })
 }
 
-/** Refeições dos últimos `days` dias — usado pelo recálculo retroativo do score. */
+/** Refeições dos últimos `days` dias — score retroativo e visão comida×corpo. */
 export function useMealLogsRange(days = 8) {
   const { user } = useAuth()
   const today = todayInSaoPaulo()
@@ -41,10 +41,10 @@ export function useMealLogsRange(days = 8) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('meal_logs')
-        .select('data')
+        .select('data, calorias, proteina_g')
         .gte('data', addDaysToDateString(today, -days))
       if (error) throw error
-      return data as Pick<MealLog, 'data'>[]
+      return data as Pick<MealLog, 'data' | 'calorias' | 'proteina_g'>[]
     },
     enabled: !!user,
   })

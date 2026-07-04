@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
+import { OverloadHint } from '@/components/workout/overload-hint'
 import { SetRow } from '@/components/workout/set-row'
 import type { Exercise, SetLog, WorkoutExercise } from '@/types/database'
 
@@ -34,6 +35,8 @@ export function SessionExerciseBlock({
             {prescription.pausa_alvo_seg ?? '—'}s
           </span>
         </div>
+
+        <OverloadHint sessionId={sessionId} prescription={prescription} />
 
         <div className="flex flex-col gap-2">
           {seriesNums.map((serieNum) => (

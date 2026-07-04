@@ -94,8 +94,14 @@ describe('computeAchievements', () => {
     expect(computeAchievements(sete, today).find((a) => a.key === 'semana_perfeita')?.earned).toBe(true)
   })
 
-  it('1.000 XP soma pontos + bônus', () => {
-    const scores = [score('2026-07-01', 600, 700, 100), score(today, 300)]
+  it('1.000 XP soma pontos (o bônus do dia já está incluído em pontos)', () => {
+    const scores = [score('2026-07-01', 700, 700, 100), score(today, 300)]
     expect(computeAchievements(scores, today).find((a) => a.key === 'xp_1000')?.earned).toBe(true)
+  })
+
+  it('não conta o bônus em dobro no XP', () => {
+    // 550 + 400 = 950 < 1000; a dupla contagem antiga (550+100+400=1050) daria earned
+    const scores = [score('2026-07-01', 550, 700, 100), score(today, 400)]
+    expect(computeAchievements(scores, today).find((a) => a.key === 'xp_1000')?.earned).toBe(false)
   })
 })

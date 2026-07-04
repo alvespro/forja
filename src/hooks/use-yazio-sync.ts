@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FunctionsHttpError } from '@supabase/supabase-js'
 
 import { useAuth } from '@/hooks/use-auth'
+import { todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 
 export type YazioSyncLog = {
@@ -41,7 +42,10 @@ export function useSyncYazioNow() {
         status?: 'ok' | 'erro'
         sincronizados?: number
         error?: string
-      }>('sync-yazio', { body: {} })
+      }>('sync-yazio', {
+        // O botão importa o diário de HOJE; o cron diário continua sem body → importa ontem.
+        body: { date: todayInSaoPaulo() },
+      })
 
       if (error) {
         if (error instanceof FunctionsHttpError) {

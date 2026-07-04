@@ -98,7 +98,8 @@ export type Achievement = {
 }
 
 export function computeAchievements(scores: DailyScore[], today: string): Achievement[] {
-  const totalXP = scores.reduce((s, d) => s + d.pontos + d.bonus, 0)
+  // `pontos` persistido já inclui o bônus do dia — somar `bonus` de novo contaria 2×.
+  const totalXP = scores.reduce((s, d) => s + d.pontos, 0)
   const streak = computeStreak(scores, today)
   const diasForjados = scores.filter((s) => pctOf(s) >= 80).length
 

@@ -1,27 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 import type { DailyScore } from '@/types/database'
 
 import { useAuth } from './use-auth'
 
-/** Scores diários dos últimos `days` dias (para streak, XP e conquistas). */
-export function useDailyScores(days = 120) {
+/**
+ * Histórico completo de scores diários, ascendente (base de streak, XP e conquistas —
+ * uma janela parcial faria nível e conquistas REGREDIREM quando dias saíssem dela).
+ * Busca descendente + reverse de propósito: se o histórico um dia passar do teto de
+ * linhas do PostgREST (1000 ≈ 2,7 anos), caem os dias mais antigos, nunca os recentes.
+ */
+export function useDailyScores() {
   const { user } = useAuth()
-  const today = todayInSaoPaulo()
-  const from = addDaysToDateString(today, -days)
 
   return useQuery({
-    queryKey: ['daily-scores', from],
+    queryKey: ['daily-scores'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('daily_scores')
         .select('*')
-        .gte('data', from)
-        .order('data', { ascending: true })
+        .order('data', { ascending: false })
+        .limit(1000)
       if (error) throw error
-      return data as DailyScore[]
+      return (data as DailyScore[]).reverse()
     },
     enabled: !!user,
   })

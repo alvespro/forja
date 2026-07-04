@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { todayInSaoPaulo } from '@/lib/date'
+import { computeWeekNumber, isExamOverdue } from '@/lib/protocol'
 import type { BodyMetric, Protocol, ProtocolExam } from '@/types/database'
 
 export type AlertLevel = 'critico' | 'atencao'
@@ -67,11 +68,10 @@ export function useProtocolAlerts({ protocol, latestMetric, exams, lastLogDate, 
       }
     }
 
-    // ── Exames atrasados ───────────────────────────────────────────────
+    // ── Exames atrasados (por data prevista ou pela semana-alvo do protocolo) ──
+    const semanaAtual = computeWeekNumber(protocol.data_inicio, today)
     for (const exam of exams ?? []) {
-      if (exam.status === 'realizado') continue
-      if (!exam.data_prevista) continue
-      if (exam.data_prevista >= today) continue
+      if (!isExamOverdue(exam, protocol.data_inicio, today)) continue
 
       const alertId = `exam_atrasado_${exam.id}`
       if (!isRecentlyDismissed(alertId)) {
@@ -79,7 +79,9 @@ export function useProtocolAlerts({ protocol, latestMetric, exams, lastLogDate, 
           id: alertId,
           level: 'atencao',
           message: `⚠️ Exame atrasado: ${exam.nome}`,
-          detail: `Data prevista: ${new Date(exam.data_prevista + 'T12:00:00').toLocaleDateString('pt-BR')}`,
+          detail: exam.data_prevista
+            ? `Data prevista: ${new Date(exam.data_prevista + 'T12:00:00').toLocaleDateString('pt-BR')}`
+            : `Semana alvo: ${exam.semana_alvo} (você está na semana ${semanaAtual})`,
           action: 'exames',
         })
       }

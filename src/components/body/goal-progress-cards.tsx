@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { useActiveBodyGoal } from '@/hooks/use-body-goals'
-import { goalProgressPct, METRIC_LABELS, METRIC_UNITS, projectWeeksToGoal, type MetricKey } from '@/lib/body-goals'
+import { goalProgressPct, METRIC_LABELS, METRIC_UNITS, metricsForCycle, projectWeeksToGoal, type MetricKey } from '@/lib/body-goals'
 import type { BodyMetric } from '@/types/database'
 
 const METRIC_KEYS: MetricKey[] = ['peso_kg', 'gordura_pct', 'musculo_pct', 'agua_pct', 'gordura_visceral', 'imc']
@@ -23,9 +23,10 @@ export function GoalProgressCards({ metrics }: GoalProgressCardsProps) {
   const goal = activeGoal.data
   if (!goal) return null
 
-  const ordered = [...metrics].sort((a, b) => (a.medido_em < b.medido_em ? -1 : 1))
-  const primeira = ordered[0]
-  const ultima = ordered[ordered.length - 1]
+  // Janela do ciclo ativo: medir progresso contra a história inteira distorce a partir do 2º ciclo.
+  const janela = metricsForCycle(metrics, goal.cycle.data_inicio)
+  const primeira = janela[0]
+  const ultima = janela[janela.length - 1]
   if (!primeira || !ultima) return null
 
   const cards = METRIC_KEYS.map((key) => {
@@ -36,7 +37,7 @@ export function GoalProgressCards({ metrics }: GoalProgressCardsProps) {
 
     const pct = goalProgressPct(valorInicial, valorAtual, meta)
     const falta = Math.abs(meta - valorAtual)
-    const semanas = projectWeeksToGoal(metrics, key, meta)
+    const semanas = projectWeeksToGoal(janela, key, meta)
 
     return { key, meta, valorAtual, pct, falta, semanas }
   }).filter((c): c is NonNullable<typeof c> => c !== null)

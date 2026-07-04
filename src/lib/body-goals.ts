@@ -83,6 +83,19 @@ export function goalProgressPct(valorInicial: number, valorAtual: number, valorM
 }
 
 /**
+ * Janela de medições relevante para um ciclo: a última medição anterior ao início
+ * (o estado do corpo quando a meta nasceu — o baseline real) seguida das medições
+ * feitas dentro do ciclo. Sem data de início, devolve todas ordenadas.
+ */
+export function metricsForCycle<T extends { medido_em: string }>(metrics: T[], dataInicio: string | null): T[] {
+  const ordered = [...metrics].sort((a, b) => (a.medido_em < b.medido_em ? -1 : 1))
+  if (!dataInicio) return ordered
+  const doCiclo = ordered.filter((m) => m.medido_em >= dataInicio)
+  const baseline = ordered.filter((m) => m.medido_em < dataInicio).pop()
+  return baseline ? [baseline, ...doCiclo] : doCiclo
+}
+
+/**
  * Projeção em semanas até atingir a meta, com base na variação média semanal observada
  * nas últimas medições. Retorna null se não há variação na direção certa (não converge).
  */

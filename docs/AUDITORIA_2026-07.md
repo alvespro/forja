@@ -37,6 +37,13 @@ Os problemas encontrados se dividem em três categorias:
 | 6 | Exame sem data_prevista NUNCA gera alerta de atraso (semana_alvo ignorada) | use-protocol-alerts.ts:73 + protocol-reminders | Maior furo de segurança do módulo médico |
 | 7 | MAX_TOKENS=500 global vs prompts de "300 palavras" | forja-ai/index.ts:16 | JSON do modo metas pode truncar e quebrar o parse |
 
+> ✅ **Status (04/07/2026): os 7 bugs foram corrigidos** (commit `fix: 7 bugs da auditoria 2026-07`),
+> com testes novos para XP, janela do ciclo e atraso por semana_alvo. Notas da verificação:
+> no #3, a tabela `meals` não estava morta (a página /meals ainda escreve nela) — o agente passou
+> a ler `meal_logs` e a unificação meals×meal_logs foi para o backlog; no #2, a correção lê o
+> histórico completo de `daily_scores` (persistir conquistas segue no item 14 do backlog médio);
+> no #6, o lembrete atrasado agora também reincide semanalmente (antes disparava 1× para sempre).
+
 ## 3. Estado por módulo (resumo)
 
 ### 🎮 Hoje & Gamificação — bom motor, loop de hábito aberto

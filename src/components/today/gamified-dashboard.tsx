@@ -196,7 +196,8 @@ export function GamifiedDashboard() {
   // ── Streak, nível, histórico e conquistas ──
   const scores = dailyScores.data ?? []
   const streak = computeStreak(scores, today)
-  const totalXP = scores.reduce((s, d) => s + d.pontos + d.bonus, 0)
+  // `pontos` persistido já inclui o bônus do dia — somar `bonus` de novo contaria 2×.
+  const totalXP = scores.reduce((s, d) => s + d.pontos, 0)
   const nivel = levelInfo(totalXP)
   const semana = last7Days(scores, today)
   const conquistas = computeAchievements(scores, today)
@@ -259,7 +260,7 @@ export function GamifiedDashboard() {
                 </span>
               </div>
               <p className="text-sm text-aco-texto">
-                <span className="font-semibold text-foreground">{pontos}</span> de {total} pts
+                <span className="font-semibold text-foreground">{pontos - bonus}</span> de {total} pts
                 {bonus > 0 && <span className="text-green-400"> (+{bonus} bônus)</span>}
               </p>
               <p className="mt-0.5 text-xs text-aco-texto/70">

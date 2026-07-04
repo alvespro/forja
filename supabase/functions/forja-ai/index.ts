@@ -13,7 +13,9 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6'
-const MAX_TOKENS = 500
+// 300 palavras em PT-BR ≈ 500-650 tokens: com 500 os agentes de prompt longo truncavam
+// no meio da frase e o JSON do modo metas podia cortar (quebrando o parse no frontend).
+const MAX_TOKENS = 1500
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -240,12 +242,13 @@ async function buscarContextoCoach(sb: SupabaseClient, userId: string): Promise<
 
 async function buscarContextoNutricao(sb: SupabaseClient, userId: string): Promise<string> {
   const [refeicoes, composicao] = await Promise.all([
+    // meal_logs é onde o Yazio e a página Nutrição gravam (a tabela `meals` só recebe a página /meals).
     sb
-      .from('meals')
-      .select('refeicao, descricao, proteina_g, calorias, tipo, data')
+      .from('meal_logs')
+      .select('descricao, calorias, proteina_g, carbo_g, gordura_g, data, fonte')
       .eq('user_id', userId)
       .order('data', { ascending: false })
-      .limit(18),
+      .limit(30),
     sb
       .from('body_metrics')
       .select('peso_kg, gordura_pct, medido_em')
@@ -466,6 +469,9 @@ async function perguntarAnthropic(systemPrompt: string, contexto: string, pergun
   }
 
   const data = await response.json()
+  if (data.stop_reason === 'max_tokens') {
+    console.warn('forja-ai: resposta truncada por max_tokens — avaliar aumentar o teto')
+  }
   const resposta = data.content?.find((block: { type: string }) => block.type === 'text')?.text
   if (!resposta) throw new Error('Resposta da Anthropic sem conteúdo de texto')
   return resposta

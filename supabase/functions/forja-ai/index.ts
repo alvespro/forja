@@ -470,7 +470,14 @@ const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Pr
   protocolo: buscarContextoProtocolo,
 }
 
-async function perguntarAnthropic(systemPrompt: string, contexto: string, pergunta: string): Promise<string> {
+type ChatMessage = { role: 'user' | 'assistant'; content: string }
+
+async function perguntarAnthropic(
+  systemPrompt: string,
+  contexto: string,
+  pergunta: string,
+  historico: ChatMessage[] = [],
+): Promise<string> {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -482,7 +489,7 @@ async function perguntarAnthropic(systemPrompt: string, contexto: string, pergun
       model: ANTHROPIC_MODEL,
       max_tokens: MAX_TOKENS,
       system: `${systemPrompt}\n\nCONTEXTO DOS DADOS (JSON):\n${contexto}`,
-      messages: [{ role: 'user', content: pergunta }],
+      messages: [...historico, { role: 'user', content: pergunta }],
     }),
   })
 
@@ -541,8 +548,26 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Histórico da conversa (últimas 10 mensagens do agente): follow-up real
+    // em vez de cada pergunta partir do zero. RLS garante escopo do usuário.
+    const { data: historicoRows } = await sb
+      .from('ai_messages')
+      .select('role, content')
+      .eq('agente', agente)
+      .order('created_at', { ascending: false })
+      .limit(10)
+    const historico = ((historicoRows ?? []) as ChatMessage[]).reverse()
+
     const contexto = await BUSCAR_CONTEXTO[agente as Agente](sb, userData.user.id)
-    const resposta = await perguntarAnthropic(SYSTEM_PROMPTS[agente as Agente], contexto, pergunta)
+    const resposta = await perguntarAnthropic(SYSTEM_PROMPTS[agente as Agente], contexto, pergunta, historico)
+
+    // Persiste o turno (pergunta + resposta) — falha aqui não bloqueia a resposta
+    const { error: saveError } = await sb.from('ai_messages').insert([
+      { user_id: userData.user.id, agente, role: 'user', content: pergunta },
+      { user_id: userData.user.id, agente, role: 'assistant', content: resposta },
+    ])
+    if (saveError) console.warn('forja-ai: falha ao salvar histórico', saveError.message)
+
     return jsonResponse({ resposta })
   } catch (error) {
     console.error('forja-ai error', error)

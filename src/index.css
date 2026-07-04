@@ -196,6 +196,32 @@
     color: var(--aco-texto);
   }
 
+  /* Impressão do relatório pré-consulta: só o relatório sai no papel */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+
+    #protocol-report,
+    #protocol-report * {
+      visibility: visible;
+    }
+
+    #protocol-report {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      padding: 24px;
+      background: white !important;
+      color: black !important;
+    }
+
+    #protocol-report * {
+      color: black !important;
+      border-color: #ccc !important;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

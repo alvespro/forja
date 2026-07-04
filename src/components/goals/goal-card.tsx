@@ -14,6 +14,7 @@ import {
 } from '@/hooks/use-key-results'
 import { useDeleteGoal, useUpdateGoal, type GoalInput } from '@/hooks/use-goals'
 import { useConfirm } from '@/hooks/use-confirm'
+import { useTasks } from '@/hooks/use-tasks'
 import { calculateGoalProgress } from '@/lib/goal-progress'
 import { cn } from '@/lib/utils'
 import type { Cycle, Goal, KeyResult } from '@/types/database'
@@ -38,6 +39,12 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
 
   const progresso = calculateGoalProgress(goal, keyResults)
   const temKeyResults = keyResults.length > 0
+
+  // Tarefas vinculadas a esta meta (goal_id) — o plano_rpm em execução
+  const tasks = useTasks()
+  const daMeta = (tasks.data ?? []).filter((t) => t.goal_id === goal.id)
+  const abertasDaMeta = daMeta.filter((t) => t.status === 'aberto')
+  const feitasDaMeta = daMeta.filter((t) => t.status === 'feito').length
 
   function handleUpdateGoal(values: GoalInput) {
     updateGoal.mutate({ id: goal.id, values }, { onSuccess: () => setIsEditing(false) })
@@ -133,6 +140,23 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
                     <span className="font-medium text-aco-texto">Plano: </span>
                     {goal.plano_rpm}
                   </p>
+                )}
+              </div>
+            )}
+
+            {daMeta.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <p className="text-xs font-medium text-aco-texto">
+                  Tarefas desta meta ({feitasDaMeta}/{daMeta.length} feitas)
+                </p>
+                {abertasDaMeta.slice(0, 3).map((t) => (
+                  <p key={t.id} className="truncate text-sm text-foreground">
+                    {t.e_frog ? '🐸 ' : '○ '}
+                    {t.titulo}
+                  </p>
+                ))}
+                {abertasDaMeta.length === 0 && (
+                  <p className="text-xs text-aco-texto/70">Nenhuma aberta — crie a próxima em Tarefas 🎯</p>
                 )}
               </div>
             )}

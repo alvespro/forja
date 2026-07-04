@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { FieldInput, FieldSelect, FieldTextarea } from '@/components/ui/field'
 import { Modal } from '@/components/ui/modal'
+import { ProtocolReport } from '@/components/protocolo/protocol-report'
 import { ProtocolCreateWizard } from '@/components/protocolo/protocol-create-wizard'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -128,6 +129,7 @@ export function ProtocoloPage() {
   const [examResultCritical, setExamResultCritical] = useState<string[]>([])
   const [showCreateWizard, setShowCreateWizard] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showReport, setShowReport] = useState(false)
 
   // Formulário de edição do protocolo
   const [eNome, setENome] = useState('')
@@ -539,6 +541,15 @@ export function ProtocoloPage() {
             >
               {gerarInsights.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5 text-brasa" />}
               Análise do ciclo
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowReport(true)}
+              className="gap-1.5 text-xs text-aco-texto"
+            >
+              🖨️ Pré-consulta
             </Button>
           </div>
         </div>
@@ -1386,6 +1397,18 @@ export function ProtocoloPage() {
               </Button>
             </div>
         </>
+      </Modal>
+
+      {/* ════ MODAL: Relatório pré-consulta ════ */}
+      <Modal open={showReport} onClose={() => setShowReport(false)} title="🖨️ Relatório pré-consulta" maxWidth="lg">
+        <ProtocolReport
+          protocol={p}
+          compounds={compounds.data ?? []}
+          logs={logs.data ?? []}
+          exams={exams.data ?? []}
+          healthMetrics={healthMetrics.data ?? []}
+          today={today}
+        />
       </Modal>
 
       {dialog}

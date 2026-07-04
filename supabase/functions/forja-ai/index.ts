@@ -379,7 +379,7 @@ async function buscarContextoDesenvolvimento(sb: SupabaseClient, userId: string)
 }
 
 async function buscarContextoProtocolo(sb: SupabaseClient, userId: string): Promise<string> {
-  const [protocol, metricas, logs, exames, sessoes, refeicoes] = await Promise.all([
+  const [protocol, metricas, logs, exames, sessoes, refeicoes, marcadores] = await Promise.all([
     sb
       .from('protocols')
       .select('nome, objetivo, status, via, medico_responsavel, data_inicio, duracao_semanas, protocol_compounds(*), protocol_goals(*), protocol_support(*)')
@@ -417,11 +417,33 @@ async function buscarContextoProtocolo(sb: SupabaseClient, userId: string): Prom
       .eq('user_id', userId)
       .order('data', { ascending: false })
       .limit(21),
+    sb
+      .from('health_metrics')
+      .select('chave, valor, measured_at')
+      .eq('user_id', userId)
+      .order('measured_at', { ascending: false })
+      .limit(60),
   ])
 
   const refData = refeicoes.data ?? []
   const diasComLog = new Set(refData.map((r) => r.data)).size || 1
   const mediaProteinaDiaria = Math.round(refData.reduce((a, r) => a + (r.proteina_g ?? 0), 0) / diasComLog)
+
+  // Último valor + leitura anterior de cada marcador (tendência). O prompt
+  // manda vigiar hematócrito/hepáticas/E2 — sem isto a "análise de exames"
+  // via só o status do checklist, nunca os números.
+  const historicoPorChave = new Map<string, { valor: number; measured_at: string }[]>()
+  for (const m of marcadores.data ?? []) {
+    const lista = historicoPorChave.get(m.chave) ?? []
+    if (lista.length < 2) lista.push({ valor: m.valor, measured_at: m.measured_at })
+    historicoPorChave.set(m.chave, lista)
+  }
+  const marcadoresRecentes = Object.fromEntries(
+    [...historicoPorChave.entries()].map(([chave, leituras]) => [
+      chave,
+      { atual: leituras[0], anterior: leituras[1] ?? null },
+    ]),
+  )
 
   return JSON.stringify(
     {
@@ -429,6 +451,7 @@ async function buscarContextoProtocolo(sb: SupabaseClient, userId: string): Prom
       ultimas_8_pesagens: metricas.data ?? [],
       ultimos_30_logs_bem_estar: logs.data ?? [],
       checklist_exames: exames.data ?? [],
+      marcadores_de_exame: marcadoresRecentes,
       sessoes_treino_recentes: (sessoes.data ?? []).map((s) => s.performed_at),
       media_proteina_diaria_7d: mediaProteinaDiaria,
     },

@@ -193,6 +193,61 @@ export function checkCriticalMarkers(markers: Record<string, number>): ProtocolA
       action: 'exames',
     })
   }
+  if (markers.estradiol && markers.estradiol < 20) {
+    alerts.push({
+      id: 'estradiol_baixo',
+      level: 'atencao',
+      message: '⚠️ Estradiol baixo — E2 possivelmente suprimido',
+      detail: `Estradiol: ${markers.estradiol} pg/mL (mínimo saudável: 20)`,
+      action: 'exames',
+    })
+  }
+  // Faixas de atenção hepáticas (abaixo do crítico de 3x o limite)
+  if (markers.tgo && markers.tgo > 40 && markers.tgo <= 120) {
+    alerts.push({
+      id: 'tgo_atencao',
+      level: 'atencao',
+      message: '⚠️ TGO acima da referência',
+      detail: `TGO: ${markers.tgo} U/L (referência: até 40)`,
+      action: 'exames',
+    })
+  }
+  if (markers.tgp && markers.tgp > 45 && markers.tgp <= 135) {
+    alerts.push({
+      id: 'tgp_atencao',
+      level: 'atencao',
+      message: '⚠️ TGP acima da referência',
+      detail: `TGP: ${markers.tgp} U/L (referência: até 45)`,
+      action: 'exames',
+    })
+  }
+  if (markers.psa && markers.psa > 4) {
+    alerts.push({
+      id: 'psa_critico',
+      level: 'critico',
+      message: '🚨 PSA elevado — consulte seu médico IMEDIATAMENTE',
+      detail: `PSA: ${markers.psa} ng/mL (limite: 4)`,
+      action: 'exames',
+    })
+  }
+  if (markers.hemoglobina && markers.hemoglobina > 18) {
+    alerts.push({
+      id: 'hemoglobina_critico',
+      level: 'critico',
+      message: '🚨 Hemoglobina elevada — risco de policitemia',
+      detail: `Hb: ${markers.hemoglobina} g/dL (limite: 18)`,
+      action: 'exames',
+    })
+  }
+  if (markers.hdl && markers.hdl < 40) {
+    alerts.push({
+      id: 'hdl_baixo',
+      level: 'atencao',
+      message: '⚠️ HDL baixo — perfil cardiovascular desfavorável',
+      detail: `HDL: ${markers.hdl} mg/dL (mínimo: 40)`,
+      action: 'exames',
+    })
+  }
 
   return alerts
 }

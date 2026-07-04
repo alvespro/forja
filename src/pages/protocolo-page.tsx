@@ -65,6 +65,9 @@ const EXAM_MARKERS = [
   { key: 'estradiol', label: 'Estradiol', unit: 'pg/mL' },
   { key: 'testosterona_total', label: 'Testosterona Total', unit: 'ng/dL' },
   { key: 'psa', label: 'PSA', unit: 'ng/mL' },
+  { key: 'creatinina', label: 'Creatinina', unit: 'mg/dL' },
+  { key: 'lh', label: 'LH', unit: 'mUI/mL' },
+  { key: 'fsh', label: 'FSH', unit: 'mUI/mL' },
 ]
 
 function statusBadge(status: string | null) {

@@ -34,9 +34,10 @@ describe('checkCriticalMarkers', () => {
 
   it('enzimas hepáticas: TGO >120 e TGP >135 são críticos', () => {
     expect(checkCriticalMarkers({ tgo: 121 })[0]?.level).toBe('critico')
-    expect(checkCriticalMarkers({ tgo: 120 })).toHaveLength(0)
     expect(checkCriticalMarkers({ tgp: 136 })[0]?.level).toBe('critico')
-    expect(checkCriticalMarkers({ tgp: 135 })).toHaveLength(0)
+    // no limite exato do crítico, cai na faixa de atenção (não silêncio)
+    expect(checkCriticalMarkers({ tgo: 120 })[0]?.level).toBe('atencao')
+    expect(checkCriticalMarkers({ tgp: 135 })[0]?.level).toBe('atencao')
   })
 
   it('estradiol: >60 é crítico', () => {
@@ -50,7 +51,37 @@ describe('checkCriticalMarkers', () => {
     expect(alerts.every((a) => a.level === 'critico')).toBe(true)
   })
 
+  it('estradiol <20 é atenção (E2 suprimido); 20-60 é normal', () => {
+    expect(checkCriticalMarkers({ estradiol: 19 })[0]).toMatchObject({ id: 'estradiol_baixo', level: 'atencao' })
+    expect(checkCriticalMarkers({ estradiol: 20 })).toHaveLength(0)
+    expect(checkCriticalMarkers({ estradiol: 60 })).toHaveLength(0)
+  })
+
+  it('enzimas hepáticas: faixa de atenção entre a referência e o crítico', () => {
+    expect(checkCriticalMarkers({ tgo: 41 })[0]).toMatchObject({ id: 'tgo_atencao', level: 'atencao' })
+    expect(checkCriticalMarkers({ tgo: 40 })).toHaveLength(0)
+    expect(checkCriticalMarkers({ tgo: 120 })[0]?.level).toBe('atencao')
+    expect(checkCriticalMarkers({ tgp: 46 })[0]).toMatchObject({ id: 'tgp_atencao', level: 'atencao' })
+    expect(checkCriticalMarkers({ tgp: 45 })).toHaveLength(0)
+    expect(checkCriticalMarkers({ tgp: 135 })[0]?.level).toBe('atencao')
+  })
+
+  it('PSA >4 é crítico', () => {
+    expect(checkCriticalMarkers({ psa: 4.1 })[0]).toMatchObject({ id: 'psa_critico', level: 'critico' })
+    expect(checkCriticalMarkers({ psa: 4 })).toHaveLength(0)
+  })
+
+  it('hemoglobina >18 é crítico (policitemia)', () => {
+    expect(checkCriticalMarkers({ hemoglobina: 18.1 })[0]).toMatchObject({ id: 'hemoglobina_critico', level: 'critico' })
+    expect(checkCriticalMarkers({ hemoglobina: 18 })).toHaveLength(0)
+  })
+
+  it('HDL <40 é atenção', () => {
+    expect(checkCriticalMarkers({ hdl: 39 })[0]).toMatchObject({ id: 'hdl_baixo', level: 'atencao' })
+    expect(checkCriticalMarkers({ hdl: 40 })).toHaveLength(0)
+  })
+
   it('marcadores desconhecidos são ignorados', () => {
-    expect(checkCriticalMarkers({ glicose: 300, psa: 10 })).toHaveLength(0)
+    expect(checkCriticalMarkers({ glicose: 300, creatinina: 2 })).toHaveLength(0)
   })
 })

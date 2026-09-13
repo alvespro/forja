@@ -26,6 +26,12 @@ const LivroDetalhePage = lazy(() => import('@/pages/livro-detalhe-page').then((m
 const CursoDetalhePage = lazy(() => import('@/pages/curso-detalhe-page').then((m) => ({ default: m.CursoDetalhePage })))
 const TarefasPage = lazy(() => import('@/pages/tarefas-page').then((m) => ({ default: m.TarefasPage })))
 const ProtocoloPage = lazy(() => import('@/pages/protocolo-page').then((m) => ({ default: m.ProtocoloPage })))
+const ExercicioDetalhePage = lazy(() =>
+  import('@/pages/exercicio-detalhe-page').then((m) => ({ default: m.ExercicioDetalhePage })),
+)
+const EvolucaoExercicioPage = lazy(() =>
+  import('@/pages/evolucao-exercicio-page').then((m) => ({ default: m.EvolucaoExercicioPage })),
+)
 
 function withSuspense(element: React.ReactNode) {
   return <Suspense fallback={null}>{element}</Suspense>
@@ -46,6 +52,8 @@ export const router = createBrowserRouter([
           { index: true, element: <TodayPage /> },
           { path: 'goals', element: <GoalsPage /> },
           { path: 'workout', element: <WorkoutPage /> },
+          { path: 'workout/exercicio/:id', element: <ExercicioDetalhePage /> },
+          { path: 'workout/evolucao/:id', element: <EvolucaoExercicioPage /> },
           { path: 'health', element: <HealthPage /> },
           { path: 'tarefas', element: <TarefasPage /> },
           { path: 'protocolo', element: <ProtocoloPage /> },

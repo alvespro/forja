@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { Button } from '@/components/ui/button'
@@ -24,7 +25,9 @@ const TABS: { id: WorkoutTab; label: string }[] = [
 
 export function WorkoutPage() {
   const { sessionId } = useActiveSession()
-  const [tab, setTab] = useState<WorkoutTab>(sessionId ? 'sessao' : 'visao_geral')
+  const location = useLocation()
+  const initialTab = (location.state as { initialTab?: WorkoutTab } | null)?.initialTab
+  const [tab, setTab] = useState<WorkoutTab>(initialTab ?? (sessionId ? 'sessao' : 'visao_geral'))
 
   return (
     <div className="flex flex-col gap-4">

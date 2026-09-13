@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+import { ActivityCalendar } from '@/components/ActivityCalendar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -45,6 +46,8 @@ export function ConfiguracoesPage() {
         <h1 className="font-heading text-2xl font-bold text-foreground">Configurações</h1>
         <p className="text-sm text-aco-texto">Importações de documentos lidos por IA.</p>
       </div>
+
+      <ActivityCalendar />
 
       <div>
         <h2 className="mb-2 font-heading text-lg font-semibold text-foreground">Importações</h2>

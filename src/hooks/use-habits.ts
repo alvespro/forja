@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { syncActivityDay } from '@/lib/activity-sync'
 import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 import type { Habit } from '@/types/database'
@@ -96,8 +97,14 @@ export function useToggleHabitLog() {
         if (error) throw error
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, { date }) => {
       queryClient.invalidateQueries({ queryKey: ['habit-logs'] })
+      // Reflete o dia no calendário de atividades (habitos_pct do dia marcado).
+      if (user) {
+        syncActivityDay(user.id, date)
+          .then(() => queryClient.invalidateQueries({ queryKey: ['activity-calendar'] }))
+          .catch(() => {})
+      }
     },
   })
 }

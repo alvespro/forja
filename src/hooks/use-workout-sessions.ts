@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { syncActivityDay } from '@/lib/activity-sync'
 import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 import type { WorkoutSession } from '@/types/database'
@@ -74,6 +75,7 @@ export type FinishWorkoutSessionInput = {
 }
 
 export function useFinishWorkoutSession() {
+  const { user } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -81,7 +83,15 @@ export function useFinishWorkoutSession() {
       const { error } = await supabase.from('workout_sessions').update(values).eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workout-sessions'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workout-sessions'] })
+      // Marca treino = true no dia de hoje no calendário de atividades.
+      if (user) {
+        syncActivityDay(user.id, todayInSaoPaulo())
+          .then(() => queryClient.invalidateQueries({ queryKey: ['activity-calendar'] }))
+          .catch(() => {})
+      }
+    },
   })
 }
 

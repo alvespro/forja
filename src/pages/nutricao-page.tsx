@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { format, isToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { RefreshCw } from 'lucide-react'
+import { ChevronDown, RefreshCw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -16,7 +16,10 @@ import { SupplementsTodaySection } from '@/components/nutrition/supplements-toda
 import { useActiveDietPlan, useMealSlots } from '@/hooks/use-diet-plan'
 import { useMealLogsToday } from '@/hooks/use-meal-logs'
 import { useLastYazioSync, useSyncYazioNow } from '@/hooks/use-yazio-sync'
-import { parseDateOnly } from '@/lib/date'
+import { nowMinutesInSaoPaulo, parseDateOnly } from '@/lib/date'
+import { classifyMeals } from '@/lib/meal-schedule'
+import { cn } from '@/lib/utils'
+import type { MealLog } from '@/types/database'
 
 export function NutricaoPage() {
   const dietPlan = useActiveDietPlan()
@@ -24,6 +27,7 @@ export function NutricaoPage() {
   const mealLogs = useMealLogsToday()
   const lastSync = useLastYazioSync()
   const syncNow = useSyncYazioNow()
+  const [showSupps, setShowSupps] = useState(true)
 
   const consumido = useMemo(() => {
     const logs = mealLogs.data ?? []
@@ -39,7 +43,7 @@ export function NutricaoPage() {
   }, [mealLogs.data])
 
   const logsBySlot = useMemo(() => {
-    const map = new Map<string, typeof mealLogs.data>()
+    const map = new Map<string, MealLog[]>()
     for (const log of mealLogs.data ?? []) {
       if (!log.meal_slot_id) continue
       const list = map.get(log.meal_slot_id) ?? []
@@ -49,8 +53,26 @@ export function NutricaoPage() {
     return map
   }, [mealLogs.data])
 
+  const timing = useMemo(
+    () => classifyMeals(mealSlots.data ?? [], nowMinutesInSaoPaulo()),
+    [mealSlots.data],
+  )
+
+  const slots = mealSlots.data ?? []
+  const currentSlot = slots.find((s) => s.id === timing.currentId) ?? null
+  const nextSlot = slots.find((s) => s.id === timing.nextId) ?? null
+  const otherSlots = slots.filter((s) => s.id !== timing.currentId && s.id !== timing.nextId)
+
   const isLoading = dietPlan.isLoading || mealSlots.isLoading || mealLogs.isLoading
   const isError = dietPlan.isError || mealSlots.isError || mealLogs.isError
+
+  const yazioStatus = lastSync.isLoading
+    ? 'Yazio…'
+    : !lastSync.data
+      ? 'Yazio: nunca'
+      : lastSync.data.status === 'sucesso'
+        ? `✅ ${isToday(new Date(lastSync.data.created_at)) ? 'hoje' : format(parseDateOnly(lastSync.data.data), 'dd/MM')} ${format(new Date(lastSync.data.created_at), 'HH:mm')}`
+        : `⚠️ ${format(new Date(lastSync.data.created_at), 'dd/MM HH:mm', { locale: ptBR })}`
 
   return (
     <div className="flex flex-col gap-4">
@@ -62,12 +84,10 @@ export function NutricaoPage() {
         <ObjectiveBadge />
       </div>
 
-      <DietAdequacyCard />
-
       {isLoading ? (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-28 w-full" />
           <Skeleton className="h-20 w-full" />
         </div>
       ) : isError ? (
@@ -83,47 +103,70 @@ export function NutricaoPage() {
         <EmptyState message="Nenhum plano alimentar ativo ainda." />
       ) : (
         <>
-          <DailySummaryBar
-            calorias={{ label: 'Calorias', consumido: consumido.calorias, meta: dietPlan.data.calorias_alvo ?? 0, unidade: '' }}
-            proteina={{ label: 'Proteína', consumido: consumido.proteina_g, meta: dietPlan.data.proteina_g ?? 0, unidade: 'g' }}
-            carbo={{ label: 'Carbo', consumido: consumido.carbo_g, meta: dietPlan.data.carbo_g ?? 0, unidade: 'g' }}
-            gordura={{ label: 'Gordura', consumido: consumido.gordura_g, meta: dietPlan.data.gordura_g ?? 0, unidade: 'g' }}
-          />
+          {/* HEADER FIXO: macros do dia + refeição atual + status Yazio */}
+          <div className="sticky top-0 z-20 flex flex-col gap-2 bg-background/95 pb-1 pt-1 backdrop-blur">
+            <DailySummaryBar
+              calorias={{ label: 'Calorias', consumido: consumido.calorias, meta: dietPlan.data.calorias_alvo ?? 0, unidade: '' }}
+              proteina={{ label: 'Proteína', consumido: consumido.proteina_g, meta: dietPlan.data.proteina_g ?? 0, unidade: 'g' }}
+              carbo={{ label: 'Carbo', consumido: consumido.carbo_g, meta: dietPlan.data.carbo_g ?? 0, unidade: 'g' }}
+              gordura={{ label: 'Gordura', consumido: consumido.gordura_g, meta: dietPlan.data.gordura_g ?? 0, unidade: 'g' }}
+            />
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="text-aco-texto">
+                Refeição atual:{' '}
+                <span className="font-medium text-foreground">
+                  {currentSlot ? `${currentSlot.nome} — ${currentSlot.horario_alvo?.slice(0, 5) ?? ''}` : '—'}
+                </span>
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-aco-texto">{yazioStatus}</span>
+                <Button type="button" variant="outline" size="xs" disabled={syncNow.isPending} onClick={() => syncNow.mutate()}>
+                  <RefreshCw className={syncNow.isPending ? 'size-3 animate-spin' : 'size-3'} aria-hidden="true" />
+                  Sync
+                </Button>
+              </div>
+            </div>
+          </div>
 
-          <FoodBodyChart plan={dietPlan.data} />
-
-          {!mealSlots.data || mealSlots.data.length === 0 ? (
+          {slots.length === 0 ? (
             <EmptyState message="Nenhuma refeição configurada no plano ativo." />
           ) : (
             <div className="flex flex-col gap-3">
-              {mealSlots.data.map((slot) => (
+              {/* REFEIÇÃO EM DESTAQUE (AGORA) */}
+              {currentSlot && (
+                <MealSlotCard slot={currentSlot} logsHoje={logsBySlot.get(currentSlot.id) ?? []} variant="featured" />
+              )}
+
+              {/* PRÓXIMA REFEIÇÃO */}
+              {nextSlot && (
+                <MealSlotCard slot={nextSlot} logsHoje={logsBySlot.get(nextSlot.id) ?? []} variant="next" />
+              )}
+
+              {/* RESTANTE DO DIA */}
+              {otherSlots.map((slot) => (
                 <MealSlotCard key={slot.id} slot={slot} logsHoje={logsBySlot.get(slot.id) ?? []} />
               ))}
             </div>
           )}
+
+          {/* SUPLEMENTAÇÃO (colapsável) */}
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setShowSupps((v) => !v)}
+              aria-expanded={showSupps}
+              className="flex min-h-11 items-center justify-between gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="font-heading text-lg font-semibold text-foreground">Suplementos de hoje</span>
+              <ChevronDown className={cn('size-4 text-aco-texto transition-transform', showSupps && 'rotate-180')} aria-hidden="true" />
+            </button>
+            {showSupps && <SupplementsTodaySection />}
+          </div>
+
+          <DietAdequacyCard />
+          <FoodBodyChart plan={dietPlan.data} />
         </>
       )}
-
-      <div>
-        <h2 className="mb-2 font-heading text-lg font-semibold text-foreground">Suplementação hoje</h2>
-        <SupplementsTodaySection />
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-aco-texto">
-        <span>
-          {lastSync.isLoading
-            ? 'Carregando status do Yazio…'
-            : !lastSync.data
-              ? 'Nenhuma sincronização com o Yazio ainda.'
-              : lastSync.data.status === 'sucesso'
-                ? `✅ Sync Yazio: ${isToday(new Date(lastSync.data.created_at)) ? 'hoje' : format(parseDateOnly(lastSync.data.data), 'dd/MM')} às ${format(new Date(lastSync.data.created_at), 'HH:mm')} — ${lastSync.data.registros_importados} refeiç${lastSync.data.registros_importados === 1 ? 'ão' : 'ões'}`
-                : `⚠️ Último sync: ${format(new Date(lastSync.data.created_at), 'dd/MM')} às ${format(new Date(lastSync.data.created_at), 'HH:mm', { locale: ptBR })}`}
-        </span>
-        <Button type="button" variant="outline" size="xs" disabled={syncNow.isPending} onClick={() => syncNow.mutate()}>
-          <RefreshCw className={syncNow.isPending ? 'size-3 animate-spin' : 'size-3'} aria-hidden="true" />
-          {syncNow.isPending ? 'Sincronizando…' : 'Sincronizar agora'}
-        </Button>
-      </div>
     </div>
   )
 }

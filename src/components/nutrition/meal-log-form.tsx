@@ -13,12 +13,21 @@ type MealLogFormProps = {
   isSubmitting: boolean
 }
 
+const MACROS = [
+  { key: 'proteina', label: 'P', color: 'var(--ok)' },
+  { key: 'carbo', label: 'C', color: 'var(--brasa)' },
+  { key: 'gordura', label: 'G', color: 'var(--atencao)' },
+] as const
+
 export function MealLogForm({ mealSlotId, onSubmit, onCancel, isSubmitting }: MealLogFormProps) {
   const [descricao, setDescricao] = useState('')
   const [calorias, setCalorias] = useState('')
   const [proteina, setProteina] = useState('')
   const [carbo, setCarbo] = useState('')
   const [gordura, setGordura] = useState('')
+
+  const grams = { proteina: Number(proteina) || 0, carbo: Number(carbo) || 0, gordura: Number(gordura) || 0 }
+  const maxGram = Math.max(grams.proteina, grams.carbo, grams.gordura, 1)
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -34,8 +43,9 @@ export function MealLogForm({ mealSlotId, onSubmit, onCancel, isSubmitting }: Me
   }
 
   return (
-    <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
-      <div className="flex flex-col gap-1.5">
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+      {/* Seção: o que comeu */}
+      <section className="flex flex-col gap-1.5">
         <Label htmlFor="ml-descricao">O que você comeu</Label>
         <Input
           id="ml-descricao"
@@ -44,43 +54,51 @@ export function MealLogForm({ mealSlotId, onSubmit, onCancel, isSubmitting }: Me
           onChange={(event) => setDescricao(event.target.value)}
           placeholder="ex: 200g frango, arroz, salada"
         />
-      </div>
+      </section>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="ml-calorias">Calorias</Label>
-          <Input
-            id="ml-calorias"
-            type="number"
-            value={calorias}
-            onChange={(event) => setCalorias(event.target.value)}
-          />
+      {/* Seção: macros */}
+      <section className="flex flex-col gap-3 rounded-lg border border-border bg-card/40 p-3">
+        <span className="microlabel">Macros</span>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ml-calorias">Calorias</Label>
+            <Input id="ml-calorias" type="number" inputMode="numeric" value={calorias} onChange={(e) => setCalorias(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ml-proteina">Proteína (g)</Label>
+            <Input id="ml-proteina" type="number" inputMode="numeric" value={proteina} onChange={(e) => setProteina(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ml-carbo">Carboidrato (g)</Label>
+            <Input id="ml-carbo" type="number" inputMode="numeric" value={carbo} onChange={(e) => setCarbo(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ml-gordura">Gordura (g)</Label>
+            <Input id="ml-gordura" type="number" inputMode="numeric" value={gordura} onChange={(e) => setGordura(e.target.value)} />
+          </div>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="ml-proteina">Proteína (g)</Label>
-          <Input
-            id="ml-proteina"
-            type="number"
-            value={proteina}
-            onChange={(event) => setProteina(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="ml-carbo">Carboidrato (g)</Label>
-          <Input id="ml-carbo" type="number" value={carbo} onChange={(event) => setCarbo(event.target.value)} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="ml-gordura">Gordura (g)</Label>
-          <Input
-            id="ml-gordura"
-            type="number"
-            value={gordura}
-            onChange={(event) => setGordura(event.target.value)}
-          />
-        </div>
-      </div>
 
-      <div className="flex justify-end gap-2 pt-1">
+        {/* Prévia dos macros em tempo real */}
+        <div className="flex flex-col gap-1.5" aria-hidden="true">
+          {MACROS.map((m) => (
+            <div key={m.key} className="flex items-center gap-2">
+              <span className="w-4 font-mono text-xs" style={{ color: m.color }}>
+                {m.label}
+              </span>
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-aco-claro">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${(grams[m.key] / maxGram) * 100}%`, backgroundColor: m.color }}
+                />
+              </div>
+              <span className="w-10 text-right font-mono text-xs text-aco-texto">{grams[m.key]}g</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Rodapé fixo — não some no scroll */}
+      <div className="sticky bottom-0 -mx-5 -mb-5 flex justify-end gap-2 border-t border-border bg-card px-5 py-3">
         <Button type="button" variant="outline" size="sm" onClick={onCancel}>
           Cancelar
         </Button>

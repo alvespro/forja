@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { Loader2, Repeat, Sparkles } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -80,14 +74,14 @@ export function MealSuggestionsModal({ slot, open, onOpenChange }: MealSuggestio
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Sugestões — {slot.nome}</DialogTitle>
-          <DialogDescription>Até 3 opções para este slot. Gere novas a qualquer momento.</DialogDescription>
-        </DialogHeader>
-
-        <div className="flex flex-col gap-3">
+    <Modal
+      open={open}
+      onClose={() => onOpenChange(false)}
+      title={`Sugestões — ${slot.nome}`}
+      description="Até 3 opções para este slot. Gere novas a qualquer momento."
+      maxWidth="lg"
+    >
+      <div className="flex flex-col gap-3">
           {suggestions.isLoading ? (
             <div className="flex flex-col gap-2">
               <Skeleton className="h-24 w-full" />
@@ -120,8 +114,7 @@ export function MealSuggestionsModal({ slot, open, onOpenChange }: MealSuggestio
             Gerar nova sugestão
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+    </Modal>
   )
 }
 

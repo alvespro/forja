@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Plus, Sparkles, TriangleAlert } from 'lucide-react'
+import { Check, Plus, Sparkles, TriangleAlert } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { MealLogForm } from '@/components/nutrition/meal-log-form'
 import { MealSuggestionsModal } from '@/components/nutrition/meal-suggestions-modal'
 import { useCreateMealLog } from '@/hooks/use-meal-logs'
@@ -12,12 +12,15 @@ import type { MealLog, MealSlot } from '@/types/database'
 
 const CARBO_LIMITE_JANTAR = 15
 
+type MealSlotVariant = 'default' | 'featured' | 'next'
+
 type MealSlotCardProps = {
   slot: MealSlot
   logsHoje: MealLog[]
+  variant?: MealSlotVariant
 }
 
-export function MealSlotCard({ slot, logsHoje }: MealSlotCardProps) {
+export function MealSlotCard({ slot, logsHoje, variant = 'default' }: MealSlotCardProps) {
   const [isLogging, setIsLogging] = useState(false)
   const [isSuggesting, setIsSuggesting] = useState(false)
   const createMealLog = useCreateMealLog()
@@ -32,26 +35,58 @@ export function MealSlotCard({ slot, logsHoje }: MealSlotCardProps) {
     { calorias: 0, proteina_g: 0, carbo_g: 0, gordura_g: 0 },
   )
 
+  const registrado = logsHoje.length > 0
   const isJantar = slot.numero === 6
   const carboAcimaDoLimite = isJantar && registradoHoje.carbo_g > CARBO_LIMITE_JANTAR
+  const isFeatured = variant === 'featured'
+  const isNext = variant === 'next'
+  const horario = slot.horario_alvo?.slice(0, 5) ?? '—'
 
   return (
-    <Card className={cn(isJantar && 'border-alerta/60')}>
+    <Card className={cn(isFeatured && 'border-brasa', isJantar && !isFeatured && 'border-alerta/60', isNext && 'opacity-90')}>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-col">
-            <span className="font-medium text-foreground">{slot.nome}</span>
+          <div className="flex min-w-0 flex-col">
+            <span className="flex items-center gap-2">
+              {isFeatured && (
+                <span className="rounded-full bg-brasa px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-meia-noite">
+                  Agora
+                </span>
+              )}
+              {isNext && <span className="text-[10px] font-medium uppercase tracking-wide text-aco-texto">Próxima</span>}
+              {registrado && !isFeatured && <Check className="size-3.5 text-ok" aria-label="registrado" />}
+              <span className={cn('font-medium text-foreground', isFeatured && 'text-lg')}>{slot.nome}</span>
+            </span>
             <span className="font-mono text-xs text-aco-texto">
-              {slot.horario_alvo?.slice(0, 5) ?? '—'} · meta {slot.calorias_alvo ?? '—'} kcal · P
-              {slot.proteina_g_alvo ?? '—'} C{slot.carbo_g_alvo ?? '—'} G{slot.gordura_g_alvo ?? '—'}
+              {horario} · meta {slot.calorias_alvo ?? '—'} kcal · P{slot.proteina_g_alvo ?? '—'} C
+              {slot.carbo_g_alvo ?? '—'} G{slot.gordura_g_alvo ?? '—'}
             </span>
           </div>
-          {logsHoje.length > 0 && (
+          {registrado && (
             <span className="shrink-0 font-mono text-xs text-aco-texto">
               hoje: {Math.round(registradoHoje.calorias)} kcal
             </span>
           )}
         </div>
+
+        {isFeatured && (
+          <div className="grid grid-cols-4 gap-2 rounded-lg bg-card/50 p-2 text-center font-mono text-xs">
+            {[
+              { label: 'kcal', reg: Math.round(registradoHoje.calorias), meta: slot.calorias_alvo },
+              { label: 'P', reg: Math.round(registradoHoje.proteina_g), meta: slot.proteina_g_alvo },
+              { label: 'C', reg: Math.round(registradoHoje.carbo_g), meta: slot.carbo_g_alvo },
+              { label: 'G', reg: Math.round(registradoHoje.gordura_g), meta: slot.gordura_g_alvo },
+            ].map((m) => (
+              <div key={m.label} className="flex flex-col">
+                <span className="text-[10px] text-aco-texto">{m.label}</span>
+                <span className="text-foreground">
+                  {m.reg}
+                  <span className="text-aco-texto">/{m.meta ?? '—'}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {isJantar && (
           <div
@@ -69,8 +104,14 @@ export function MealSlotCard({ slot, logsHoje }: MealSlotCardProps) {
         )}
 
         <div className="flex gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => setIsLogging(true)}>
-            <Plus className="size-3.5" aria-hidden="true" />
+          <Button
+            type="button"
+            variant={isFeatured ? 'default' : 'outline'}
+            size={isFeatured ? 'default' : 'sm'}
+            className={cn(isFeatured && 'flex-1')}
+            onClick={() => setIsLogging(true)}
+          >
+            <Plus className={isFeatured ? 'size-4' : 'size-3.5'} aria-hidden="true" />
             Registrar
           </Button>
           <Button type="button" variant="ghost" size="sm" onClick={() => setIsSuggesting(true)}>
@@ -80,19 +121,14 @@ export function MealSlotCard({ slot, logsHoje }: MealSlotCardProps) {
         </div>
       </CardContent>
 
-      <Dialog open={isLogging} onOpenChange={setIsLogging}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Registrar — {slot.nome}</DialogTitle>
-          </DialogHeader>
-          <MealLogForm
-            mealSlotId={slot.id}
-            isSubmitting={createMealLog.isPending}
-            onCancel={() => setIsLogging(false)}
-            onSubmit={(values) => createMealLog.mutate(values, { onSuccess: () => setIsLogging(false) })}
-          />
-        </DialogContent>
-      </Dialog>
+      <Modal open={isLogging} onClose={() => setIsLogging(false)} title={`Registrar — ${slot.nome}`}>
+        <MealLogForm
+          mealSlotId={slot.id}
+          isSubmitting={createMealLog.isPending}
+          onCancel={() => setIsLogging(false)}
+          onSubmit={(values) => createMealLog.mutate(values, { onSuccess: () => setIsLogging(false) })}
+        />
+      </Modal>
 
       <MealSuggestionsModal slot={slot} open={isSuggesting} onOpenChange={setIsSuggesting} />
     </Card>

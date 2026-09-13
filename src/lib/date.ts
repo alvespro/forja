@@ -10,6 +10,12 @@ export function todayInSaoPaulo(): string {
   return format(toZonedTime(new Date(), TIME_ZONE), DATE_FORMAT)
 }
 
+/** Minutos desde a meia-noite no fuso America/Sao_Paulo (ex.: 12:30 → 750). */
+export function nowMinutesInSaoPaulo(): number {
+  const zoned = toZonedTime(new Date(), TIME_ZONE)
+  return zoned.getHours() * 60 + zoned.getMinutes()
+}
+
 /** Converte uma string 'yyyy-MM-dd' em Date (meia-noite local), sem deslocamento de fuso. */
 export function parseDateOnly(dateStr: string): Date {
   return parse(dateStr, DATE_FORMAT, new Date())

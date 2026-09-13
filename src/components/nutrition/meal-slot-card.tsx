@@ -4,6 +4,7 @@ import { Check, Plus, Sparkles, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
+import { FoodSearch } from '@/components/FoodSearch'
 import { MealLogForm } from '@/components/nutrition/meal-log-form'
 import { MealSuggestionsModal } from '@/components/nutrition/meal-suggestions-modal'
 import { useCreateMealLog } from '@/hooks/use-meal-logs'
@@ -18,10 +19,13 @@ type MealSlotCardProps = {
   slot: MealSlot
   logsHoje: MealLog[]
   variant?: MealSlotVariant
+  /** Todas as refeições do plano — permite trocar o slot no modal de porção. */
+  allSlots?: MealSlot[]
 }
 
-export function MealSlotCard({ slot, logsHoje, variant = 'default' }: MealSlotCardProps) {
+export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots }: MealSlotCardProps) {
   const [isLogging, setIsLogging] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
   const [isSuggesting, setIsSuggesting] = useState(false)
   const createMealLog = useCreateMealLog()
 
@@ -109,14 +113,17 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default' }: MealSlotCa
             variant={isFeatured ? 'default' : 'outline'}
             size={isFeatured ? 'default' : 'sm'}
             className={cn(isFeatured && 'flex-1')}
-            onClick={() => setIsLogging(true)}
+            onClick={() => setIsSearching(true)}
           >
             <Plus className={isFeatured ? 'size-4' : 'size-3.5'} aria-hidden="true" />
             Registrar
           </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setIsLogging(true)}>
+            Manual
+          </Button>
           <Button type="button" variant="ghost" size="sm" onClick={() => setIsSuggesting(true)}>
             <Sparkles className="size-3.5" aria-hidden="true" />
-            Ver sugestões
+            Sugestões
           </Button>
         </div>
       </CardContent>
@@ -129,6 +136,13 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default' }: MealSlotCa
           onSubmit={(values) => createMealLog.mutate(values, { onSuccess: () => setIsLogging(false) })}
         />
       </Modal>
+
+      <FoodSearch
+        open={isSearching}
+        onClose={() => setIsSearching(false)}
+        slots={allSlots ?? [slot]}
+        defaultSlotId={slot.id}
+      />
 
       <MealSuggestionsModal slot={slot} open={isSuggesting} onOpenChange={setIsSuggesting} />
     </Card>

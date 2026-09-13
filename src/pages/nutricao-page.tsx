@@ -134,17 +134,32 @@ export function NutricaoPage() {
             <div className="flex flex-col gap-3">
               {/* REFEIÇÃO EM DESTAQUE (AGORA) */}
               {currentSlot && (
-                <MealSlotCard slot={currentSlot} logsHoje={logsBySlot.get(currentSlot.id) ?? []} variant="featured" />
+                <MealSlotCard
+                  slot={currentSlot}
+                  logsHoje={logsBySlot.get(currentSlot.id) ?? []}
+                  variant="featured"
+                  allSlots={slots}
+                />
               )}
 
               {/* PRÓXIMA REFEIÇÃO */}
               {nextSlot && (
-                <MealSlotCard slot={nextSlot} logsHoje={logsBySlot.get(nextSlot.id) ?? []} variant="next" />
+                <MealSlotCard
+                  slot={nextSlot}
+                  logsHoje={logsBySlot.get(nextSlot.id) ?? []}
+                  variant="next"
+                  allSlots={slots}
+                />
               )}
 
               {/* RESTANTE DO DIA */}
               {otherSlots.map((slot) => (
-                <MealSlotCard key={slot.id} slot={slot} logsHoje={logsBySlot.get(slot.id) ?? []} />
+                <MealSlotCard
+                  key={slot.id}
+                  slot={slot}
+                  logsHoje={logsBySlot.get(slot.id) ?? []}
+                  allSlots={slots}
+                />
               ))}
             </div>
           )}

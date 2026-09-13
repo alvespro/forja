@@ -13,6 +13,8 @@ export type MealLogInput = {
   proteina_g: number | null
   carbo_g: number | null
   gordura_g: number | null
+  /** Vínculo com o catálogo (`foods`) quando veio do Open Food Facts. */
+  food_id?: string | null
 }
 
 /** Refeições registradas hoje (fuso America/Sao_Paulo), de qualquer fonte (manual ou Yazio). */

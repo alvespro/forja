@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/app-shell'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { OnboardingGate } from '@/components/auth/onboarding-gate'
 import { RouteError } from '@/components/feedback/route-error'
 
 const LoginPage = lazy(() => import('@/pages/auth/login-page').then((m) => ({ default: m.LoginPage })))
@@ -32,6 +33,7 @@ const ExercicioDetalhePage = lazy(() =>
 const EvolucaoExercicioPage = lazy(() =>
   import('@/pages/evolucao-exercicio-page').then((m) => ({ default: m.EvolucaoExercicioPage })),
 )
+const OnboardingPage = lazy(() => import('@/pages/onboarding-page').then((m) => ({ default: m.OnboardingPage })))
 
 function withSuspense(element: React.ReactNode) {
   return <Suspense fallback={null}>{element}</Suspense>
@@ -45,6 +47,11 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     errorElement: <RouteError />,
     children: [
+      { path: 'onboarding', element: withSuspense(<OnboardingPage />) },
+      {
+        element: <OnboardingGate />,
+        errorElement: <RouteError />,
+        children: [
       {
         element: <AppShell />,
         errorElement: <RouteError />,
@@ -72,6 +79,8 @@ export const router = createBrowserRouter([
           { path: 'suplementos', element: <SupplementsPage /> },
           { path: 'configuracoes', element: <ConfiguracoesPage /> },
           { path: '*', element: <Navigate to="/" replace /> },
+        ],
+      },
         ],
       },
     ],

@@ -64,6 +64,19 @@ export function groupLogsByHabit(logs: HabitLogRow[] | undefined): Map<string, S
   return map
 }
 
+/** Ativa/desativa um hábito (usado no onboarding para escolher os não-negociáveis). */
+export function useUpdateHabitAtivo() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      const { error } = await supabase.from('habits').update({ ativo }).eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['habits'] }),
+  })
+}
+
 export function useToggleHabitLog() {
   const { user } = useAuth()
   const queryClient = useQueryClient()

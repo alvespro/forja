@@ -14,6 +14,7 @@ import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { ObjectiveCard } from '@/components/body/objective-card'
 import { GoalProgressCards } from '@/components/body/goal-progress-cards'
 import { ProgressPhotosCard } from '@/components/body/progress-photos-card'
+import { WeightProjectionCard } from '@/components/body/weight-projection-card'
 import { useBodyMetrics, useCreateBodyMetric, useDeleteBodyMetric } from '@/hooks/use-body-metrics'
 import { useConfirm } from '@/hooks/use-confirm'
 import { parseDateOnly } from '@/lib/date'
@@ -82,6 +83,10 @@ export function BodyPage() {
             <BodyMetricsChart metrics={ordered} />
           </CardContent>
         </Card>
+      )}
+
+      {!metrics.isLoading && !metrics.isError && (
+        <WeightProjectionCard pesoAtual={latest?.peso_kg ?? null} metrics={metrics.data ?? []} />
       )}
 
       {isAdding && (

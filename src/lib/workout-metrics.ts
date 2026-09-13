@@ -16,7 +16,41 @@ export type SessionAggregate = {
   isPR: boolean
 }
 
-export type SetLogWithSession = SetLog & { performed_at: string }
+export type SetLogWithSession = SetLog & { performed_at: string; treino_nome?: string | null }
+
+export type SessionSets = {
+  sessionId: string
+  performedAt: string
+  treinoNome: string | null
+  /** Séries da sessão, ordenadas por serie_num. */
+  sets: SetLogWithSession[]
+  cargaMaxima: number
+}
+
+/** Agrupa os set_logs por sessão (mais recente primeiro), com séries ordenadas — base da Análise de Séries. */
+export function groupSetsBySession(logs: SetLogWithSession[]): SessionSets[] {
+  const map = new Map<string, SetLogWithSession[]>()
+  for (const log of logs) {
+    const list = map.get(log.session_id) ?? []
+    list.push(log)
+    map.set(log.session_id, list)
+  }
+
+  const sessions = [...map.entries()].map(([sessionId, sets]) => {
+    sets.sort((a, b) => a.serie_num - b.serie_num)
+    const cargaMaxima = sets.reduce((max, s) => Math.max(max, s.carga_kg ?? 0), 0)
+    return {
+      sessionId,
+      performedAt: sets[0].performed_at,
+      treinoNome: sets[0].treino_nome ?? null,
+      sets,
+      cargaMaxima,
+    }
+  })
+
+  sessions.sort((a, b) => new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime())
+  return sessions
+}
 
 /**
  * Agrega os set_logs de um exercício por sessão: carga máxima, melhor 1RM estimado e

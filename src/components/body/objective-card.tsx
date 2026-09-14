@@ -54,7 +54,7 @@ function ObjectiveContent({
   onEdit: () => void
 }) {
   const { objetivo, cycle } = goal
-  const prazoDias = diffInDays(cycle.data_inicio, cycle.data_fim)
+  const prazoDias = diffInDays(cycle.data_fim, cycle.data_inicio)
   const diasDecorridos = cycleDaysElapsed(cycle.data_inicio, prazoDias)
   const progresso = prazoDias > 0 ? Math.round((diasDecorridos / prazoDias) * 100) : 0
 

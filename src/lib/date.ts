@@ -34,7 +34,10 @@ export function toSaoPauloDateString(timestamp: string): string {
   return format(toZonedTime(new Date(timestamp), TIME_ZONE), DATE_FORMAT)
 }
 
-/** Diferença em dias de calendário (b - a), para strings 'yyyy-MM-dd'. */
+/**
+ * Diferença em dias de calendário **a − b**, para strings 'yyyy-MM-dd'.
+ * Ex.: diffInDays('2026-09-23', '2026-09-14') === 9 (quantos dias de b até a).
+ */
 export function diffInDays(dateStrA: string, dateStrB: string): number {
   return differenceInCalendarDays(parseDateOnly(dateStrA), parseDateOnly(dateStrB))
 }

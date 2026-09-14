@@ -61,12 +61,12 @@ export const METRIC_UNITS: Record<MetricKey, string> = {
 
 /** Dias decorridos desde o início do ciclo, limitado a [0, prazo_dias]. */
 export function cycleDaysElapsed(dataInicio: string, prazoDias: number): number {
-  const elapsed = diffInDays(dataInicio, todayInSaoPaulo())
+  const elapsed = diffInDays(todayInSaoPaulo(), dataInicio)
   return Math.min(Math.max(elapsed, 0), prazoDias)
 }
 
 export function cycleDaysRemaining(dataFim: string): number {
-  return Math.max(diffInDays(todayInSaoPaulo(), dataFim), 0)
+  return Math.max(diffInDays(dataFim, todayInSaoPaulo()), 0)
 }
 
 /**
@@ -109,7 +109,7 @@ export function projectWeeksToGoal(metrics: BodyMetric[], metricKey: MetricKey, 
 
   const primeiro = valores[0]
   const ultimo = valores[valores.length - 1]
-  const semanasDecorridas = diffInDays(primeiro.data, ultimo.data) / 7
+  const semanasDecorridas = diffInDays(ultimo.data, primeiro.data) / 7
   if (semanasDecorridas <= 0) return null
 
   const variacaoSemanal = (ultimo.valor - primeiro.valor) / semanasDecorridas

@@ -59,7 +59,7 @@ type Activity = {
 export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
   const navigate = useNavigate()
   const today = todayInSaoPaulo()
-  const dataFormatada = format(parseDateOnly(today), "EEE, d 'de' MMM", { locale: ptBR })
+  const dataFormatada = format(parseDateOnly(today), "EEEEEE, d 'de' MMM", { locale: ptBR })
   const frase = useDailyQuote(today)
   const hora = new Date().getHours()
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'

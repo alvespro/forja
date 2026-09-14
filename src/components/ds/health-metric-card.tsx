@@ -22,6 +22,8 @@ export type HealthMetricCardProps = {
   tendencia?: number[]
   /** Progresso até a meta, 0–100. */
   progressoMeta?: number | null
+  /** Linha de apoio sob a barra (ex.: "meta 14% · ~12 sem"). */
+  rodape?: string | null
   className?: string
 }
 
@@ -51,6 +53,7 @@ export function HealthMetricCard({
   status = 'neutro',
   tendencia,
   progressoMeta,
+  rodape,
   className,
 }: HealthMetricCardProps) {
   const s = STATUS_STYLE[status]
@@ -82,6 +85,7 @@ export function HealthMetricCard({
           />
         </div>
       )}
+      {rodape && <span className="ds-data-sm truncate text-aco-texto">{rodape}</span>}
     </div>
   )
 }

@@ -66,6 +66,12 @@
   --dur-fast: 150ms;
   --dur-normal: 280ms;
   --dur-slow: 420ms;
+
+  /* ------------------------------ navegação ------------------------------ */
+  /* Altura útil da tab bar (sem a safe area, somada à parte). */
+  --tabbar-h: 56px;
+  /* Distância do rodapé para elementos flutuantes não cobrirem a tab bar. */
+  --float-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 12px);
 }
 
 /*

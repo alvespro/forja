@@ -75,13 +75,13 @@ export function DocumentUpload() {
   return (
     <>
       {toast && (
-        <div className="fixed bottom-36 right-4 z-50 max-w-xs rounded-lg border border-border bg-popover px-3 py-2 text-xs text-foreground shadow-lg">
+        <div className="fixed bottom-[calc(var(--float-bottom)+64px)] right-4 z-50 max-w-xs md:bottom-24 rounded-lg border border-border bg-popover px-3 py-2 text-xs text-foreground shadow-lg">
           {toast}
         </div>
       )}
 
       {isMenuOpen && (
-        <div className="fixed bottom-[140px] right-[16px] z-50 flex w-64 flex-col gap-2 rounded-xl border border-border bg-popover p-3 shadow-lg">
+        <div className="fixed bottom-[calc(var(--float-bottom)+60px)] right-4 z-50 flex w-64 md:bottom-20 flex-col gap-2 rounded-xl border border-border bg-popover p-3 shadow-lg">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-foreground">
               {tipoSelecionado ? 'Escolha o arquivo' : 'O que você vai importar?'}
@@ -137,7 +137,7 @@ export function DocumentUpload() {
         type="button"
         onClick={() => setIsMenuOpen((v) => !v)}
         aria-label={isMenuOpen ? 'Fechar importação de documento' : 'Importar documento'}
-        className="fixed bottom-[88px] right-[80px] z-50 flex size-12 [html[data-immersive]_&]:hidden items-center justify-center rounded-full border border-brasa bg-aco-claro text-foreground shadow-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+        className="fixed bottom-[var(--float-bottom)] right-[76px] z-50 flex size-12 md:bottom-6 [html[data-immersive]_&]:hidden items-center justify-center rounded-full border border-brasa bg-aco-claro text-foreground shadow-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
       >
         {isMenuOpen ? <X className="size-5" aria-hidden="true" /> : <Paperclip className="size-5" aria-hidden="true" />}
       </button>

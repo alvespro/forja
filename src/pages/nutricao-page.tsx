@@ -105,7 +105,7 @@ export function NutricaoPage() {
       ) : (
         <>
           {/* HEADER FIXO: macros do dia em destaque */}
-          <section className="sticky top-0 z-20 -mx-4 flex flex-col gap-3 border-b border-linha bg-meia-noite/90 px-4 pb-4 pt-3 backdrop-blur-md md:mx-0 md:rounded-[var(--radius-lg)] md:border md:px-5">
+          <section className="sticky top-[env(safe-area-inset-top,0px)] z-20 -mx-4 flex flex-col gap-3 border-b border-linha bg-meia-noite/90 px-4 pb-4 pt-3 backdrop-blur-md md:mx-0 md:rounded-[var(--radius-lg)] md:border md:px-5">
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-[18px] font-bold text-foreground [font-family:var(--font-data)] tabular-nums">
                 {Math.round(consumido.calorias).toLocaleString('pt-BR')}

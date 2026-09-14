@@ -70,18 +70,18 @@ export function Modal({ open, onClose, title, description, children, maxWidth = 
 
           <div className="flex items-start justify-between gap-2">
             <div className="flex flex-col gap-0.5">
-              <DialogPrimitive.Title className="font-heading text-base font-bold text-foreground">
+              <DialogPrimitive.Title className="ds-h4 text-foreground">
                 {title}
               </DialogPrimitive.Title>
               {description && (
-                <DialogPrimitive.Description className="text-xs text-aco-texto">
+                <DialogPrimitive.Description className="ds-body-sm text-aco-texto">
                   {description}
                 </DialogPrimitive.Description>
               )}
             </div>
             <DialogPrimitive.Close
               aria-label="Fechar"
-              className="shrink-0 text-aco-texto transition-colors hover:text-foreground"
+              className="-m-2.5 flex size-11 shrink-0 items-center justify-center rounded-full text-aco-texto outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
             >
               <X className="size-5" />
             </DialogPrimitive.Close>

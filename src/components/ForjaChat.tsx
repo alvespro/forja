@@ -56,7 +56,7 @@ export function ForjaChat() {
   const mensagens = historico.data ?? []
 
   return (
-    <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-3 md:bottom-6 [html[data-immersive]_&]:hidden">
+    <div className="fixed bottom-[var(--float-bottom)] right-4 z-50 flex flex-col items-end gap-3 md:bottom-6 [html[data-immersive]_&]:hidden">
       {isOpen && (
         <Card className="w-[min(22rem,calc(100vw-2rem))]">
           <CardContent className="flex flex-col gap-3">
@@ -131,7 +131,7 @@ export function ForjaChat() {
       <Button
         type="button"
         size="icon-lg"
-        className="rounded-full shadow-lg"
+        className="size-12 rounded-full shadow-lg"
         aria-label={isOpen ? 'Fechar agentes FORJA' : 'Abrir agentes FORJA'}
         onClick={() => setIsOpen((v) => !v)}
       >

@@ -39,6 +39,9 @@ const OnboardingPage = lazy(() => import('@/pages/onboarding-page').then((m) => 
 const DesignSystemPage = import.meta.env.DEV
   ? lazy(() => import('@/pages/design-system-page').then((m) => ({ default: m.DesignSystemPage })))
   : null
+const DesignSessionPage = import.meta.env.DEV
+  ? lazy(() => import('@/pages/design-session-page').then((m) => ({ default: m.DesignSessionPage })))
+  : null
 
 function withSuspense(element: React.ReactNode) {
   return <Suspense fallback={null}>{element}</Suspense>
@@ -50,6 +53,9 @@ export const router = createBrowserRouter([
   // Galeria do design system: só existe em dev, fora do login, sem dados reais.
   ...(DesignSystemPage
     ? [{ path: '/design', element: withSuspense(<DesignSystemPage />), errorElement: <RouteError /> }]
+    : []),
+  ...(DesignSessionPage
+    ? [{ path: '/design/sessao', element: withSuspense(<DesignSessionPage />), errorElement: <RouteError /> }]
     : []),
   {
     path: '/',

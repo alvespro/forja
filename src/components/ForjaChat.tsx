@@ -56,7 +56,7 @@ export function ForjaChat() {
   const mensagens = historico.data ?? []
 
   return (
-    <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-3 md:bottom-6">
+    <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-3 md:bottom-6 [html[data-immersive]_&]:hidden">
       {isOpen && (
         <Card className="w-[min(22rem,calc(100vw-2rem))]">
           <CardContent className="flex flex-col gap-3">

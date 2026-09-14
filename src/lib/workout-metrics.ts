@@ -180,3 +180,48 @@ export function suggestOverload(
 
   return `Você bateu todas as séries na última sessão. Sugestão: ${novaCarga}kg (ou +1 rep) na próxima.`
 }
+
+export type OverloadSuggestion = {
+  /** sobe = bateu tudo na última (aumentar carga); mantem = faltou rep (repetir carga). */
+  tipo: 'sobe' | 'mantem'
+  texto: string
+  /** Carga sugerida para hoje, em kg (null se não houver carga registrada). */
+  cargaKg: number | null
+}
+
+/**
+ * Sugestão de progressão para a sessão atual, olhando só a sessão anterior mais
+ * recente do exercício (a sessão em andamento é excluída do histórico).
+ */
+export function computeOverloadSuggestion(
+  history: SetLogWithSession[],
+  sessionIdAtual: string,
+  prescription: WorkoutExercise,
+): OverloadSuggestion | null {
+  const logs = history.filter((l) => l.session_id !== sessionIdAtual)
+  if (logs.length === 0) return null
+
+  const ultimaSessao = logs.reduce((max, l) => (l.performed_at > max ? l.performed_at : max), '')
+  const daUltima = logs.filter((l) => l.performed_at === ultimaSessao)
+  if (daUltima.length === 0) return null
+
+  const positivo = suggestOverload(daUltima, prescription)
+  if (positivo) {
+    const concluidas = daUltima.filter((l) => l.concluida)
+    const minCarga = Math.min(...concluidas.map((l) => l.carga_kg ?? 0))
+    return { tipo: 'sobe', texto: positivo, cargaKg: minCarga + OVERLOAD_INCREMENT_KG }
+  }
+
+  const targetReps = parseRepsTarget(prescription.reps_alvo)
+  const targetSeries = prescription.series_alvo ?? daUltima.length
+  if (targetReps !== null && daUltima.length >= targetSeries) {
+    const faltantes = daUltima.filter((l) => (l.reps ?? 0) < targetReps).length
+    const melhor = daUltima.reduce((a, b) => ((b.carga_kg ?? 0) > (a.carga_kg ?? 0) ? b : a))
+    return {
+      tipo: 'mantem',
+      texto: `Na última faltou rep em ${faltantes} série${faltantes > 1 ? 's' : ''} — repete ${melhor.carga_kg ?? '—'}kg e busca o topo (${prescription.reps_alvo}).`,
+      cargaKg: melhor.carga_kg,
+    }
+  }
+  return null
+}

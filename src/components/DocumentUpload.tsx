@@ -137,7 +137,7 @@ export function DocumentUpload() {
         type="button"
         onClick={() => setIsMenuOpen((v) => !v)}
         aria-label={isMenuOpen ? 'Fechar importação de documento' : 'Importar documento'}
-        className="fixed bottom-[88px] right-[80px] z-50 flex size-12 items-center justify-center rounded-full border border-brasa bg-aco-claro text-foreground shadow-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+        className="fixed bottom-[88px] right-[80px] z-50 flex size-12 [html[data-immersive]_&]:hidden items-center justify-center rounded-full border border-brasa bg-aco-claro text-foreground shadow-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
       >
         {isMenuOpen ? <X className="size-5" aria-hidden="true" /> : <Paperclip className="size-5" aria-hidden="true" />}
       </button>

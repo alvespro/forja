@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   analyzeTrainingTrend,
+  computeOverloadSuggestion,
   groupSetsBySession,
   type SessionAggregate,
   type SetLogWithSession,
@@ -107,5 +108,52 @@ describe('groupSetsBySession', () => {
 
   it('lista vazia retorna vazio', () => {
     expect(groupSetsBySession([])).toEqual([])
+  })
+})
+
+describe('computeOverloadSuggestion', () => {
+  const prescricao = {
+    id: 'p',
+    user_id: 'u',
+    workout_id: 'w',
+    exercise_id: 'e',
+    ordem: 1,
+    series_alvo: 3,
+    reps_alvo: '10-12',
+    pausa_alvo_seg: 90,
+    cadencia_alvo: null,
+    notas: null,
+  } as unknown as Parameters<typeof computeOverloadSuggestion>[2]
+
+  const serie = (session: string, data: string, n: number, carga: number, reps: number): SetLogWithSession => ({
+    ...setLog(session, data, n, carga),
+    reps,
+  })
+
+  it('bateu todas as reps na última → sobe 2,5 kg sobre a menor carga', () => {
+    const hist = [serie('s1', '2026-07-01', 1, 70, 12), serie('s1', '2026-07-01', 2, 70, 12), serie('s1', '2026-07-01', 3, 70, 12)]
+    const s = computeOverloadSuggestion(hist, 'atual', prescricao)
+    expect(s?.tipo).toBe('sobe')
+    expect(s?.cargaKg).toBe(72.5)
+  })
+
+  it('faltou rep → mantém a melhor carga', () => {
+    const hist = [serie('s1', '2026-07-01', 1, 70, 12), serie('s1', '2026-07-01', 2, 70, 9), serie('s1', '2026-07-01', 3, 67.5, 8)]
+    const s = computeOverloadSuggestion(hist, 'atual', prescricao)
+    expect(s?.tipo).toBe('mantem')
+    expect(s?.cargaKg).toBe(70)
+  })
+
+  it('ignora as séries da sessão em andamento', () => {
+    const hist = [serie('atual', '2026-09-14', 1, 80, 12)]
+    expect(computeOverloadSuggestion(hist, 'atual', prescricao)).toBeNull()
+  })
+
+  it('usa só a sessão anterior mais recente', () => {
+    const hist = [
+      serie('antiga', '2026-06-01', 1, 50, 12), serie('antiga', '2026-06-01', 2, 50, 12), serie('antiga', '2026-06-01', 3, 50, 12),
+      serie('recente', '2026-07-01', 1, 70, 12), serie('recente', '2026-07-01', 2, 70, 12), serie('recente', '2026-07-01', 3, 70, 12),
+    ]
+    expect(computeOverloadSuggestion(hist, 'atual', prescricao)?.cargaKg).toBe(72.5)
   })
 })

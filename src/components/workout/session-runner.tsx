@@ -1,28 +1,26 @@
 import { useMemo, useState } from 'react'
-import { Brain, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Maximize2, Play } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Modal } from '@/components/ui/modal'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { FreeTimer } from '@/components/workout/free-timer'
 import { RestTimer } from '@/components/workout/rest-timer'
 import { SessionExerciseBlock } from '@/components/workout/session-exercise-block'
+import { formatClock, ImmersiveHeader } from '@/components/workout/session/session-views'
 import { useActiveSession } from '@/hooks/use-active-session'
 import { useElapsedSince } from '@/hooks/use-elapsed-since'
 import { useExercises } from '@/hooks/use-exercises'
-import { useIsDesktop } from '@/hooks/use-media-query'
+import { useImmersiveMode } from '@/hooks/use-immersive-mode'
 import { useLastSetLogByExercise, useSetLogsForSession, useUpdateSetLogPausa } from '@/hooks/use-set-logs'
 import { useWakeLock } from '@/hooks/use-wake-lock'
 import { useWorkoutExercises } from '@/hooks/use-workout-exercises'
-import {
-  useCreateWorkoutSession,
-  useFinishWorkoutSession,
-  useWorkoutSession,
-} from '@/hooks/use-workout-sessions'
+import { useCreateWorkoutSession, useFinishWorkoutSession, useWorkoutSession } from '@/hooks/use-workout-sessions'
 import { useWorkouts } from '@/hooks/use-workouts'
 import { launchForjaChat } from '@/lib/forja-chat-store'
 import type { Exercise, SetLog } from '@/types/database'
@@ -30,19 +28,13 @@ import type { Exercise, SetLog } from '@/types/database'
 const PAUSA_PADRAO_STORAGE_KEY = 'forja:pausa-padrao-seg'
 
 function readPausaPadraoSeg(): number {
-  const stored = window.localStorage.getItem(PAUSA_PADRAO_STORAGE_KEY)
-  const parsed = stored ? Number(stored) : NaN
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 60
-}
-
-function formatDuration(totalSeconds: number): string {
-  const seconds = Math.floor(totalSeconds)
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
-  const mm = String(minutes).padStart(2, '0')
-  const ss = String(secs).padStart(2, '0')
-  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`
+  try {
+    const stored = window.localStorage.getItem(PAUSA_PADRAO_STORAGE_KEY)
+    const parsed = stored ? Number(stored) : NaN
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 60
+  } catch {
+    return 60
+  }
 }
 
 export function SessionRunner() {
@@ -51,98 +43,118 @@ export function SessionRunner() {
   const exercises = useExercises()
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string>('')
   const [showFreeTimer, setShowFreeTimer] = useState(false)
-
+  const [minimizado, setMinimizado] = useState(false)
   const createSession = useCreateWorkoutSession()
 
-  if (!sessionId) {
-    const activeWorkouts = workouts.data?.filter((w) => w.ativo) ?? []
-
-    return (
-      <div className="flex flex-col gap-3">
-        {showFreeTimer ? (
-          <FreeTimer />
-        ) : (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="self-start"
-            onClick={() => setShowFreeTimer(true)}
-          >
-            Cronômetro livre
-          </Button>
-        )}
-
-        {workouts.isLoading ? (
-          <Skeleton className="h-24 w-full" />
-        ) : workouts.isError ? (
-          <ErrorState message="Não foi possível carregar os treinos." onRetry={() => workouts.refetch()} />
-        ) : activeWorkouts.length === 0 ? (
-          <EmptyState message="Cadastre um treino na aba 'Treinos' antes de iniciar uma sessão." />
-        ) : (
-          <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-card/40 p-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="sr-workout" className="text-xs text-aco-texto">
-                Escolha o treino
-              </label>
-              <Select
-                id="sr-workout"
-                className="w-56"
-                value={selectedWorkoutId}
-                onChange={(event) => setSelectedWorkoutId(event.target.value)}
-              >
-                <option value="">Selecione...</option>
-                {activeWorkouts.map((workout) => (
-                  <option key={workout.id} value={workout.id}>
-                    {workout.nome}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <Button
-              type="button"
-              disabled={!selectedWorkoutId || createSession.isPending}
-              onClick={() =>
-                createSession.mutate(selectedWorkoutId, {
-                  onSuccess: (session) => setSessionId(session.id),
-                })
-              }
-            >
-              {createSession.isPending ? 'Iniciando…' : 'Iniciar sessão'}
-            </Button>
-          </div>
-        )}
-      </div>
+  if (sessionId) {
+    return minimizado ? (
+      <MinimizedSession sessionId={sessionId} onResume={() => setMinimizado(false)} />
+    ) : (
+      <ActiveSession
+        sessionId={sessionId}
+        exercises={exercises.data ?? []}
+        onMinimize={() => setMinimizado(true)}
+        onEndSession={() => {
+          setMinimizado(false)
+          setSessionId(null)
+        }}
+      />
     )
   }
 
+  const activeWorkouts = workouts.data?.filter((w) => w.ativo) ?? []
+
   return (
-    <ActiveSession
-      sessionId={sessionId}
-      exercises={exercises.data ?? []}
-      onEndSession={() => setSessionId(null)}
-    />
+    <div className="flex flex-col gap-4">
+      {workouts.isLoading ? (
+        <Skeleton className="h-32 w-full" />
+      ) : workouts.isError ? (
+        <ErrorState message="Não foi possível carregar os treinos." onRetry={() => workouts.refetch()} />
+      ) : activeWorkouts.length === 0 ? (
+        <EmptyState message="Nenhum treino ativo" description="Cadastre um treino na aba Treinos antes de iniciar uma sessão." />
+      ) : (
+        <section className="flex flex-col gap-3 rounded-[var(--radius-lg)] bg-card p-4">
+          <label htmlFor="sr-workout" className="ds-label">
+            Iniciar sessão
+          </label>
+          <Select id="sr-workout" value={selectedWorkoutId} onChange={(event) => setSelectedWorkoutId(event.target.value)}>
+            <option value="">Escolha o treino…</option>
+            {activeWorkouts.map((workout) => (
+              <option key={workout.id} value={workout.id}>
+                {workout.nome}
+              </option>
+            ))}
+          </Select>
+          <Button
+            type="button"
+            className="min-h-12"
+            disabled={!selectedWorkoutId || createSession.isPending}
+            onClick={() => createSession.mutate(selectedWorkoutId, { onSuccess: (session) => setSessionId(session.id) })}
+          >
+            <Play className="size-4 fill-current" aria-hidden="true" />
+            {createSession.isPending ? 'Iniciando…' : 'Iniciar sessão'}
+          </Button>
+        </section>
+      )}
+
+      {showFreeTimer ? (
+        <FreeTimer />
+      ) : (
+        <Button type="button" variant="ghost" className="min-h-11 self-start" onClick={() => setShowFreeTimer(true)}>
+          Cronômetro livre
+        </Button>
+      )}
+    </div>
+  )
+}
+
+/** Sessão minimizada: volta para as abas com um cartão para retomar. */
+function MinimizedSession({ sessionId, onResume }: { sessionId: string; onResume: () => void }) {
+  const session = useWorkoutSession(sessionId)
+  const startedAtMs = session.data ? new Date(session.data.performed_at).getTime() : Date.now()
+  const elapsed = useElapsedSince(startedAtMs)
+
+  return (
+    <button
+      type="button"
+      onClick={onResume}
+      className="ds-pressable-card ds-card-brasa flex min-h-16 w-full items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-brasa bg-card px-5 py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="flex flex-col">
+        <span className="ds-label text-brasa">● Sessão em andamento</span>
+        <span className="text-[28px] font-bold leading-tight tabular-nums text-foreground [font-family:var(--font-display)]">
+          {formatClock(elapsed)}
+        </span>
+      </div>
+      <span className="flex items-center gap-2 ds-body-md font-semibold text-foreground">
+        Retomar
+        <Maximize2 className="size-4" aria-hidden="true" />
+      </span>
+    </button>
   )
 }
 
 type ActiveSessionProps = {
   sessionId: string
   exercises: Exercise[]
+  onMinimize: () => void
   onEndSession: () => void
 }
 
-function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProps) {
+/** Modo imersivo: tela cheia sobre a navegação (z-30), abaixo do cronômetro (z-40) e do chat (z-50). */
+function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: ActiveSessionProps) {
   const session = useWorkoutSession(sessionId)
+  const workouts = useWorkouts()
   const prescriptions = useWorkoutExercises(session.data?.workout_id ?? '')
   const logs = useSetLogsForSession(sessionId)
   const exerciseIds = useMemo(() => prescriptions.data?.map((p) => p.exercise_id) ?? [], [prescriptions.data])
   const lastLogs = useLastSetLogByExercise(exerciseIds)
   const finishSession = useFinishWorkoutSession()
   const updateSetLogPausa = useUpdateSetLogPausa()
-  const isDesktop = useIsDesktop()
   const [currentIndex, setCurrentIndex] = useState(0)
 
   useWakeLock(true)
+  useImmersiveMode(true)
 
   const startedAtMs = session.data ? new Date(session.data.performed_at).getTime() : Date.now()
   const elapsedSeconds = useElapsedSince(startedAtMs)
@@ -156,22 +168,27 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
   function handlePausaPadraoChange(value: string) {
     const seconds = Math.max(1, Number(value) || 60)
     setPausaPadraoSeg(seconds)
-    window.localStorage.setItem(PAUSA_PADRAO_STORAGE_KEY, String(seconds))
-  }
-
-  function handleSetCompleted(log: SetLog, pausaAlvoSeg: number | null) {
-    if (pausaAlvoSeg && pausaAlvoSeg > 0) {
-      setActiveRest({ logId: log.id, targetSeconds: pausaAlvoSeg })
+    try {
+      window.localStorage.setItem(PAUSA_PADRAO_STORAGE_KEY, String(seconds))
+    } catch {
+      // armazenamento bloqueado: a preferência vale só nesta sessão
     }
   }
 
-  function handleRestFinish(elapsedSeconds: number) {
+  function handleSetCompleted(log: SetLog, pausaAlvoSeg: number | null) {
+    // Sem pausa alvo cadastrada, usa a pausa padrão — antes o cronômetro não
+    // aparecia e a pausa real nunca era registrada.
+    const alvo = pausaAlvoSeg && pausaAlvoSeg > 0 ? pausaAlvoSeg : pausaPadraoSeg
+    setActiveRest({ logId: log.id, targetSeconds: alvo })
+  }
+
+  function handleRestFinish(elapsed: number) {
     if (!activeRest) return
-    updateSetLogPausa.mutate({ id: activeRest.logId, sessionId, pausaSeg: elapsedSeconds })
+    updateSetLogPausa.mutate({ id: activeRest.logId, sessionId, pausaSeg: elapsed })
     setActiveRest(null)
   }
 
-  const exercisesById = useMemo(() => new Map(exercises.map((exercise) => [exercise.id, exercise])), [exercises])
+  const exercisesById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
   const logsByExercise = useMemo(() => {
     const map = new Map<string, SetLog[]>()
     for (const log of logs.data ?? []) {
@@ -184,7 +201,6 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
 
   function handleFinish() {
     if (!session.data) return
-
     finishSession.mutate(
       {
         id: sessionId,
@@ -196,29 +212,12 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
     )
   }
 
-  if (session.isLoading || prescriptions.isLoading) {
-    return (
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-20 w-full" />
-      </div>
-    )
-  }
-
-  if (session.isError || prescriptions.isError) {
-    return (
-      <ErrorState
-        message="Não foi possível carregar a sessão."
-        onRetry={() => {
-          session.refetch()
-          prescriptions.refetch()
-        }}
-      />
-    )
-  }
-
-  const currentPrescription = prescriptions.data?.[currentIndex]
+  const lista = prescriptions.data ?? []
+  const total = lista.length
+  const indice = Math.min(currentIndex, Math.max(0, total - 1))
+  const currentPrescription = lista[indice]
   const currentExercise = currentPrescription ? exercisesById.get(currentPrescription.exercise_id) : undefined
+  const treinoNome = workouts.data?.find((w) => w.id === session.data?.workout_id)?.nome ?? null
 
   function handleAskCoach() {
     const contexto = currentExercise ? ` Estou no exercício "${currentExercise.nome}".` : ''
@@ -226,133 +225,93 @@ function ActiveSession({ sessionId, exercises, onEndSession }: ActiveSessionProp
   }
 
   return (
-    <div className={activeRest ? 'flex flex-col gap-3 pb-24' : 'flex flex-col gap-3'}>
-      <div className="flex items-center gap-2">
-        <label htmlFor="sr-pausa-padrao" className="text-xs text-aco-texto">
-          Pausa padrão entre séries
-        </label>
-        <Input
-          id="sr-pausa-padrao"
-          type="number"
-          min={1}
-          className="h-7 w-20"
-          value={pausaPadraoSeg}
-          onChange={(event) => handlePausaPadraoChange(event.target.value)}
+    <div className="fixed inset-0 z-30 overflow-y-auto bg-meia-noite ds-scroll">
+      <div
+        className="mx-auto flex max-w-lg flex-col gap-6 px-5"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+          paddingBottom: activeRest ? '11rem' : 'calc(env(safe-area-inset-bottom, 0px) + 2rem)',
+        }}
+      >
+        <ImmersiveHeader
+          atual={total > 0 ? indice + 1 : 0}
+          total={total}
+          elapsedSeconds={elapsedSeconds}
+          treinoNome={treinoNome}
+          onPrev={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+          onNext={() => setCurrentIndex((i) => Math.min(total - 1, i + 1))}
+          onMinimize={onMinimize}
+          onAskCoach={handleAskCoach}
+          onFinish={() => setIsFinishing(true)}
         />
-        <span className="text-xs text-aco-texto">s</span>
-      </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-brasa/40 bg-brasa/10 px-3 py-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground">Sessão em andamento</span>
-          <span className="font-mono text-sm tabular-nums text-brasa">{formatDuration(elapsedSeconds)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="ghost" size="sm" onClick={handleAskCoach}>
-            <Brain className="size-3.5" aria-hidden="true" />
-            Perguntar ao coach
-          </Button>
-          {!isFinishing && (
-            <Button type="button" size="sm" onClick={() => setIsFinishing(true)}>
-              Finalizar treino
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {isFinishing && (
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card/60 p-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="sr-esforco" className="text-xs text-aco-texto">
-              Esforço percebido (1-10)
-            </label>
-            <Input
-              id="sr-esforco"
-              type="number"
-              min={1}
-              max={10}
-              className="w-24"
-              value={esforco}
-              onChange={(event) => setEsforco(event.target.value)}
-            />
+        {session.isLoading || prescriptions.isLoading ? (
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="aspect-video w-full rounded-[var(--radius-lg)]" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="sr-notas" className="text-xs text-aco-texto">
-              Notas
-            </label>
-            <Textarea id="sr-notas" rows={2} value={notas} onChange={(event) => setNotas(event.target.value)} />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setIsFinishing(false)}>
-              Cancelar
-            </Button>
-            <Button type="button" size="sm" disabled={finishSession.isPending} onClick={handleFinish}>
-              {finishSession.isPending ? 'Salvando…' : 'Confirmar'}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {!prescriptions.data || prescriptions.data.length === 0 ? (
-        <EmptyState message="Este treino não tem exercícios prescritos." />
-      ) : isDesktop ? (
-        prescriptions.data.map((prescription) => (
+        ) : session.isError || prescriptions.isError ? (
+          <ErrorState
+            message="Não foi possível carregar a sessão."
+            onRetry={() => {
+              session.refetch()
+              prescriptions.refetch()
+            }}
+          />
+        ) : !currentPrescription ? (
+          <EmptyState message="Treino sem exercícios" description="Prescreva exercícios na aba Treinos." />
+        ) : (
           <SessionExerciseBlock
-            key={prescription.id}
+            key={currentPrescription.id}
             sessionId={sessionId}
-            exercise={exercisesById.get(prescription.exercise_id)}
-            prescription={prescription}
-            logs={logsByExercise.get(prescription.exercise_id) ?? []}
-            lastLog={lastLogs.data?.get(prescription.exercise_id)}
-            pausaPadraoSeg={pausaPadraoSeg}
+            exercise={currentExercise}
+            prescription={currentPrescription}
+            logs={logsByExercise.get(currentPrescription.exercise_id) ?? []}
+            lastLog={lastLogs.data?.get(currentPrescription.exercise_id)}
             onSetCompleted={handleSetCompleted}
           />
-        ))
-      ) : (
-        currentPrescription && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label="Exercício anterior"
-                disabled={currentIndex === 0}
-                onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-              >
-                <ChevronLeft className="size-4" aria-hidden="true" />
-              </Button>
-              <span className="text-xs font-medium text-aco-texto">
-                Exercício {currentIndex + 1} de {prescriptions.data.length}
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label="Próximo exercício"
-                disabled={currentIndex === prescriptions.data.length - 1}
-                onClick={() => setCurrentIndex((i) => Math.min(prescriptions.data!.length - 1, i + 1))}
-              >
-                <ChevronRight className="size-4" aria-hidden="true" />
-              </Button>
-            </div>
-            <SessionExerciseBlock
-              key={currentPrescription.id}
-              sessionId={sessionId}
-              exercise={currentExercise}
-              prescription={currentPrescription}
-              logs={logsByExercise.get(currentPrescription.exercise_id) ?? []}
-              lastLog={lastLogs.data?.get(currentPrescription.exercise_id)}
-              pausaPadraoSeg={pausaPadraoSeg}
-              onSetCompleted={handleSetCompleted}
-            />
-          </div>
-        )
-      )}
+        )}
+
+        <label className="flex min-h-11 items-center justify-center gap-2 ds-body-sm text-aco-texto">
+          Pausa padrão
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            className="h-11 w-20 text-center"
+            value={pausaPadraoSeg}
+            onChange={(event) => handlePausaPadraoChange(event.target.value)}
+          />
+          s
+        </label>
+      </div>
 
       {activeRest && (
         <RestTimer key={activeRest.logId} targetSeconds={activeRest.targetSeconds} onFinish={handleRestFinish} />
       )}
+
+      <Modal open={isFinishing} onClose={() => setIsFinishing(false)} title="Finalizar treino" description={`Duração: ${formatClock(elapsedSeconds)}`}>
+        <div className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="ds-body-sm text-aco-texto">Esforço percebido (1–10)</span>
+            <Input type="number" inputMode="numeric" min={1} max={10} className="h-12" value={esforco} onChange={(e) => setEsforco(e.target.value)} />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="ds-body-sm text-aco-texto">Notas</span>
+            <Textarea rows={3} value={notas} onChange={(e) => setNotas(e.target.value)} />
+          </label>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" className="min-h-12 flex-1" onClick={() => setIsFinishing(false)}>
+              Continuar treinando
+            </Button>
+            <Button type="button" className="min-h-12 flex-1" disabled={finishSession.isPending} onClick={handleFinish}>
+              {finishSession.isPending ? 'Salvando…' : 'Concluir'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

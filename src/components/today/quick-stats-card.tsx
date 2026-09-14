@@ -1,52 +1,35 @@
-import { useMemo } from 'react'
-
-import { Card, CardContent } from '@/components/ui/card'
-import { useActivityCalendar } from '@/hooks/use-activity-calendar'
+import { MetricHero } from '@/components/ds/metric-hero'
 import { useBodyMetrics } from '@/hooks/use-body-metrics'
-import { activityLevel } from '@/lib/activity-day'
-import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
+import { useDailyScores } from '@/hooks/use-daily-scores'
+import { todayInSaoPaulo } from '@/lib/date'
+import { computeStreak } from '@/lib/gamification'
 
-/** Streak = dias consecutivos com atividade terminando hoje (ou ontem, se hoje ainda vazio). */
-function currentStreak(map: Map<string, { treino: boolean; cardio: boolean; habitos_pct: number; refeicoes_pct: number }>): number {
-  const today = todayInSaoPaulo()
-  let cursor = today
-  const level = (d: string) => {
-    const day = map.get(d)
-    return day ? activityLevel(day) : 0
-  }
-  if (level(today) === 0) cursor = addDaysToDateString(today, -1) // hoje ainda pendente
-  let streak = 0
-  while (level(cursor) > 0) {
-    streak += 1
-    cursor = addDaysToDateString(cursor, -1)
-  }
-  return streak
-}
-
-/** BLOCO 4 do cockpit: três métricas do momento. */
+/**
+ * SECTION 4 do cockpit: três métricas do momento, sem borda.
+ * O streak é o mesmo do placar e das conquistas (computeStreak sobre os scores
+ * diários) — antes este card contava pelo calendário de atividades, e a tela
+ * mostraria dois "streaks" diferentes.
+ */
 export function QuickStatsCard() {
   const metrics = useBodyMetrics()
-  const calendar = useActivityCalendar(90)
+  const scores = useDailyScores()
 
   const latest = metrics.data && metrics.data.length > 0 ? metrics.data[metrics.data.length - 1] : null
-  const streak = useMemo(() => (calendar.data ? currentStreak(calendar.data) : 0), [calendar.data])
+  const streak = computeStreak(scores.data ?? [], todayInSaoPaulo())
 
   const stats = [
-    { label: 'Peso atual', value: latest?.peso_kg != null ? `${latest.peso_kg}kg` : '—' },
-    { label: 'Gordura', value: latest?.gordura_pct != null ? `${latest.gordura_pct}%` : '—' },
-    { label: 'Streak', value: streak > 0 ? `🔥 ${streak}d` : '—' },
+    { label: 'Peso', value: latest?.peso_kg != null ? String(latest.peso_kg).replace('.', ',') : '—', unit: latest?.peso_kg != null ? 'kg' : undefined },
+    { label: 'Gordura', value: latest?.gordura_pct != null ? String(latest.gordura_pct).replace('.', ',') : '—', unit: latest?.gordura_pct != null ? '%' : undefined },
+    { label: 'Streak', value: String(streak), unit: 'd' },
   ]
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <section className="grid grid-cols-3 gap-2">
       {stats.map((s) => (
-        <Card key={s.label} size="sm">
-          <CardContent className="flex flex-col items-center gap-0.5 py-3 text-center">
-            <span className="text-[10px] uppercase tracking-wide text-aco-texto">{s.label}</span>
-            <span className="font-mono text-lg text-foreground">{s.value}</span>
-          </CardContent>
-        </Card>
+        <div key={s.label} className="flex min-w-0 flex-col rounded-[var(--radius-md)] bg-aco/60 px-3 py-3">
+          <MetricHero label={s.label} value={s.value} unit={s.unit} size="xs" tone="foreground" className="min-w-0" />
+        </div>
       ))}
-    </div>
+    </section>
   )
 }

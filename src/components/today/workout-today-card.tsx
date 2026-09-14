@@ -7,18 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useActiveSession } from '@/hooks/use-active-session'
 import { useCreateWorkoutSession, useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { useWorkouts } from '@/hooks/use-workouts'
-
-/** Próximo treino na rotação: o que vem depois do treino da sessão mais recente, em ordem. */
-function pickTodaysWorkout<T extends { id: string; ordem: number }>(
-  activeWorkouts: T[],
-  lastWorkoutId: string | null,
-) {
-  if (activeWorkouts.length === 0) return null
-  if (!lastWorkoutId) return activeWorkouts[0]
-  const lastIndex = activeWorkouts.findIndex((w) => w.id === lastWorkoutId)
-  if (lastIndex === -1) return activeWorkouts[0]
-  return activeWorkouts[(lastIndex + 1) % activeWorkouts.length]
-}
+import { pickTodaysWorkout } from '@/lib/workout-rotation'
 
 export function WorkoutTodayCard() {
   const navigate = useNavigate()

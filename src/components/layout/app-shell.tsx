@@ -17,7 +17,9 @@ export function AppShell() {
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
+      {/* min-w-0: sem isso a coluna flex cresce até a largura natural do conteúdo
+          (ex.: fileiras com rolagem horizontal) e a página inteira estoura a tela. */}
+      <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 items-center justify-between border-b border-border px-4 md:px-8">
           <span className="truncate text-sm text-muted-foreground">{user?.email}</span>
           <div className="flex items-center gap-1">

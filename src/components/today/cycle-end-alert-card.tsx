@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { AlarmClock } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { AlertItem } from '@/components/ds/alert-item'
 import { useActiveCycle } from '@/hooks/use-active-cycle'
 import { cycleDaysRemaining, DIAS_ALERTA_FIM_CICLO } from '@/lib/body-goals'
 
@@ -17,19 +16,12 @@ export function CycleEndAlertCard() {
   if (diasRestantes > DIAS_ALERTA_FIM_CICLO) return null
 
   return (
-    <Card className="border-atencao/40 bg-atencao/10">
-      <CardContent className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-start gap-2">
-          <AlarmClock className="mt-0.5 size-4 shrink-0 text-atencao" aria-hidden="true" />
-          <p className="text-sm text-foreground">
-            Seu ciclo termina em {diasRestantes} dia{diasRestantes === 1 ? '' : 's'}. Registre sua pesagem final e
-            planeje o próximo ciclo.
-          </p>
-        </div>
-        <Button type="button" variant="outline" size="sm" onClick={() => navigate('/body')}>
-          Ir para Corpo
-        </Button>
-      </CardContent>
-    </Card>
+    <AlertItem
+      tone={diasRestantes <= 3 ? 'critico' : 'atencao'}
+      icon={AlarmClock}
+      title={`Ciclo termina em ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}`}
+      body="Registre a pesagem final e planeje o próximo ciclo."
+      action={{ label: 'Ir para Corpo', onClick: () => navigate('/body') }}
+    />
   )
 }

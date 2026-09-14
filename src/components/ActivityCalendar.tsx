@@ -57,7 +57,7 @@ export function ActivityCalendar() {
   return (
     <Card size="sm">
       <CardContent className="flex flex-col gap-3">
-        <p className="font-heading text-sm font-bold text-foreground">Atividade — últimos 90 dias</p>
+        <p className="ds-label">Últimos 3 meses</p>
 
         {calendar.isLoading ? (
           <Skeleton className="h-40 w-full max-w-[220px]" />

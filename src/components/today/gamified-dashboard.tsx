@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { toast } from 'sonner'
 
-import { Card, CardContent } from '@/components/ui/card'
+import { ObjectiveBadge } from '@/components/body/objective-badge'
+import { MetricHero } from '@/components/ds/metric-hero'
 import { useAchievements, usePersistAchievements } from '@/hooks/use-achievements'
 import { useActiveProtocol } from '@/hooks/use-protocols'
 import { useDailyScores, useUpsertDailyScore } from '@/hooks/use-daily-scores'
@@ -19,8 +20,8 @@ import { useTasks } from '@/hooks/use-tasks'
 import { useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { useDailyQuote } from '@/hooks/use-daily-quote'
 import { computeDayScore, PTS, type DayScoreInputs } from '@/lib/daily-score'
-import { addDaysToDateString, parseDateOnly, todayInSaoPaulo } from '@/lib/date'
-import { computeAchievements, computeStreak, last7Days, levelInfo } from '@/lib/gamification'
+import { addDaysToDateString, parseDateOnly, todayInSaoPaulo, toSaoPauloDateString } from '@/lib/date'
+import { computeAchievements, last7Days, levelInfo } from '@/lib/gamification'
 import { weekdayAbbrevOf } from '@/lib/nutrition'
 import { cn } from '@/lib/utils'
 
@@ -51,10 +52,14 @@ type Activity = {
   to: string
 }
 
-export function GamifiedDashboard() {
+/**
+ * `afterHero`: conteúdo renderizado logo abaixo do hero (ação principal,
+ * hábitos, métricas), antes de nível/semana e conquistas.
+ */
+export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
   const navigate = useNavigate()
   const today = todayInSaoPaulo()
-  const dataFormatada = format(parseDateOnly(today), "EEEE, d 'de' MMMM", { locale: ptBR })
+  const dataFormatada = format(parseDateOnly(today), "EEE, d 'de' MMM", { locale: ptBR })
   const frase = useDailyQuote(today)
   const hora = new Date().getHours()
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
@@ -87,7 +92,11 @@ export function GamifiedDashboard() {
   const inputsPorDia = useMemo(() => {
     const ativos = (habits.data ?? []).filter((h) => h.ativo)
     const porHabito = groupLogsByHabit(habitLogs.data)
-    const treinoDates = new Set((workoutSessions.data ?? []).map((s) => s.performed_at?.slice(0, 10)))
+    // Data do treino no fuso de São Paulo: slice(0, 10) do timestamp é a data em UTC,
+    // e um treino após as 21h contava para o dia seguinte no placar.
+    const treinoDates = new Set(
+      (workoutSessions.data ?? []).filter((s) => s.performed_at).map((s) => toSaoPauloDateString(s.performed_at)),
+    )
     const mealCount = new Map<string, number>()
     for (const m of mealRange.data ?? []) mealCount.set(m.data, (mealCount.get(m.data) ?? 0) + 1)
     const diarioDates = new Set((journalHistory.data ?? []).map((j) => j.data))
@@ -245,7 +254,6 @@ export function GamifiedDashboard() {
 
   // ── Streak, nível, histórico e conquistas ──
   const scores = dailyScores.data ?? []
-  const streak = computeStreak(scores, today)
   // `pontos` persistido já inclui o bônus do dia — somar `bonus` de novo contaria 2×.
   const totalXP = scores.reduce((s, d) => s + d.pontos, 0)
   const nivel = levelInfo(totalXP)
@@ -285,201 +293,176 @@ export function GamifiedDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conquistas, persistedKeys, persisted.isLoading, dailyScores.isLoading])
 
-  // Anel de progresso (SVG)
-  const R = 34
-  const CIRC = 2 * Math.PI * R
+  const agora = format(new Date(), 'HH:mm')
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* ── Saudação + frase do dia ── */}
-      <div>
-        <p className="text-sm capitalize text-aco-texto">{dataFormatada}</p>
-        <h1 className="font-heading text-2xl font-bold text-foreground">{saudacao}, Welber ⚒️</h1>
-      </div>
+    <div className="flex flex-col gap-6">
+      {/* ── HERO: fundo da tela (sem card), score como herói tipográfico ── */}
+      <section
+        className="-mx-4 -mt-6 flex flex-col px-5 pb-7 pt-6 md:mx-0 md:mt-0 md:rounded-[var(--radius-xl)] md:px-8"
+        style={{
+          background:
+            'radial-gradient(120% 80% at 0% 0%, rgba(240,169,59,0.14) 0%, transparent 60%), linear-gradient(180deg, var(--aco) 0%, var(--meia-noite) 100%)',
+        }}
+      >
+        <p className="ds-data-md text-aco-texto">
+          {dataFormatada} · {agora}
+        </p>
+        <h1 className="ds-h2 mt-1 text-foreground">{saudacao}, Welber</h1>
+        <p className="ds-body-sm mt-1 line-clamp-2 italic text-aco-texto">
+          “{frase.texto}”{frase.fonte ? ` — ${frase.fonte}` : ''}
+        </p>
+        <div className="mt-3 flex">
+          <ObjectiveBadge />
+        </div>
 
-      <Card className="border-brasa/25 bg-gradient-to-br from-brasa/10 to-transparent">
-        <CardContent className="py-3.5">
-          <p className="font-heading text-base font-semibold leading-snug text-foreground">
-            "{frase.texto}"
-          </p>
-          <p className="mt-1 text-[11px] uppercase tracking-widest text-brasa/80">
-            {frase.emoji} {frase.fonte ?? 'Frase do dia'}
-          </p>
-        </CardContent>
-      </Card>
+        <div className="mt-7 flex items-end justify-between gap-3">
+          <MetricHero label="FORJA Score" value={pct} unit="/100" size="lg" />
+          <span
+            className="mb-2 flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 ds-body-sm font-semibold"
+            style={{ borderColor: `${rank.cor}66`, color: rank.cor, backgroundColor: `${rank.cor}14` }}
+          >
+            {rank.emoji} {rank.nome}
+          </span>
+        </div>
 
-      {/* ── Score do dia ── */}
-      <Card>
-        <CardContent className="flex flex-col gap-3">
-          <div className="flex items-center gap-4">
-            {/* Anel */}
-            <div className="relative size-[84px] shrink-0">
-              <svg viewBox="0 0 84 84" className="size-full -rotate-90">
-                <circle cx="42" cy="42" r={R} fill="none" stroke="var(--border)" strokeWidth="7" opacity="0.35" />
-                <circle
-                  cx="42"
-                  cy="42"
-                  r={R}
-                  fill="none"
-                  stroke={rank.cor}
-                  strokeWidth="7"
-                  strokeLinecap="round"
-                  strokeDasharray={CIRC}
-                  strokeDashoffset={CIRC * (1 - pct / 100)}
-                  className="transition-all duration-700"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-bold text-foreground leading-none">{pct}%</span>
-              </div>
-            </div>
+        <p className="ds-data-md mt-2 text-aco-texto">
+          {pontos - bonus} de {total} pts
+          {bonus > 0 && <span className="text-ok"> · +{bonus} bônus</span>}
+        </p>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg">{rank.emoji}</span>
-                <span className="font-heading text-lg font-bold" style={{ color: rank.cor }}>
-                  {rank.nome}
-                </span>
-              </div>
-              <p className="text-sm text-aco-texto">
-                <span className="font-semibold text-foreground">{pontos - bonus}</span> de {total} pts
-                {bonus > 0 && <span className="text-green-400"> (+{bonus} bônus)</span>}
-              </p>
-              <p className="mt-0.5 text-xs text-aco-texto/70">
-                {pct >= 80
-                  ? 'Dia forjado. É esse o padrão.'
-                  : pct >= 50
-                    ? 'Na briga. Fecha o dia por cima.'
-                    : 'O dia ainda está aberto. Marca ponto.'}
-              </p>
-            </div>
-          </div>
-
-          {/* Chips de atividades */}
-          <div className="flex flex-wrap gap-1.5">
-            {activities.map((a) => (
-              <button
-                key={a.key}
-                type="button"
-                onClick={() => navigate(a.to)}
-                className={cn(
-                  'flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
-                  a.bonus
-                    ? 'border-green-700/50 bg-green-950/30 text-green-400'
-                    : a.done
-                      ? 'border-brasa/50 bg-brasa/15 text-brasa'
-                      : 'border-border/50 bg-card/40 text-aco-texto hover:border-border',
-                )}
-              >
-                <span>{a.emoji}</span>
-                <span>{a.label}</span>
-                <span className={cn('font-semibold', a.done || a.bonus ? '' : 'opacity-50')}>
-                  {a.bonus ? `+${a.earned}` : a.done ? `+${a.earned}` : `${a.earned}/${a.pts}`}
-                </span>
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() =>
-                upsertScore.mutate({ data: today, pontos, total, bonus, rest_day: !restDay })
-              }
-              className={cn(
-                'flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
-                restDay
-                  ? 'border-sky-700/60 bg-sky-950/40 text-sky-300'
-                  : 'border-border/40 bg-card/30 text-aco-texto/60 hover:border-border',
-              )}
-              title={
-                restDay
-                  ? 'Dia de descanso planejado: treino fora do placar de hoje'
-                  : 'Marcar hoje como dia de descanso planejado (treino sai do total)'
-              }
-            >
-              🛌 {restDay ? 'Descanso planejado' : 'Dia de descanso?'}
-            </button>
-          </div>
-
-          {/* ── Streak + Nível ── */}
-          <div className="flex items-center gap-3 border-t border-border/30 pt-3">
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className={cn('text-lg', streak === 0 && 'grayscale opacity-50')}>🔥</span>
-              <div>
-                <p className="text-sm font-bold text-foreground leading-none">{streak}</p>
-                <p className="text-[10px] text-aco-texto">
-                  dia{streak !== 1 ? 's' : ''} seguido{streak !== 1 ? 's' : ''}
-                </p>
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="font-semibold text-foreground">
-                  {nivel.emoji} Nv. {nivel.nivel} — {nivel.titulo}
-                </span>
-                <span className="text-aco-texto">{totalXP} XP</span>
-              </div>
-              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-border/40">
+        {/* Pilares do dia: uma barra fina por atividade pontuável */}
+        <div className="mt-5 flex gap-1" aria-hidden="true">
+          {activities
+            .filter((a) => !a.bonus)
+            .map((a) => (
+              <div key={a.key} className="h-1.5 flex-1 overflow-hidden rounded-full bg-aco-claro">
                 <div
-                  className="h-full rounded-full bg-brasa transition-all duration-500"
-                  style={{ width: `${Math.round(nivel.progresso * 100)}%` }}
+                  className="h-full rounded-full bg-brasa"
+                  style={{
+                    width: `${a.pts > 0 ? Math.min(100, (a.earned / a.pts) * 100) : 0}%`,
+                    transition: 'width var(--dur-slow) var(--spring-smooth)',
+                  }}
                 />
               </div>
-              <p className="mt-0.5 text-[10px] text-aco-texto/70">
-                {nivel.xpParaProximo} XP para o nível {nivel.nivel + 1}
-              </p>
-            </div>
-          </div>
-
-          {/* ── Últimos 7 dias ── */}
-          <div className="flex items-end justify-between gap-1.5">
-            {semana.map((d) => (
-              <div key={d.data} className="flex flex-1 flex-col items-center gap-1">
-                <div className="flex h-10 w-full items-end overflow-hidden rounded-sm bg-border/25">
-                  <div
-                    className={cn('w-full rounded-sm transition-all duration-500')}
-                    style={{
-                      height: `${Math.max(d.pct, d.pct > 0 ? 8 : 0)}%`,
-                      backgroundColor: d.pct >= 80 ? '#F0A93B' : d.pct >= 50 ? '#5FA88C' : '#8E8E93',
-                    }}
-                  />
-                </div>
-                <span className={cn('text-[9px]', d.isToday ? 'font-bold text-brasa' : 'text-aco-texto/70')}>
-                  {format(parseDateOnly(d.data), 'EEEEEE', { locale: ptBR })}
-                </span>
-              </div>
             ))}
+        </div>
+
+        {/* Chips navegáveis — rolagem horizontal em vez de quebrar em várias linhas */}
+        <div className="ds-scroll -mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:px-0">
+          {activities.map((a) => (
+            <button
+              key={a.key}
+              type="button"
+              onClick={() => navigate(a.to)}
+              className={cn(
+                'ds-pressable flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 ds-body-sm font-medium',
+                a.bonus
+                  ? 'border-ok/40 bg-ok/10 text-ok'
+                  : a.done
+                    ? 'border-brasa/50 bg-brasa/15 text-brasa'
+                    : 'border-linha bg-aco/60 text-aco-texto',
+              )}
+            >
+              <span aria-hidden="true">{a.emoji}</span>
+              {a.label}
+              <span className="ds-data-sm opacity-80">
+                {a.bonus || a.done ? `+${a.earned}` : `${a.earned}/${a.pts}`}
+              </span>
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => upsertScore.mutate({ data: today, pontos, total, bonus, rest_day: !restDay })}
+            className={cn(
+              'ds-pressable flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 ds-body-sm font-medium',
+              restDay ? 'border-sky-700/60 bg-sky-950/40 text-sky-300' : 'border-linha bg-aco/40 text-aco-texto/70',
+            )}
+            title={
+              restDay
+                ? 'Dia de descanso planejado: treino fora do placar de hoje'
+                : 'Marcar hoje como dia de descanso planejado (treino sai do total)'
+            }
+          >
+            🛌 {restDay ? 'Descanso planejado' : 'Descanso?'}
+          </button>
+        </div>
+      </section>
+
+      {afterHero}
+
+      {/* ── Nível + semana (compacto) ── */}
+      <section className="flex flex-col gap-4 rounded-[var(--radius-lg)] bg-card p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-col">
+            <span className="ds-label">Nível {nivel.nivel}</span>
+            <span className="ds-body-md truncate font-semibold text-foreground">
+              {nivel.emoji} {nivel.titulo}
+            </span>
           </div>
-        </CardContent>
-      </Card>
+          <span className="ds-data-md shrink-0 text-aco-texto">{totalXP} XP</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-aco-claro">
+            <div
+              className="h-full rounded-full bg-brasa"
+              style={{
+                width: `${Math.round(nivel.progresso * 100)}%`,
+                transition: 'width var(--dur-slow) var(--spring-smooth)',
+              }}
+            />
+          </div>
+          <span className="ds-data-sm text-aco-texto">
+            {nivel.xpParaProximo} XP para o nível {nivel.nivel + 1}
+          </span>
+        </div>
+
+        <div className="flex items-end justify-between gap-1.5" role="img" aria-label="Score dos últimos 7 dias">
+          {semana.map((d) => (
+            <div key={d.data} className="flex flex-1 flex-col items-center gap-1.5">
+              <div className="flex h-12 w-full items-end overflow-hidden rounded-[6px] bg-aco-claro">
+                <div
+                  className="w-full rounded-[6px]"
+                  style={{
+                    height: `${Math.max(d.pct, d.pct > 0 ? 8 : 0)}%`,
+                    backgroundColor: d.pct >= 80 ? 'var(--brasa)' : d.pct >= 50 ? 'var(--ok)' : 'var(--aco-texto)',
+                    transition: 'height var(--dur-slow) var(--spring-smooth)',
+                  }}
+                />
+              </div>
+              <span className={cn('ds-data-sm', d.isToday ? 'font-bold text-brasa' : 'text-aco-texto')}>
+                {format(parseDateOnly(d.data), 'EEEEEE', { locale: ptBR })}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* ── Conquistas ── */}
       {conquistadas.length > 0 && (
-        <Card>
-          <CardContent className="flex flex-col gap-2.5 py-3.5">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-foreground">🏅 Conquistas</p>
-              <span className="text-xs text-aco-texto">
-                {conquistadas.length}/{conquistas.length}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {conquistas.map((c) => (
-                <div
-                  key={c.key}
-                  title={c.descricao}
-                  className={cn(
-                    'flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs',
-                    c.earned
-                      ? 'border-brasa/50 bg-brasa/10 text-foreground'
-                      : 'border-border/40 bg-card/30 text-aco-texto/50 grayscale',
-                  )}
-                >
-                  <span>{c.emoji}</span>
-                  <span className="font-medium">{c.titulo}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <section className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="ds-label">Conquistas</span>
+            <span className="ds-data-md text-aco-texto">
+              {conquistadas.length}/{conquistas.length}
+            </span>
+          </div>
+          <div className="ds-scroll -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
+            {conquistas.map((c) => (
+              <div
+                key={c.key}
+                title={c.descricao}
+                className={cn(
+                  'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 ds-body-sm',
+                  c.earned ? 'border-brasa/50 bg-brasa/10 text-foreground' : 'border-linha text-aco-texto/50 grayscale',
+                )}
+              >
+                <span aria-hidden="true">{c.emoji}</span>
+                {c.titulo}
+              </div>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   )

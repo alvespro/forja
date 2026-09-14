@@ -171,6 +171,12 @@
     animation: ds-fade-up var(--dur-normal) var(--spring-smooth) both;
   }
 
+  /* Celebração: pulo com overshoot (todos os hábitos do dia feitos). */
+  .ds-celebrate {
+    display: inline-block;
+    animation: ds-celebrate var(--dur-slow) var(--spring-bounce) both;
+  }
+
   /* ============================== micro-interações ============================= */
 
   /* Botões e cards afundam levemente no toque e voltam com spring. */
@@ -187,7 +193,12 @@
   /* Scroll com momentum nativo no iOS. */
   .ds-scroll {
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior-x: contain;
+    /* Fileiras roláveis no toque não mostram barra (o conteúdo cortado já sinaliza). */
+    scrollbar-width: none;
+  }
+  .ds-scroll::-webkit-scrollbar {
+    display: none;
   }
 
   /* Safe area do iPhone para elementos fixos no rodapé. */
@@ -222,4 +233,11 @@
     transform: translate(-50%, -50%) scale(60);
     opacity: 0;
   }
+}
+
+/* Celebração: cresce, passa do ponto e assenta. */
+@keyframes ds-celebrate {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); }
 }

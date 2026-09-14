@@ -1,6 +1,7 @@
+import { useNavigate } from 'react-router-dom'
 import { Pill } from 'lucide-react'
 
-import { Card, CardContent } from '@/components/ui/card'
+import { AlertItem } from '@/components/ds/alert-item'
 import { useSupplementLogs } from '@/hooks/use-supplement-logs'
 import { useSupplements } from '@/hooks/use-supplements'
 import { useWorkoutSessions } from '@/hooks/use-workout-sessions'
@@ -8,6 +9,7 @@ import { todayInSaoPaulo, toSaoPauloDateString } from '@/lib/date'
 
 /** Card de alerta: treinou hoje mas ainda não marcou o pré-treino como tomado. */
 export function PretreinoAlertCard() {
+  const navigate = useNavigate()
   const sessions = useWorkoutSessions()
   const supplements = useSupplements()
   const logs = useSupplementLogs()
@@ -28,11 +30,12 @@ export function PretreinoAlertCard() {
   if (algumTomado) return null
 
   return (
-    <Card className="border-atencao/50 bg-atencao/10">
-      <CardContent className="flex items-center gap-3">
-        <Pill className="size-5 shrink-0 text-atencao" aria-hidden="true" />
-        <p className="text-sm text-foreground">💊 Você treinou hoje — tomou o pré-treino?</p>
-      </CardContent>
-    </Card>
+    <AlertItem
+      tone="atencao"
+      icon={Pill}
+      title="Treinou hoje — tomou o pré-treino?"
+      body="Marque o suplemento para manter o registro do protocolo completo."
+      action={{ label: 'Marcar', onClick: () => navigate('/suplementos') }}
+    />
   )
 }

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 
+import { Modal } from '@/components/ui/modal'
 import {
   ExerciseFocus,
   ImmersiveHeader,
+  PostWorkoutSummary,
   RestTimerView,
   SetRowView,
 } from '@/components/workout/session/session-views'
@@ -29,6 +31,7 @@ export function DesignSessionPage() {
     { carga: '30', reps: '11', rpe: '', cadencia: '', concluida: false },
     { carga: '30', reps: '', rpe: '', cadencia: '', concluida: false },
   ])
+  const [resumoAberto, setResumoAberto] = useState(false)
   const [pausa, setPausa] = useState<{ restante: number; alvo: number } | null>({ restante: 47, alvo: 90 })
 
   useEffect(() => {
@@ -51,7 +54,7 @@ export function DesignSessionPage() {
           treinoNome="Treino C — Peito e Tríceps"
           onPrev={() => setIdx((i) => Math.max(0, i - 1))}
           onNext={() => setIdx((i) => Math.min(EXERCICIOS.length - 1, i + 1))}
-          onFinish={() => {}}
+          onFinish={() => setResumoAberto(true)}
         />
 
         <ExerciseFocus
@@ -80,6 +83,17 @@ export function DesignSessionPage() {
           ))}
         </section>
       </div>
+
+      <Modal open={resumoAberto} onClose={() => setResumoAberto(false)} title="Bom treino">
+        <PostWorkoutSummary
+          duracaoSeg={elapsed}
+          series={9}
+          volumeKg={3120}
+          exercicios={3}
+          musculos={['peito', 'tríceps', 'ombros']}
+          onClose={() => setResumoAberto(false)}
+        />
+      </Modal>
 
       {pausa && <RestTimerView remainingSeconds={pausa.restante} targetSeconds={pausa.alvo} onFinish={() => setPausa(null)} />}
     </div>

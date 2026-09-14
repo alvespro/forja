@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { FreeTimer } from '@/components/workout/free-timer'
 import { RestTimer } from '@/components/workout/rest-timer'
 import { SessionExerciseBlock } from '@/components/workout/session-exercise-block'
-import { formatClock, ImmersiveHeader } from '@/components/workout/session/session-views'
+import { formatClock, ImmersiveHeader, PostWorkoutSummary, type PostWorkoutSummaryProps } from '@/components/workout/session/session-views'
 import { useActiveSession } from '@/hooks/use-active-session'
 import { useElapsedSince } from '@/hooks/use-elapsed-since'
 import { useExercises } from '@/hooks/use-exercises'
@@ -23,6 +23,7 @@ import { useWorkoutExercises } from '@/hooks/use-workout-exercises'
 import { useCreateWorkoutSession, useFinishWorkoutSession, useWorkoutSession } from '@/hooks/use-workout-sessions'
 import { useWorkouts } from '@/hooks/use-workouts'
 import { launchForjaChat } from '@/lib/forja-chat-store'
+import { haptic } from '@/lib/haptics'
 import type { Exercise, SetLog } from '@/types/database'
 
 const PAUSA_PADRAO_STORAGE_KEY = 'forja:pausa-padrao-seg'
@@ -160,6 +161,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
   const elapsedSeconds = useElapsedSince(startedAtMs)
 
   const [isFinishing, setIsFinishing] = useState(false)
+  const [resumo, setResumo] = useState<Omit<PostWorkoutSummaryProps, 'onClose'> | null>(null)
   const [esforco, setEsforco] = useState('')
   const [notas, setNotas] = useState('')
   const [activeRest, setActiveRest] = useState<{ logId: string; targetSeconds: number } | null>(null)
@@ -208,7 +210,25 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
         esforco_percebido: esforco ? Number(esforco) : null,
         notas: notas.trim() || null,
       },
-      { onSuccess: () => onEndSession() },
+      {
+        onSuccess: () => {
+          // Resumo com o que foi feito de fato: só séries concluídas contam.
+          const concluidas = (logs.data ?? []).filter((l) => l.concluida)
+          const exerciciosFeitos = new Set(concluidas.map((l) => l.exercise_id))
+          const musculos = [...exerciciosFeitos]
+            .map((id) => exercisesById.get(id)?.grupo_muscular)
+            .filter((g): g is string => !!g)
+          haptic('double')
+          setIsFinishing(false)
+          setResumo({
+            duracaoSeg: Math.round(elapsedSeconds),
+            series: concluidas.length,
+            volumeKg: concluidas.reduce((acc, l) => acc + (l.carga_kg ?? 0) * (l.reps ?? 0), 0),
+            exercicios: exerciciosFeitos.size,
+            musculos,
+          })
+        },
+      },
     )
   }
 
@@ -291,6 +311,10 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
       {activeRest && (
         <RestTimer key={activeRest.logId} targetSeconds={activeRest.targetSeconds} onFinish={handleRestFinish} />
       )}
+
+      <Modal open={resumo !== null} onClose={onEndSession} title="Bom treino">
+        {resumo && <PostWorkoutSummary {...resumo} onClose={onEndSession} />}
+      </Modal>
 
       <Modal open={isFinishing} onClose={() => setIsFinishing(false)} title="Finalizar treino" description={`Duração: ${formatClock(elapsedSeconds)}`}>
         <div className="flex flex-col gap-4">

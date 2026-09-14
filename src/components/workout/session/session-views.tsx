@@ -382,3 +382,56 @@ export function RestTimerView({ remainingSeconds, targetSeconds, onFinish, posit
     </div>
   )
 }
+
+/* ────────────────────────────── resumo pós-treino ─────────────────────────── */
+
+export type PostWorkoutSummaryProps = {
+  duracaoSeg: number
+  series: number
+  volumeKg: number
+  exercicios: number
+  /** Grupos musculares trabalhados (texto livre, ex.: "Costas e Bíceps"). */
+  musculos: string[]
+  onClose: () => void
+}
+
+/** Fechamento do treino: músculos trabalhados em destaque no BodyMap + números da sessão. */
+export function PostWorkoutSummary({ duracaoSeg, series, volumeKg, exercicios, musculos, onClose }: PostWorkoutSummaryProps) {
+  const stats = [
+    { label: 'Duração', valor: formatClock(duracaoSeg) },
+    { label: 'Séries', valor: String(series) },
+    { label: 'Volume', valor: `${Math.round(volumeKg).toLocaleString('pt-BR')} kg` },
+    { label: 'Exercícios', valor: String(exercicios) },
+  ]
+  return (
+    <div className="flex flex-col items-center gap-5 text-center">
+      <span className="ds-label text-ok">Treino concluído</span>
+      {/* Frente e costas juntas: todo músculo trabalhado aparece sem precisar girar */}
+      <div className="flex items-end justify-center gap-6">
+        <div className="flex flex-col items-center gap-1">
+          <BodyMap size="md" vista="frente" musculosAtivos={musculos} />
+          <span className="ds-data-sm text-aco-texto">frente</span>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <BodyMap size="md" vista="costas" musculosAtivos={musculos} />
+          <span className="ds-data-sm text-aco-texto">costas</span>
+        </div>
+      </div>
+      <div className="grid w-full grid-cols-2 gap-2">
+        {stats.map((s) => (
+          <div key={s.label} className="flex flex-col rounded-[var(--radius-md)] bg-aco-claro px-3 py-3">
+            <span className="ds-label">{s.label}</span>
+            <span className="text-[22px] font-bold text-foreground [font-family:var(--font-display)] tabular-nums">{s.valor}</span>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={onClose}
+        className="ds-pressable flex min-h-12 w-full items-center justify-center rounded-full bg-brasa ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        Fechar
+      </button>
+    </div>
+  )
+}

@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { BarChart3, Check, ChevronLeft, Play } from 'lucide-react'
 
+import { BodyMap } from '@/components/BodyMap'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,6 @@ import { useExerciseHistory } from '@/hooks/use-exercise-history'
 import { useExercises } from '@/hooks/use-exercises'
 import { useWorkoutExercisesByExercise } from '@/hooks/use-workout-exercises'
 import { explainCadence, splitCues } from '@/lib/cadence'
-import { iconForGroup } from '@/lib/muscle-groups'
 import { computeSessionAggregates } from '@/lib/workout-metrics'
 
 export function ExercicioDetalhePage() {
@@ -65,13 +65,15 @@ export function ExercicioDetalhePage() {
     <div className="flex flex-col gap-4">
       <BackLink />
 
-      <div className="flex items-center gap-2">
-        <span className="text-3xl" aria-hidden="true">
-          {iconForGroup(exercise.grupo_muscular)}
-        </span>
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">{exercise.nome}</h1>
-          {exercise.grupo_muscular && <p className="text-sm text-aco-texto">{exercise.grupo_muscular}</p>}
+      <div className="flex items-center gap-4">
+        <BodyMap size="md" musculosAtivos={exercise.grupo_muscular ? [exercise.grupo_muscular] : []} className="shrink-0" />
+        <div className="flex min-w-0 flex-col gap-2">
+          <h1 className="ds-h2 text-foreground">{exercise.nome}</h1>
+          {exercise.grupo_muscular && (
+            <span className="w-fit rounded-full bg-aco-claro px-2.5 py-1 ds-body-sm font-medium text-foreground first-letter:uppercase">
+              {exercise.grupo_muscular}
+            </span>
+          )}
         </div>
       </div>
 
@@ -80,7 +82,7 @@ export function ExercicioDetalhePage() {
       {passos.length > 0 && (
         <Card>
           <CardContent className="flex flex-col gap-3">
-            <p className="font-heading text-sm font-bold text-foreground">Execução</p>
+            <p className="ds-label">Execução</p>
             <ol className="flex flex-col gap-2">
               {passos.map((passo, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-foreground">
@@ -98,7 +100,7 @@ export function ExercicioDetalhePage() {
       {(cadencia || exercise.cadencia_padrao) && (
         <Card>
           <CardContent className="flex flex-col gap-1">
-            <p className="font-heading text-sm font-bold text-foreground">Cadência padrão</p>
+            <p className="ds-label">Cadência padrão</p>
             <p className="text-sm text-foreground">
               <span className="font-mono text-brasa">{exercise.cadencia_padrao}</span>
               {cadencia && <span className="text-aco-texto"> — {cadencia}</span>}
@@ -109,7 +111,7 @@ export function ExercicioDetalhePage() {
 
       <Card>
         <CardContent className="flex flex-col gap-3">
-          <p className="font-heading text-sm font-bold text-foreground">Últimas sessões</p>
+          <p className="ds-label">Últimas sessões</p>
           {history.isLoading ? (
             <Skeleton className="h-20 w-full" />
           ) : last5.length === 0 ? (
@@ -140,7 +142,7 @@ export function ExercicioDetalhePage() {
         <Button
           type="button"
           variant="outline"
-          className="flex-1"
+          className="min-h-11 flex-1"
           onClick={() => navigate(`/workout/evolucao/${exercise.id}`)}
         >
           <BarChart3 className="size-4" aria-hidden="true" />
@@ -149,7 +151,7 @@ export function ExercicioDetalhePage() {
         {primeiroTreino && (
           <Button
             type="button"
-            className="flex-1"
+            className="min-h-11 flex-1"
             onClick={() => navigate('/workout', { state: { initialTab: 'treinos' } })}
           >
             <Play className="size-4" aria-hidden="true" />

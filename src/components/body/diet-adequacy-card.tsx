@@ -118,7 +118,7 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
         <button
           type="button"
           onClick={() => collapsible && setExpanded((v) => !v)}
-          className="flex items-center justify-between gap-2 text-left outline-none"
+          className="flex min-h-11 items-center justify-between gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="font-heading text-sm font-bold text-foreground">Dieta × Objetivo</span>
           {collapsible && (
@@ -161,11 +161,11 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
               </span>
               <div className="flex gap-2">
                 {cache && veredito && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setShowDetails((v) => !v)}>
+                  <Button type="button" variant="ghost" size="sm" className="min-h-11" onClick={() => setShowDetails((v) => !v)}>
                     {showDetails ? 'Ocultar detalhes' : 'Ver detalhes'}
                   </Button>
                 )}
-                <Button type="button" variant="outline" size="sm" disabled={analisar.isPending} onClick={handleReanalisar}>
+                <Button type="button" variant="outline" size="sm" className="min-h-11" disabled={analisar.isPending} onClick={handleReanalisar}>
                   {analisar.isPending ? (
                     <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
                   ) : (

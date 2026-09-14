@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Check, Plus } from 'lucide-react'
 
 import { MacroBar } from '@/components/ds/macro-bar'
@@ -16,7 +17,13 @@ export type NutritionCardProps = {
   gordura: Macro
   onRegistrar?: () => void
   /** Ações extras no rodapé (manual, sugestões). */
-  extra?: React.ReactNode
+  extra?: ReactNode
+  /** Aviso contextual abaixo do cabeçalho (ex.: limite de carbo no jantar). */
+  aviso?: ReactNode
+  /** Há registro hoje, mesmo sem calorias (ex.: lançamento manual só com descrição). */
+  registrado?: boolean
+  /** Versão menor para a lista de próximas refeições. */
+  compact?: boolean
   className?: string
 }
 
@@ -35,14 +42,18 @@ export function NutritionCard({
   gordura,
   onRegistrar,
   extra,
+  aviso,
+  registrado: registradoProp,
+  compact = false,
   className,
 }: NutritionCardProps) {
-  const registrado = kcal.atual > 0
+  const registrado = registradoProp ?? kcal.atual > 0
 
   return (
     <div
       className={cn(
-        'flex flex-col gap-4 rounded-[var(--radius-lg)] border bg-card p-4',
+        'flex flex-col rounded-[var(--radius-lg)] border bg-card',
+        compact ? 'gap-3 p-3.5' : 'gap-4 p-4',
         agora ? 'ds-card-brasa border-brasa' : 'border-border',
         passada && !agora && 'opacity-60',
         className,
@@ -68,6 +79,8 @@ export function NutritionCard({
         </span>
       </div>
 
+      {aviso}
+
       {registrado ? (
         <MacroBar proteina={proteina} carbo={carbo} gordura={gordura} />
       ) : (
@@ -75,10 +88,13 @@ export function NutritionCard({
           <button
             type="button"
             onClick={onRegistrar}
-            className="ds-pressable-card flex min-h-12 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-dashed border-linha ds-body-md text-aco-texto outline-none hover:border-brasa/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            className={cn(
+              'ds-pressable-card flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-dashed outline-none hover:border-brasa/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring',
+              agora ? 'min-h-14 border-brasa/60 ds-body-md font-semibold text-brasa' : 'min-h-11 border-linha ds-body-sm text-aco-texto',
+            )}
           >
             <Plus className="size-4" aria-hidden="true" />
-            Toque para registrar
+            {agora ? 'Adicionar alimento' : 'Toque para registrar'}
           </button>
         )
       )}

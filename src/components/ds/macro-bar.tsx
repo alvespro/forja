@@ -10,6 +10,7 @@ export type MacroBarProps = {
   gordura: Macro
   /** Esconde os rótulos abaixo (uso compacto em headers). */
   compact?: boolean
+  size?: 'md' | 'lg'
   className?: string
 }
 
@@ -24,7 +25,7 @@ const SEGMENTS = [
  * A largura de cada segmento é a fatia daquela meta no total de gramas
  * planejado; o preenchimento interno mostra quanto já foi consumido.
  */
-export function MacroBar({ proteina, carbo, gordura, compact = false, className }: MacroBarProps) {
+export function MacroBar({ proteina, carbo, gordura, compact = false, size = 'md', className }: MacroBarProps) {
   const macros = { proteina, carbo, gordura }
   const totalMeta = proteina.meta + carbo.meta + gordura.meta || 1
 
@@ -37,7 +38,7 @@ export function MacroBar({ proteina, carbo, gordura, compact = false, className 
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <div className="flex h-2.5 w-full gap-1 overflow-hidden rounded-full" role="img" aria-label="Macros do dia">
+      <div className={cn('flex w-full gap-1 overflow-hidden rounded-full', size === 'lg' ? 'h-3.5' : 'h-2.5')} role="img" aria-label="Macros do dia">
         {SEGMENTS.map((s) => {
           const m = macros[s.key]
           const largura = (m.meta / totalMeta) * 100

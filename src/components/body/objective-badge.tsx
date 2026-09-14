@@ -20,7 +20,9 @@ export function ObjectiveBadge() {
       type="button"
       onClick={() => navigate('/body')}
       className={cn(
-        'flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+        'relative flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+        // área de toque estendida para 44px de altura, sem mudar o visual
+        "after:absolute after:inset-x-0 after:-inset-y-[9px] after:content-['']",
         fimProximo ? 'border-atencao/40 bg-atencao/15 text-atencao' : OBJETIVO_BADGE_CLASS[objetivo],
       )}
     >

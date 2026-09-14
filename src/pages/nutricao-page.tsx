@@ -3,11 +3,10 @@ import { format, isToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ChevronDown, RefreshCw } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DailySummaryBar } from '@/components/nutrition/daily-summary-bar'
+import { MacroBar } from '@/components/ds/macro-bar'
 import { FoodBodyChart } from '@/components/nutrition/food-body-chart'
 import { MealSlotCard } from '@/components/nutrition/meal-slot-card'
 import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
@@ -60,8 +59,6 @@ export function NutricaoPage() {
 
   const slots = mealSlots.data ?? []
   const currentSlot = slots.find((s) => s.id === timing.currentId) ?? null
-  const nextSlot = slots.find((s) => s.id === timing.nextId) ?? null
-  const otherSlots = slots.filter((s) => s.id !== timing.currentId && s.id !== timing.nextId)
 
   const isLoading = dietPlan.isLoading || mealSlots.isLoading || mealLogs.isLoading
   const isError = dietPlan.isError || mealSlots.isError || mealLogs.isError
@@ -74,21 +71,25 @@ export function NutricaoPage() {
         ? `✅ ${isToday(new Date(lastSync.data.created_at)) ? 'hoje' : format(parseDateOnly(lastSync.data.data), 'dd/MM')} ${format(new Date(lastSync.data.created_at), 'HH:mm')}`
         : `⚠️ ${format(new Date(lastSync.data.created_at), 'dd/MM HH:mm', { locale: ptBR })}`
 
+  const agoraNumero = currentSlot?.numero ?? 0
+  const kcalMeta = dietPlan.data?.calorias_alvo ?? 0
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Nutrição 🥗</h1>
-          <p className="text-sm text-aco-texto">{dietPlan.data?.nome ?? 'Plano alimentar e suplementação'}</p>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <header className="flex flex-col gap-1">
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="ds-h1 text-foreground">Nutrição</h1>
+          <ObjectiveBadge />
         </div>
-        <ObjectiveBadge />
-      </div>
+        {dietPlan.data?.nome && <p className="ds-body-sm text-aco-texto">{dietPlan.data.nome}</p>}
+      </header>
 
       {isLoading ? (
         <div className="flex flex-col gap-3">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-28 w-full" />
-          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full rounded-[var(--radius-lg)]" />
+          <Skeleton className="h-44 w-full rounded-[var(--radius-lg)]" />
+          <Skeleton className="h-24 w-full rounded-[var(--radius-lg)]" />
+          <Skeleton className="h-24 w-full rounded-[var(--radius-lg)]" />
         </div>
       ) : isError ? (
         <ErrorState
@@ -100,83 +101,89 @@ export function NutricaoPage() {
           }}
         />
       ) : !dietPlan.data ? (
-        <EmptyState message="Nenhum plano alimentar ativo ainda." />
+        <EmptyState message="Nenhum plano alimentar ativo" description="Cadastre um plano para acompanhar macros e refeições." />
       ) : (
         <>
-          {/* HEADER FIXO: macros do dia + refeição atual + status Yazio */}
-          <div className="sticky top-0 z-20 flex flex-col gap-2 bg-background/95 pb-1 pt-1 backdrop-blur">
-            <DailySummaryBar
-              calorias={{ label: 'Calorias', consumido: consumido.calorias, meta: dietPlan.data.calorias_alvo ?? 0, unidade: '' }}
-              proteina={{ label: 'Proteína', consumido: consumido.proteina_g, meta: dietPlan.data.proteina_g ?? 0, unidade: 'g' }}
-              carbo={{ label: 'Carbo', consumido: consumido.carbo_g, meta: dietPlan.data.carbo_g ?? 0, unidade: 'g' }}
-              gordura={{ label: 'Gordura', consumido: consumido.gordura_g, meta: dietPlan.data.gordura_g ?? 0, unidade: 'g' }}
-            />
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span className="text-aco-texto">
-                Refeição atual:{' '}
-                <span className="font-medium text-foreground">
-                  {currentSlot ? `${currentSlot.nome} — ${currentSlot.horario_alvo?.slice(0, 5) ?? ''}` : '—'}
-                </span>
+          {/* HEADER FIXO: macros do dia em destaque */}
+          <section className="sticky top-0 z-20 -mx-4 flex flex-col gap-3 border-b border-linha bg-meia-noite/90 px-4 pb-4 pt-3 backdrop-blur-md md:mx-0 md:rounded-[var(--radius-lg)] md:border md:px-5">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[18px] font-bold text-foreground [font-family:var(--font-data)] tabular-nums">
+                {Math.round(consumido.calorias).toLocaleString('pt-BR')}
+                <span className="ds-data-md font-normal text-aco-texto"> / {kcalMeta.toLocaleString('pt-BR')} kcal</span>
               </span>
-              <div className="flex items-center gap-2">
-                <span className="text-aco-texto">{yazioStatus}</span>
-                <Button type="button" variant="outline" size="xs" disabled={syncNow.isPending} onClick={() => syncNow.mutate()}>
-                  <RefreshCw className={syncNow.isPending ? 'size-3 animate-spin' : 'size-3'} aria-hidden="true" />
-                  Sync
-                </Button>
-              </div>
+              <button
+                type="button"
+                onClick={() => syncNow.mutate()}
+                disabled={syncNow.isPending}
+                aria-label={`Sincronizar Yazio (${yazioStatus})`}
+                className="-mr-2 flex min-h-11 items-center gap-1.5 rounded-full px-2 ds-data-sm text-aco-texto outline-none hover:text-foreground disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <RefreshCw className={cn('size-3.5', syncNow.isPending && 'animate-spin')} aria-hidden="true" />
+                {yazioStatus}
+              </button>
             </div>
-          </div>
+            <MacroBar
+              size="lg"
+              proteina={{ atual: consumido.proteina_g, meta: dietPlan.data.proteina_g ?? 0 }}
+              carbo={{ atual: consumido.carbo_g, meta: dietPlan.data.carbo_g ?? 0 }}
+              gordura={{ atual: consumido.gordura_g, meta: dietPlan.data.gordura_g ?? 0 }}
+            />
+          </section>
 
           {slots.length === 0 ? (
-            <EmptyState message="Nenhuma refeição configurada no plano ativo." />
+            <EmptyState message="Nenhuma refeição no plano" description="Configure as refeições do plano ativo." />
           ) : (
-            <div className="flex flex-col gap-3">
-              {/* REFEIÇÃO EM DESTAQUE (AGORA) */}
+            <>
+              {/* REFEIÇÃO ATUAL (hero) */}
               {currentSlot && (
-                <MealSlotCard
-                  slot={currentSlot}
-                  logsHoje={logsBySlot.get(currentSlot.id) ?? []}
-                  variant="featured"
-                  allSlots={slots}
-                />
+                <section className="flex flex-col gap-2">
+                  <MealSlotCard
+                    slot={currentSlot}
+                    logsHoje={logsBySlot.get(currentSlot.id) ?? []}
+                    variant="featured"
+                    allSlots={slots}
+                  />
+                </section>
               )}
 
-              {/* PRÓXIMA REFEIÇÃO */}
-              {nextSlot && (
-                <MealSlotCard
-                  slot={nextSlot}
-                  logsHoje={logsBySlot.get(nextSlot.id) ?? []}
-                  variant="next"
-                  allSlots={slots}
-                />
-              )}
-
-              {/* RESTANTE DO DIA */}
-              {otherSlots.map((slot) => (
-                <MealSlotCard
-                  key={slot.id}
-                  slot={slot}
-                  logsHoje={logsBySlot.get(slot.id) ?? []}
-                  allSlots={slots}
-                />
-              ))}
-            </div>
+              {/* DEMAIS REFEIÇÕES DO DIA — as que já passaram ficam esmaecidas */}
+              <section className="flex flex-col gap-2">
+                <span className="ds-label">Refeições do dia</span>
+                {slots
+                  .filter((s) => s.id !== currentSlot?.id)
+                  .map((slot) => (
+                    <MealSlotCard
+                      key={slot.id}
+                      slot={slot}
+                      logsHoje={logsBySlot.get(slot.id) ?? []}
+                      allSlots={slots}
+                      passada={slot.numero < agoraNumero}
+                    />
+                  ))}
+              </section>
+            </>
           )}
 
-          {/* SUPLEMENTAÇÃO (colapsável) */}
-          <div className="flex flex-col gap-2">
+          {/* SUPLEMENTOS (seção recolhível com alça) */}
+          <section className="flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-linha bg-aco">
             <button
               type="button"
               onClick={() => setShowSupps((v) => !v)}
               aria-expanded={showSupps}
-              className="flex min-h-11 items-center justify-between gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex flex-col items-center gap-2 px-4 pb-3 pt-2 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             >
-              <span className="font-heading text-lg font-semibold text-foreground">Suplementos de hoje</span>
-              <ChevronDown className={cn('size-4 text-aco-texto transition-transform', showSupps && 'rotate-180')} aria-hidden="true" />
+              <span className="h-1 w-10 rounded-full bg-aco-texto/40" aria-hidden="true" />
+              <span className="flex min-h-9 w-full items-center justify-between">
+                <span className="ds-h4 text-foreground">Suplementos de hoje</span>
+                <ChevronDown className={cn('size-5 text-aco-texto transition-transform', showSupps && 'rotate-180')} aria-hidden="true" />
+              </span>
             </button>
-            {showSupps && <SupplementsTodaySection />}
-          </div>
+            {showSupps && (
+              <div className="px-4 pb-4">
+                <SupplementsTodaySection />
+              </div>
+            )}
+          </section>
 
           <DietAdequacyCard />
           <FoodBodyChart plan={dietPlan.data} />

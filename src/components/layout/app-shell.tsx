@@ -41,7 +41,9 @@ export function AppShell() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-8 md:pb-8">
+        {/* Sem overflow aqui: quem rola é a janela. overflow-y-auto no <main> (que nunca
+            rola) prendia todo position: sticky ao próprio main, e headers fixos não fixavam. */}
+        <main className="flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-8">
           <Suspense fallback={<PageSkeleton />}>
             <Outlet />
           </Suspense>

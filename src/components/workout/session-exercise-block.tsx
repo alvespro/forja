@@ -30,6 +30,18 @@ export function SessionExerciseBlock({
     [history.data, sessionId, prescription],
   )
 
+  // Recorde do exercício antes de hoje e maior carga já feita nesta sessão.
+  const historicoMaxKg = useMemo(() => {
+    const cargas = (history.data ?? [])
+      .filter((l) => l.session_id !== sessionId && l.carga_kg != null)
+      .map((l) => l.carga_kg as number)
+    return cargas.length > 0 ? Math.max(...cargas) : null
+  }, [history.data, sessionId])
+  const sessaoMaxKg = useMemo(() => {
+    const cargas = logs.filter((l) => l.concluida && l.carga_kg != null).map((l) => l.carga_kg as number)
+    return cargas.length > 0 ? Math.max(...cargas) : null
+  }, [logs])
+
   const totalSeries = Math.max(prescription.series_alvo ?? 1, logs.length)
   const seriesNums = Array.from({ length: totalSeries }, (_, i) => i + 1)
 
@@ -55,6 +67,9 @@ export function SessionExerciseBlock({
             prescription={prescription}
             existingLog={logs.find((log) => log.serie_num === serieNum)}
             lastLog={lastLog}
+            exerciseNome={exercise?.nome ?? 'exercício'}
+            historicoMaxKg={historicoMaxKg}
+            sessaoMaxKg={sessaoMaxKg}
             onSetCompleted={(log) => onSetCompleted(log, prescription.pausa_alvo_seg)}
           />
         ))}

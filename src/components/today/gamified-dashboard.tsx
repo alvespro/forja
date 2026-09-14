@@ -23,6 +23,7 @@ import { computeDayScore, PTS, type DayScoreInputs } from '@/lib/daily-score'
 import { addDaysToDateString, parseDateOnly, todayInSaoPaulo, toSaoPauloDateString } from '@/lib/date'
 import { computeAchievements, last7Days, levelInfo } from '@/lib/gamification'
 import { weekdayAbbrevOf } from '@/lib/nutrition'
+import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 // ─── Ranking do dia ──────────────────────────────────────────────────────────
@@ -257,6 +258,17 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
   // `pontos` persistido já inclui o bônus do dia — somar `bonus` de novo contaria 2×.
   const totalXP = scores.reduce((s, d) => s + d.pontos, 0)
   const nivel = levelInfo(totalXP)
+
+  // Nível subindo: celebra só na transição vista nesta sessão, não no carregamento inicial.
+  const nivelAnterior = useRef<number | null>(null)
+  useEffect(() => {
+    if (dailyScores.isLoading) return
+    if (nivelAnterior.current !== null && nivel.nivel > nivelAnterior.current) {
+      haptic('double')
+      toast.success(`⚡ Nível ${nivel.nivel} — ${nivel.titulo}`)
+    }
+    nivelAnterior.current = nivel.nivel
+  }, [nivel.nivel, nivel.titulo, dailyScores.isLoading])
   const semana = last7Days(scores, today)
 
   // Conquista desbloqueada é definitiva: o cálculo da janela é sobreposto

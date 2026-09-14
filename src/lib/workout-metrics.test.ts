@@ -4,6 +4,7 @@ import {
   analyzeTrainingTrend,
   computeOverloadSuggestion,
   groupSetsBySession,
+  isNewRecord,
   type SessionAggregate,
   type SetLogWithSession,
 } from './workout-metrics'
@@ -155,5 +156,20 @@ describe('computeOverloadSuggestion', () => {
       serie('recente', '2026-07-01', 1, 70, 12), serie('recente', '2026-07-01', 2, 70, 12), serie('recente', '2026-07-01', 3, 70, 12),
     ]
     expect(computeOverloadSuggestion(hist, 'atual', prescricao)?.cargaKg).toBe(72.5)
+  })
+})
+
+describe('isNewRecord', () => {
+  it('supera o histórico → recorde', () => {
+    expect(isNewRecord(82.5, 80, null)).toBe(true)
+  })
+  it('igualar não é recorde', () => {
+    expect(isNewRecord(80, 80, null)).toBe(false)
+  })
+  it('segunda série acima do recorde antigo, mas não da primeira de hoje, não celebra de novo', () => {
+    expect(isNewRecord(82.5, 80, 85)).toBe(false)
+  })
+  it('primeira vez no exercício não tem recorde a bater', () => {
+    expect(isNewRecord(40, null, null)).toBe(false)
   })
 })

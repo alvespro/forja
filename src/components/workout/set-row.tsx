@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { SetRowView } from '@/components/workout/session/session-views'
 import { useCreateSetLog, useUpdateSetLog } from '@/hooks/use-set-logs'
 import { haptic } from '@/lib/haptics'
+import { isNewRecord } from '@/lib/workout-metrics'
 import type { SetLog, WorkoutExercise } from '@/types/database'
 
 type SetRowProps = {
@@ -12,11 +14,25 @@ type SetRowProps = {
   prescription: WorkoutExercise | undefined
   existingLog: SetLog | undefined
   lastLog: SetLog | undefined
+  exerciseNome: string
+  historicoMaxKg: number | null
+  sessaoMaxKg: number | null
   onSetCompleted: (log: SetLog) => void
 }
 
 /** Container da série: estado dos inputs + gravação. O visual é o SetRowView. */
-export function SetRow({ sessionId, exerciseId, serieNum, prescription, existingLog, lastLog, onSetCompleted }: SetRowProps) {
+export function SetRow({
+  sessionId,
+  exerciseId,
+  serieNum,
+  prescription,
+  existingLog,
+  lastLog,
+  exerciseNome,
+  historicoMaxKg,
+  sessaoMaxKg,
+  onSetCompleted,
+}: SetRowProps) {
   const [isEditing, setIsEditing] = useState(!existingLog)
   const [valores, setValores] = useState({
     // Pré-preenche com a última carga/reps do exercício para agilizar o registro.
@@ -49,7 +65,12 @@ export function SetRow({ sessionId, exerciseId, serieNum, prescription, existing
     } else {
       createSetLog.mutate(values, {
         onSuccess: (createdLog) => {
-          haptic('light')
+          if (isNewRecord(values.carga_kg, historicoMaxKg, sessaoMaxKg)) {
+            haptic('double')
+            toast.success(`🏆 Novo recorde: ${String(values.carga_kg).replace('.', ',')} kg`, { description: exerciseNome })
+          } else {
+            haptic('light')
+          }
           setIsEditing(false)
           onSetCompleted(createdLog)
         },

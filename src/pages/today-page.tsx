@@ -14,6 +14,7 @@ import { NotificationsCard } from '@/components/today/notifications-card'
 import { NutritionPreviewCard } from '@/components/today/nutrition-preview-card'
 import { PretreinoAlertCard } from '@/components/today/pretreino-alert-card'
 import { ProtocolSummaryCard } from '@/components/today/protocol-summary-card'
+import { PullToRefresh } from '@/components/today/pull-to-refresh'
 import { QuickStatsCard } from '@/components/today/quick-stats-card'
 import { SpacedReviewCard } from '@/components/today/spaced-review-card'
 import { WorkoutTodayCard } from '@/components/today/workout-today-card'
@@ -26,6 +27,7 @@ import { WorkoutTodayCard } from '@/components/today/workout-today-card'
 export function TodayPage() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
+      <PullToRefresh />
       <GamifiedDashboard
         afterHero={
           <>

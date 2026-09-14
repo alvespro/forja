@@ -225,3 +225,13 @@ export function computeOverloadSuggestion(
   }
   return null
 }
+
+/**
+ * Uma série bate recorde quando supera a maior carga do histórico E a maior já
+ * feita nesta sessão — senão cada série acima do recorde antigo celebraria de novo.
+ * Sem histórico (primeira vez no exercício) não há recorde a bater.
+ */
+export function isNewRecord(cargaKg: number | null, historicoMaxKg: number | null, sessaoMaxKg: number | null): boolean {
+  if (cargaKg == null || historicoMaxKg == null) return false
+  return cargaKg > Math.max(historicoMaxKg, sessaoMaxKg ?? 0)
+}

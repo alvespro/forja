@@ -16,12 +16,13 @@ import { PretreinoAlertCard } from '@/components/today/pretreino-alert-card'
 import { ProtocolSummaryCard } from '@/components/today/protocol-summary-card'
 import { PullToRefresh } from '@/components/today/pull-to-refresh'
 import { QuickStatsCard } from '@/components/today/quick-stats-card'
+import { RecoveryCard } from '@/components/today/recovery-card'
 import { SpacedReviewCard } from '@/components/today/spaced-review-card'
 import { WorkoutTodayCard } from '@/components/today/workout-today-card'
 
 /**
  * Hoje — cockpit. Uma informação dominante por seção, espaço generoso entre elas:
- * hero (score) → ação principal → hábitos → métricas → semana/conquistas →
+ * hero (score) → recuperação → ação principal → hábitos → métricas → semana/conquistas →
  * calendário → nutrição → alertas → demais resumos.
  */
 export function TodayPage() {
@@ -31,6 +32,7 @@ export function TodayPage() {
       <GamifiedDashboard
         afterHero={
           <>
+            <RecoveryCard />
             <NextActionCard />
             <HabitChecklistCard />
             <QuickStatsCard />

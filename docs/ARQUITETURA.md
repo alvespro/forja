@@ -89,6 +89,22 @@ Bucket privado `progress-photos` (pasta = uid, URLs assinadas 1h).
 `analyze-progress-photo` valida o dono, monta contexto (medições, fotos
 anteriores, treinos 30d) e gera relatório via Claude vision.
 
+### Cálculos clínicos (health-calc)
+Edge Function `health-calc` (secret `HEALTH_CALC_API_KEY`, RapidAPI Health
+Calculator API) calcula HOMA-IR, ratios lipídicos, previsão de recomposição,
+zonas Karvonen e score de recuperação. As fórmulas e faixas vivem em
+`supabase/functions/_shared/health-calc.ts` (reexportado em
+`src/lib/health-calc.ts`, testado) e são a fonte da classificação: o valor da
+API só é aceito quando concorda com o cálculo local; API fora do plano, fora
+do ar ou timeout (8s) → cálculo local com `offline_fallback: true`. Em
+14/09/2026 o plano gratuito bloqueia HOMA-IR/ratios/Karvonen e recomposição/
+recuperação só existem no plano enterprise (api.hefitapi.com) — tudo roda
+localmente. Resultados: `health_metrics_derived` (histórico) e
+`recovery_scores` (um por dia). Disparos: exame confirmado no Document Vision,
+nova pesagem com % de gordura, primeiro treino/cardio (zonas padrão 32 anos /
+FC 62), slider do card de recuperação no Hoje. Sono é manual (`sleep_logs`,
+data = noite em que começou). Apple Health foi removido em 04/07/2026.
+
 ## Edge functions e segurança
 
 - `verify_jwt` em todas; as **agendadas** (weekly-suggestions,

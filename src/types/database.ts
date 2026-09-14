@@ -670,3 +670,48 @@ export type ProtocolGoal = {
   forca_meta: string | null
   notas: string | null
 }
+
+export type RiscoClinico = 'baixo' | 'intermediario' | 'alto' | 'critico'
+
+export type HealthDerivedTipo = 'homa_ir' | 'cholesterol_ratio' | 'recomp_forecast' | 'karvonen_zones'
+
+/** Resultado de um cálculo da Edge Function health-calc (histórico: uma linha por cálculo). */
+export type HealthMetricDerived = {
+  id: string
+  user_id: string
+  tipo: HealthDerivedTipo
+  valor: number | null
+  interpretacao: string | null
+  risco: RiscoClinico | null
+  dados_input: Record<string, unknown> | null
+  dados_output: Record<string, unknown> | null
+  calculado_em: string
+}
+
+/** Score de recuperação do dia (um por dia). `dor_muscular` 1–5 = 6 − disposição do slider. */
+export type RecoveryScore = {
+  id: string
+  user_id: string
+  data: string
+  score: number | null
+  classificacao: string | null
+  sono_horas: number | null
+  fc_repouso: number | null
+  dor_muscular: number | null
+  volume_ontem: number | null
+  recomendacao: string | null
+  componentes: Record<string, unknown> | null
+}
+
+/** Sono manual. `data` = dia em que a noite começou (a noite de ontem grava a data de ontem). */
+export type SleepLog = {
+  id: string
+  user_id: string
+  data: string
+  hora_dormir: string | null
+  hora_acordar: string | null
+  duracao_min: number | null
+  qualidade: number | null
+  notas: string | null
+  fonte: 'manual'
+}

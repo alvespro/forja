@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { LogOut, Zap } from 'lucide-react'
 
 import { useAuth } from '@/hooks/use-auth'
@@ -6,7 +6,7 @@ import { useProfile } from '@/hooks/use-profile'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
-import { primaryNavItems, secondaryNavGroups, type NavItem } from './nav-items'
+import { isItemActive, primaryNavItems, secondaryNavGroups, type NavItem } from './nav-items'
 
 /** Sidebar desktop (≥768px): 220px, logo, destinos agrupados e perfil no rodapé. */
 export function Sidebar() {
@@ -62,29 +62,25 @@ export function Sidebar() {
   )
 }
 
-function SidebarLink({ item: { to, label, icon: Icon } }: { item: NavItem }) {
+function SidebarLink({ item }: { item: NavItem }) {
+  const { to, label, icon: Icon } = item
+  const isActive = isItemActive(item, useLocation().pathname)
   return (
     <li>
       <NavLink
         to={to}
         end={to === '/'}
-        className={({ isActive }) =>
-          cn(
-            'relative flex min-h-10 items-center gap-3 rounded-[var(--radius-sm)] px-3 ds-body-md font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
-            isActive ? 'bg-brasa/10 text-foreground' : 'text-aco-texto hover:bg-aco hover:text-foreground',
-          )
-        }
-      >
-        {({ isActive }) => (
-          <>
-            <span
-              className={cn('absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-brasa', isActive ? 'opacity-100' : 'opacity-0')}
-              aria-hidden="true"
-            />
-            <Icon className={cn('size-[18px] shrink-0', isActive && 'text-brasa')} aria-hidden="true" />
-            <span className="truncate">{label}</span>
-          </>
+        className={cn(
+          'relative flex min-h-10 items-center gap-3 rounded-[var(--radius-sm)] px-3 ds-body-md font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+          isActive ? 'bg-brasa/10 text-foreground' : 'text-aco-texto hover:bg-aco hover:text-foreground',
         )}
+      >
+        <span
+          className={cn('absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-brasa', isActive ? 'opacity-100' : 'opacity-0')}
+          aria-hidden="true"
+        />
+        <Icon className={cn('size-[18px] shrink-0', isActive && 'text-brasa')} aria-hidden="true" />
+        <span className="truncate">{label}</span>
       </NavLink>
     </li>
   )

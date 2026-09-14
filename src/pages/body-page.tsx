@@ -17,6 +17,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -29,9 +30,12 @@ import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { ObjectiveCard } from '@/components/body/objective-card'
 import { ProgressPhotosCard } from '@/components/body/progress-photos-card'
 import { WeightProjectionCard } from '@/components/body/weight-projection-card'
+import { RecompForecastCard } from '@/components/health/clinical-analysis'
 import { useActiveBodyGoal } from '@/hooks/use-body-goals'
-import { useBodyMetrics, useCreateBodyMetric, useDeleteBodyMetric } from '@/hooks/use-body-metrics'
+import { type BodyMetricInput, useBodyMetrics, useCreateBodyMetric, useDeleteBodyMetric } from '@/hooks/use-body-metrics'
 import { useConfirm } from '@/hooks/use-confirm'
+import { useActiveDietPlan } from '@/hooks/use-diet-plan'
+import { useHealthCalc } from '@/hooks/useHealthCalc'
 import { useProfile } from '@/hooks/use-profile'
 import { useAuth } from '@/hooks/use-auth'
 import { buildCompositionCards, type CompositionKey } from '@/lib/body-composition'
@@ -67,6 +71,22 @@ export function BodyPage() {
   const deleteMetric = useDeleteBodyMetric()
   const { confirm, dialog } = useConfirm()
   const [isAdding, setIsAdding] = useState(false)
+  const dietPlan = useActiveDietPlan()
+  const { calcRecompForecast } = useHealthCalc()
+
+  /** Pesagem confirmada com % de gordura + plano ativo → atualiza a previsão de recomposição. */
+  function atualizarPrevisao(values: BodyMetricInput) {
+    const plano = dietPlan.data
+    if (values.peso_kg == null || values.gordura_pct == null || !plano?.calorias_alvo || !plano.proteina_g) return
+    calcRecompForecast({
+      weight: values.peso_kg,
+      bodyFatPct: values.gordura_pct,
+      calories: Number(plano.calorias_alvo),
+      proteinG: Number(plano.proteina_g),
+    })
+      .then((r) => toast.success(`Previsão atualizada: ${r.probabilidade}% de chance de recomposição em ${r.semanas} semanas`))
+      .catch(() => toast.error('Não foi possível atualizar a previsão de recomposição.'))
+  }
 
   const lista = useMemo(() => metrics.data ?? [], [metrics.data])
   const ordered = useMemo(() => [...lista].reverse(), [lista])
@@ -187,7 +207,14 @@ export function BodyPage() {
             <BodyMetricForm
               isSubmitting={createMetric.isPending}
               onCancel={() => setIsAdding(false)}
-              onSubmit={(values) => createMetric.mutate(values, { onSuccess: () => setIsAdding(false) })}
+              onSubmit={(values) =>
+                createMetric.mutate(values, {
+                  onSuccess: () => {
+                    setIsAdding(false)
+                    atualizarPrevisao(values)
+                  },
+                })
+              }
             />
           )}
 
@@ -224,6 +251,7 @@ export function BodyPage() {
           )}
 
           <WeightProjectionCard pesoAtual={latest?.peso_kg ?? null} metrics={lista} />
+          <RecompForecastCard />
 
           <ObjectiveCard />
           <ProgressPhotosCard pesoAtual={latest?.peso_kg} />

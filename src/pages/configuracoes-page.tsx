@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DadosPreview } from '@/components/document-vision/dados-preview'
+import { HealthCalculatorCard } from '@/components/health/health-calculator-card'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -44,8 +45,10 @@ export function ConfiguracoesPage() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="font-heading text-2xl font-bold text-foreground">Configurações</h1>
-        <p className="text-sm text-aco-texto">Importações de documentos lidos por IA.</p>
+        <p className="text-sm text-aco-texto">Saúde, importações de documentos e atividade.</p>
       </div>
+
+      <HealthCalculatorCard />
 
       <ActivityCalendar />
 

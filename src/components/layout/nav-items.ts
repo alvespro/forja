@@ -23,6 +23,8 @@ export type NavItem = {
   to: string
   label: string
   icon: LucideIcon
+  /** Sub-telas sem item próprio que acendem este destino (ex.: /sono dentro de Saúde). */
+  ativoEm?: string[]
 }
 
 export type NavGroup = {
@@ -35,7 +37,7 @@ export const primaryNavItems: NavItem[] = [
   { to: '/', label: 'Hoje', icon: Sun },
   { to: '/workout', label: 'Treino', icon: Dumbbell },
   { to: '/nutricao', label: 'Nutrição', icon: Salad },
-  { to: '/health', label: 'Saúde', icon: HeartPulse },
+  { to: '/health', label: 'Saúde', icon: HeartPulse, ativoEm: ['/sono'] },
 ]
 
 /** Demais telas, agrupadas por contexto (folha "Mais" no mobile, seções na sidebar). */
@@ -69,7 +71,7 @@ export const secondaryNavGroups: NavGroup[] = [
   },
   {
     titulo: 'Conta',
-    itens: [{ to: '/configuracoes', label: 'Importações', icon: Settings }],
+    itens: [{ to: '/configuracoes', label: 'Configurações', icon: Settings }],
   },
 ]
 
@@ -78,7 +80,12 @@ export const navItems: NavItem[] = [...primaryNavItems, ...secondaryNavGroups.fl
 
 /** A rota atual pertence a um destino principal? (senão o "Mais" fica ativo na tab bar). */
 export function isPrimaryPath(pathname: string): boolean {
-  return primaryNavItems.some((item) =>
-    item.to === '/' ? pathname === '/' : pathname === item.to || pathname.startsWith(`${item.to}/`),
-  )
+  return primaryNavItems.some((item) => isItemActive(item, pathname))
+}
+
+/** O destino está ativo na rota atual (inclui as sub-telas listadas em `ativoEm`)? */
+export function isItemActive(item: NavItem, pathname: string): boolean {
+  const casa = (base: string) => pathname === base || pathname.startsWith(`${base}/`)
+  if (item.to === '/') return pathname === '/'
+  return casa(item.to) || (item.ativoEm ?? []).some(casa)
 }

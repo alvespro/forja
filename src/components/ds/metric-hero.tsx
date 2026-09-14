@@ -78,7 +78,7 @@ export function MetricHero({
  * Em fonte monoespaçada a vírgula ocupa uma célula inteira ("84 , 4").
  * Compensa o separador decimal com margem negativa para colar nos dígitos.
  */
-function DecimalValue({ value }: { value: string | number }) {
+export function DecimalValue({ value }: { value: string | number }) {
   const text = String(value)
   const match = text.match(/^(-?\d+)([.,])(\d+)(.*)$/)
   if (!match) return <>{text}</>

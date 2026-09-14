@@ -5,7 +5,7 @@ import { LayoutGrid } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import { MoreSheet } from './more-sheet'
-import { isPrimaryPath, primaryNavItems } from './nav-items'
+import { isItemActive, isPrimaryPath, primaryNavItems } from './nav-items'
 
 const itemCls =
   'relative flex min-h-[var(--tabbar-h)] flex-1 flex-col items-center justify-center gap-0.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
@@ -26,9 +26,9 @@ export function TabBar() {
         className="fixed inset-x-0 bottom-0 z-10 flex border-t border-linha pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden [html[data-immersive]_&]:hidden"
         style={{ backgroundColor: 'rgba(11,18,32,0.88)' }}
       >
-        {primaryNavItems.map(({ to, label, icon: Icon }) => (
-          <NavLink key={to} to={to} end={to === '/'} aria-label={label} className={itemCls}>
-            {({ isActive }) => <TabContent Icon={Icon} label={label} ativo={isActive} />}
+        {primaryNavItems.map((item) => (
+          <NavLink key={item.to} to={item.to} end={item.to === '/'} aria-label={item.label} className={itemCls}>
+            <TabContent Icon={item.icon} label={item.label} ativo={isItemActive(item, location.pathname)} />
           </NavLink>
         ))}
 

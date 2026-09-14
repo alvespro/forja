@@ -11,8 +11,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CardioDistanceChart } from '@/components/workout/cardio-distance-chart'
 import { CardioForm } from '@/components/workout/cardio-form'
 import { CardioGoalCard } from '@/components/workout/cardio-goal-card'
+import { HeartZonesCard } from '@/components/workout/heart-zones-card'
 import { useCardioSessions, useCreateCardioSession, useDeleteCardioSession } from '@/hooks/use-cardio-sessions'
 import { useConfirm } from '@/hooks/use-confirm'
+import { useEnsureKarvonenZones } from '@/hooks/use-heart-zones'
 
 const TIPO_LABEL: Record<string, string> = {
   longo: 'Longo',
@@ -26,6 +28,7 @@ export function CardioTab() {
   const deleteSession = useDeleteCardioSession()
   const [isAdding, setIsAdding] = useState(false)
   const { confirm, dialog } = useConfirm()
+  const ensureKarvonenZones = useEnsureKarvonenZones()
 
   async function handleDelete(id: string) {
     const ok = await confirm({ title: 'Excluir este registro de cardio?' })
@@ -50,9 +53,18 @@ export function CardioTab() {
         <CardioForm
           isSubmitting={createSession.isPending}
           onCancel={() => setIsAdding(false)}
-          onSubmit={(values) => createSession.mutate(values, { onSuccess: () => setIsAdding(false) })}
+          onSubmit={(values) =>
+            createSession.mutate(values, {
+              onSuccess: () => {
+                setIsAdding(false)
+                void ensureKarvonenZones()
+              },
+            })
+          }
         />
       )}
+
+      <HeartZonesCard />
 
       {!sessions.isLoading && !sessions.isError && sessions.data && sessions.data.length > 0 && (
         <>

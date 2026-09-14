@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { FunctionsHttpError } from '@supabase/supabase-js'
+import { toast } from 'sonner'
 
 import { useAuth } from '@/hooks/use-auth'
+import { useHealthCalc } from '@/hooks/useHealthCalc'
+import { homaInputsFrom, lipidInputsFrom } from '@/lib/clinical-inputs'
 import { todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 import type { DocumentImportTipo } from '@/types/database'
@@ -201,6 +204,7 @@ async function aplicarSuplemento(userId: string, dados: DadosSuplemento) {
 export function useDocumentVision() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { calcHOMAIR, calcCholesterolRatio } = useHealthCalc()
   const [processando, setProcessando] = useState(false)
   const [dadosExtraidos, setDadosExtraidos] = useState<DadosExtraidos | null>(null)
   const [importId, setImportId] = useState<string | null>(null)
@@ -285,6 +289,25 @@ export function useDocumentVision() {
     queryClient.invalidateQueries({ queryKey: ['supplements'] })
   }
 
+  /**
+   * Exame confirmado → cálculos derivados automáticos (HOMA-IR, ratios lipídicos).
+   * Em segundo plano: falha aqui não desfaz a importação, só avisa.
+   */
+  function dispararCalculosDoExame(dados: DadosExame) {
+    const homa = homaInputsFrom(dados.marcadores)
+    if (homa) {
+      calcHOMAIR(homa.glicemia, homa.insulina)
+        .then(() => toast.success('📊 HOMA-IR calculado — ver Placar de Saúde'))
+        .catch(() => toast.error('Não foi possível calcular o HOMA-IR agora.'))
+    }
+    const lipidios = lipidInputsFrom(dados.marcadores)
+    if (lipidios) {
+      calcCholesterolRatio(lipidios.colesterol_total, lipidios.hdl, lipidios.ldl, lipidios.triglicerides)
+        .then(() => toast.success('📊 Ratios lipídicos calculados'))
+        .catch(() => toast.error('Não foi possível calcular os ratios lipídicos agora.'))
+    }
+  }
+
   async function confirmar(dadosEditados?: DadosExtraidos) {
     if (!importId) throw new Error('Nenhuma importação em andamento')
     const dadosFinais = dadosEditados ?? dadosExtraidos
@@ -301,6 +324,8 @@ export function useDocumentVision() {
     queryClient.invalidateQueries({ queryKey: ['document-imports'] })
     setDadosExtraidos(null)
     setImportId(null)
+
+    if (dadosFinais.tipo === 'exame') dispararCalculosDoExame(dadosFinais)
   }
 
   async function rejeitar() {

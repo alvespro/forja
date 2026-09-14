@@ -15,6 +15,7 @@ import { SessionExerciseBlock } from '@/components/workout/session-exercise-bloc
 import { formatClock, ImmersiveHeader, PostWorkoutSummary, type PostWorkoutSummaryProps } from '@/components/workout/session/session-views'
 import { useActiveSession } from '@/hooks/use-active-session'
 import { useElapsedSince } from '@/hooks/use-elapsed-since'
+import { useEnsureKarvonenZones } from '@/hooks/use-heart-zones'
 import { useExercises } from '@/hooks/use-exercises'
 import { useImmersiveMode } from '@/hooks/use-immersive-mode'
 import { useLastSetLogByExercise, useSetLogsForSession, useUpdateSetLogPausa } from '@/hooks/use-set-logs'
@@ -151,6 +152,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
   const exerciseIds = useMemo(() => prescriptions.data?.map((p) => p.exercise_id) ?? [], [prescriptions.data])
   const lastLogs = useLastSetLogByExercise(exerciseIds)
   const finishSession = useFinishWorkoutSession()
+  const ensureKarvonenZones = useEnsureKarvonenZones()
   const updateSetLogPausa = useUpdateSetLogPausa()
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -219,6 +221,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
             .map((id) => exercisesById.get(id)?.grupo_muscular)
             .filter((g): g is string => !!g)
           haptic('double')
+          void ensureKarvonenZones()
           setIsFinishing(false)
           setResumo({
             duracaoSeg: Math.round(elapsedSeconds),

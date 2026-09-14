@@ -12,6 +12,7 @@ const TodayPage = lazy(() => import('@/pages/today-page').then((m) => ({ default
 const GoalsPage = lazy(() => import('@/pages/goals-page').then((m) => ({ default: m.GoalsPage })))
 const WorkoutPage = lazy(() => import('@/pages/workout-page').then((m) => ({ default: m.WorkoutPage })))
 const HealthPage = lazy(() => import('@/pages/health-page').then((m) => ({ default: m.HealthPage })))
+const SonoPage = lazy(() => import('@/pages/sono-page').then((m) => ({ default: m.SonoPage })))
 const HabitsPage = lazy(() => import('@/pages/habits-page').then((m) => ({ default: m.HabitsPage })))
 const FocusPage = lazy(() => import('@/pages/focus-page').then((m) => ({ default: m.FocusPage })))
 const JournalPage = lazy(() => import('@/pages/journal-page').then((m) => ({ default: m.JournalPage })))
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
           { path: 'workout/exercicio/:id', element: <ExercicioDetalhePage /> },
           { path: 'workout/evolucao/:id', element: <EvolucaoExercicioPage /> },
           { path: 'health', element: <HealthPage /> },
+          { path: 'sono', element: <SonoPage /> },
           { path: 'tarefas', element: <TarefasPage /> },
           { path: 'protocolo', element: <ProtocoloPage /> },
           { path: 'habits', element: <HabitsPage /> },

@@ -30,7 +30,7 @@ const SYSTEM_PROMPTS: Record<DocumentoTipo, string> = {
   "data_coleta": "YYYY-MM-DD ou null",
   "laboratorio": "string ou null",
   "marcadores": [{
-    "chave": "glicemia|ldl|hdl|colesterol_total|lpa|tsh|vitamina_d|vitamina_b12|testosterona_total|testosterona_livre|hemoglobina_glicada|insulina|acido_urico|pcr|outro",
+    "chave": "glicemia|ldl|hdl|colesterol_total|triglicerides|lpa|tsh|vitamina_d|vitamina_b12|testosterona_total|testosterona_livre|hemoglobina_glicada|insulina|acido_urico|pcr|outro",
     "label": "string",
     "valor": number,
     "unidade": "string",

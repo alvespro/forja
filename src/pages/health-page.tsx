@@ -1,6 +1,9 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { ChevronRight, Moon } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
+import { ClinicalAnalysisSection } from '@/components/health/clinical-analysis'
 import { ErrorState } from '@/components/feedback/error-state'
 import { HealthMetricCard } from '@/components/health/health-metric-card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -45,6 +48,22 @@ export function HealthPage() {
           ))}
         </div>
       )}
+
+      <Link
+        to="/sono"
+        className="ds-pressable-card flex min-h-16 items-center gap-3 rounded-[var(--radius-lg)] bg-card px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-aco-claro text-brasa" aria-hidden="true">
+          <Moon className="size-5" />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="ds-body-md font-semibold text-foreground">Sono</span>
+          <span className="ds-body-sm text-aco-texto">Histórico, dívida da semana e recuperação</span>
+        </span>
+        <ChevronRight className="size-5 text-aco-texto" aria-hidden="true" />
+      </Link>
+
+      <ClinicalAnalysisSection />
     </div>
   )
 }

@@ -1,0 +1,225 @@
+/*
+ * FORJA — Design System
+ * Tokens de tipografia, espaçamento, raio, sombra e movimento.
+ * A paleta continua definida em index.css (identidade da marca).
+ *
+ * Filosofia: "less, but better" — uma informação dominante por tela,
+ * números de performance como heróis tipográficos, espaço em branco
+ * como elemento de design.
+ */
+
+/*
+ * Fontes do redesign: Bricolage (títulos/texto) e Space Mono (dados/heróis).
+ * Só o subset latin (U+0000-00FF): cobre todos os acentos do português e os
+ * símbolos usados (↑ ↓ − — …). latin-ext e vietnamita eram ~95 KB que o PWA
+ * pré-cacheava na instalação sem nunca usar.
+ */
+@import '@fontsource/space-mono/latin-400.css';
+@import '@fontsource/space-mono/latin-700.css';
+
+@font-face {
+  font-family: 'Bricolage Grotesque Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2')
+    format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* ---------------------------------- fontes --------------------------------- */
+  --font-display: 'Space Mono', ui-monospace, monospace;
+  --font-heading: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-data: 'Space Mono', ui-monospace, monospace;
+
+  /* --------------------------- espaçamento (base 4pt) ------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ------------------------------- raios de borda ----------------------------- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* ---------------------------------- sombras --------------------------------- */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-brasa: 0 4px 24px rgba(240, 169, 59, 0.25);
+
+  /* ------------------------- movimento (spring, não linear) ------------------- */
+  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-smooth: cubic-bezier(0.32, 0.72, 0, 1);
+  --spring-snappy: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-normal: 280ms;
+  --dur-slow: 420ms;
+}
+
+/*
+ * Classes em @layer components: utilitários do Tailwind (ex.: text-[28px])
+ * precisam poder sobrescrevê-las. Sem camada, estas regras venceriam sempre.
+ */
+@layer components {
+  /* =============================== escalas de texto ============================= */
+
+  /* Display — números de performance (score, carga, peso). O herói da tela. */
+  .ds-display-lg,
+  .ds-display-md,
+  .ds-display-sm {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+  }
+  .ds-display-lg { font-size: 72px; }
+  .ds-display-md { font-size: 56px; }
+  .ds-display-sm { font-size: 48px; }
+
+  /* Heading — títulos de seção. */
+  .ds-h1,
+  .ds-h2,
+  .ds-h3,
+  .ds-h4 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+  }
+  .ds-h1 { font-size: 32px; font-weight: 800; }
+  .ds-h2 { font-size: 24px; font-weight: 700; }
+  .ds-h3 { font-size: 20px; font-weight: 700; }
+  .ds-h4 { font-size: 18px; font-weight: 700; }
+
+  /* Body — texto e labels. */
+  .ds-body-lg,
+  .ds-body-md,
+  .ds-body-sm {
+    font-family: var(--font-body);
+    line-height: 1.5;
+  }
+  .ds-body-lg { font-size: 16px; font-weight: 400; }
+  .ds-body-md { font-size: 14px; font-weight: 400; }
+  .ds-body-sm { font-size: 12px; font-weight: 500; }
+
+  /* Data — métricas secundárias, sempre monoespaçadas e alinhadas. */
+  .ds-data-lg,
+  .ds-data-md,
+  .ds-data-sm {
+    font-family: var(--font-data);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+  .ds-data-lg { font-size: 14px; }
+  .ds-data-md { font-size: 12px; }
+  .ds-data-sm { font-size: 10px; }
+
+  /* Micro-label de seção (uppercase, discreto). */
+  .ds-label {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--aco-texto);
+  }
+
+  /* ================================ superfícies ================================ */
+
+  .ds-card {
+    background: var(--aco);
+    border: 1px solid var(--linha);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ds-card-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .ds-card-brasa {
+    border-color: var(--brasa);
+    box-shadow: var(--shadow-brasa);
+  }
+
+  /* ================================= movimento ================================= */
+
+  .ds-shimmer {
+    background: linear-gradient(90deg, var(--aco) 25%, var(--aco-claro) 50%, var(--aco) 75%);
+    background-size: 200% 100%;
+    animation: ds-shimmer 1.5s infinite linear;
+  }
+
+  .ds-pulse {
+    animation: ds-pulse-brasa 2s var(--spring-smooth) infinite;
+  }
+
+  .ds-stagger {
+    animation: ds-fade-up var(--dur-normal) var(--spring-smooth) both;
+  }
+
+  /* ============================== micro-interações ============================= */
+
+  /* Botões e cards afundam levemente no toque e voltam com spring. */
+  .ds-pressable {
+    transition: transform var(--dur-fast) var(--spring-bounce);
+  }
+  .ds-pressable:active { transform: scale(0.96); }
+
+  .ds-pressable-card {
+    transition: transform var(--dur-fast) var(--spring-bounce);
+  }
+  .ds-pressable-card:active { transform: scale(0.98); }
+
+  /* Scroll com momentum nativo no iOS. */
+  .ds-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Safe area do iPhone para elementos fixos no rodapé. */
+  .ds-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ================================= keyframes ================================= */
+
+/* Shimmer do skeleton: gradiente percorrendo da esquerda para a direita. */
+@keyframes ds-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Pulso suave para o badge "AGORA" e bordas de estado ativo. */
+@keyframes ds-pulse-brasa {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(240, 169, 59, 0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(240, 169, 59, 0); }
+}
+
+/* Acender em sequência (body map, listas). */
+@keyframes ds-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Ripple no toque (Material You) — expande a partir do ponto tocado. */
+@keyframes ds-ripple {
+  to {
+    transform: translate(-50%, -50%) scale(60);
+    opacity: 0;
+  }
+}

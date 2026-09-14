@@ -17,6 +17,9 @@
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
 
+/* Design system do redesign (tokens, escalas e movimento). */
+@import "./styles/design-system.css";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

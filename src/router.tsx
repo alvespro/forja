@@ -34,6 +34,11 @@ const EvolucaoExercicioPage = lazy(() =>
   import('@/pages/evolucao-exercicio-page').then((m) => ({ default: m.EvolucaoExercicioPage })),
 )
 const OnboardingPage = lazy(() => import('@/pages/onboarding-page').then((m) => ({ default: m.OnboardingPage })))
+// Import dentro do ramo DEV: em produção o bundler elimina o chunk inteiro,
+// em vez de só deixar de registrar a rota (o PWA pré-cachearia o arquivo).
+const DesignSystemPage = import.meta.env.DEV
+  ? lazy(() => import('@/pages/design-system-page').then((m) => ({ default: m.DesignSystemPage })))
+  : null
 
 function withSuspense(element: React.ReactNode) {
   return <Suspense fallback={null}>{element}</Suspense>
@@ -42,6 +47,10 @@ function withSuspense(element: React.ReactNode) {
 export const router = createBrowserRouter([
   { path: '/login', element: withSuspense(<LoginPage />), errorElement: <RouteError /> },
   { path: '/signup', element: withSuspense(<SignupPage />), errorElement: <RouteError /> },
+  // Galeria do design system: só existe em dev, fora do login, sem dados reais.
+  ...(DesignSystemPage
+    ? [{ path: '/design', element: withSuspense(<DesignSystemPage />), errorElement: <RouteError /> }]
+    : []),
   {
     path: '/',
     element: <ProtectedRoute />,

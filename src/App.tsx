@@ -24,6 +24,9 @@ function App() {
           position="top-center"
           richColors
           closeButton
+          visibleToasts={2}
+          duration={3000}
+          offset="calc(env(safe-area-inset-top, 0px) + 12px)"
           toastOptions={{
             style: {
               background: 'var(--aco)',

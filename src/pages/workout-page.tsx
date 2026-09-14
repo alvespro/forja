@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { ObjectiveBadge } from '@/components/body/objective-badge'
-import { Button } from '@/components/ui/button'
 import { CardioTab } from '@/components/workout/cardio-tab'
 import { EvolutionTab } from '@/components/workout/evolution-tab'
 import { ExerciseLibrary } from '@/components/workout/exercise-library'
@@ -10,14 +8,23 @@ import { FrequencyPanel } from '@/components/workout/frequency-panel'
 import { SessionRunner } from '@/components/workout/session-runner'
 import { WorkoutBuilder } from '@/components/workout/workout-builder'
 import { useActiveSession } from '@/hooks/use-active-session'
+import { useCardioSessions } from '@/hooks/use-cardio-sessions'
+import { useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { cn } from '@/lib/utils'
+import {
+  CORRIDA_WEEKLY_GOAL,
+  countCardioThisWeek,
+  countSessionsThisWeek,
+  FORCA_WEEKLY_GOAL,
+} from '@/lib/workout-frequency'
 
 type WorkoutTab = 'visao_geral' | 'exercicios' | 'treinos' | 'sessao' | 'evolucao' | 'cardio'
 
+// Treinos primeiro: a ação principal da tela é começar um treino.
 const TABS: { id: WorkoutTab; label: string }[] = [
-  { id: 'visao_geral', label: 'Visão geral' },
-  { id: 'exercicios', label: 'Exercícios' },
   { id: 'treinos', label: 'Treinos' },
+  { id: 'exercicios', label: 'Exercícios' },
+  { id: 'visao_geral', label: 'Corpo' },
   { id: 'sessao', label: 'Sessão' },
   { id: 'evolucao', label: 'Evolução' },
   { id: 'cardio', label: 'Cardio' },
@@ -27,33 +34,45 @@ export function WorkoutPage() {
   const { sessionId } = useActiveSession()
   const location = useLocation()
   const initialTab = (location.state as { initialTab?: WorkoutTab } | null)?.initialTab
-  const [tab, setTab] = useState<WorkoutTab>(initialTab ?? (sessionId ? 'sessao' : 'visao_geral'))
+  const [tab, setTab] = useState<WorkoutTab>(initialTab ?? (sessionId ? 'sessao' : 'treinos'))
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Treino</h1>
-          <p className="text-sm text-aco-texto">Execução, registro e evolução de carga.</p>
-        </div>
-        <ObjectiveBadge />
-      </div>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <header className="flex flex-col gap-3">
+        <h1 className="ds-h1 text-foreground">Treino</h1>
+        <WeeklyFrequencyPills />
+      </header>
 
-      <div className="flex flex-wrap gap-1 border-b border-border pb-2" role="tablist" aria-label="Seções de treino">
-        {TABS.map((item) => (
-          <Button
-            key={item.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === item.id}
-            variant={tab === item.id ? 'secondary' : 'ghost'}
-            size="sm"
-            className={cn(tab === item.id && 'text-foreground')}
-            onClick={() => setTab(item.id)}
-          >
-            {item.label}
-          </Button>
-        ))}
+      <div
+        className="ds-scroll -mx-4 flex gap-1 overflow-x-auto border-b border-linha px-4 md:mx-0 md:px-0"
+        role="tablist"
+        aria-label="Seções de treino"
+      >
+        {TABS.map((item) => {
+          const ativo = tab === item.id
+          return (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={ativo}
+              onClick={() => setTab(item.id)}
+              className={cn(
+                'relative flex min-h-11 shrink-0 items-center px-3 ds-body-md font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                ativo ? 'text-foreground' : 'text-aco-texto hover:text-foreground',
+              )}
+            >
+              {item.label}
+              {sessionId && item.id === 'sessao' && (
+                <span className="ml-1.5 size-1.5 rounded-full bg-brasa ds-pulse" aria-label="sessão em andamento" />
+              )}
+              <span
+                className={cn('absolute inset-x-3 -bottom-px h-0.5 rounded-full', ativo ? 'bg-brasa' : 'bg-transparent')}
+                aria-hidden="true"
+              />
+            </button>
+          )
+        })}
       </div>
 
       {tab === 'visao_geral' && <FrequencyPanel />}
@@ -62,6 +81,43 @@ export function WorkoutPage() {
       {tab === 'sessao' && <SessionRunner />}
       {tab === 'evolucao' && <EvolutionTab />}
       {tab === 'cardio' && <CardioTab />}
+    </div>
+  )
+}
+
+/** Frequência da semana em duas pílulas compactas: força e cardio vs. meta. */
+function WeeklyFrequencyPills() {
+  const sessions = useWorkoutSessions()
+  const cardio = useCardioSessions()
+
+  const forca = countSessionsThisWeek(sessions.data ?? [])
+  const corrida = countCardioThisWeek(cardio.data ?? [])
+
+  const pills = [
+    { icon: '🏋️', valor: forca, meta: FORCA_WEEKLY_GOAL, label: 'força' },
+    { icon: '🏃', valor: corrida, meta: CORRIDA_WEEKLY_GOAL, label: 'cardio' },
+  ]
+
+  return (
+    <div className="flex flex-wrap gap-2" aria-label="Frequência desta semana">
+      {pills.map((p) => {
+        const batida = p.valor >= p.meta
+        return (
+          <span
+            key={p.label}
+            className={cn(
+              'flex min-h-9 items-center gap-1.5 rounded-full border px-3 ds-body-sm',
+              batida ? 'border-ok/40 bg-ok/10 text-ok' : 'border-linha bg-aco text-aco-texto',
+            )}
+          >
+            <span aria-hidden="true">{p.icon}</span>
+            <span className="ds-data-md text-foreground">
+              {p.valor}/{p.meta}
+            </span>
+            {p.label}
+          </span>
+        )
+      })}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import { Activity, Droplets, Flame, HeartPulse, Scale } from 'lucide-react'
 
+import { BodyMap } from '@/components/BodyMap'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ExerciseTile } from '@/components/ds/exercise-tile'
 import { HealthMetricCard } from '@/components/ds/health-metric-card'
@@ -19,6 +20,21 @@ import { Skeleton } from '@/components/ui/skeleton'
 export function DesignSystemPage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col gap-10 bg-background px-5 py-8">
+      <Section title="BodyMap">
+        <div className="flex flex-col gap-6">
+          <div className="flex items-end justify-around">
+            <BodyMap vista="frente" estados={{ peito: 'ativo', ombros: 'recente', core: 'descansado', biceps: 'recente', pernas: 'ativo' }} />
+            <BodyMap vista="costas" estados={{ costas: 'ativo', triceps: 'recente', gluteo: 'descansado', panturrilha: 'ativo', pernas: 'recente', ombros: 'recente' }} />
+          </div>
+          <div className="flex items-end justify-between">
+            {['Peito', 'Costas', 'Pernas', 'Bíceps', 'Tríceps', 'Ombros', 'Glúteo', 'Core', 'Panturrilha'].map((g) => (
+              <BodyMap key={g} size="icon" musculosAtivos={[g]} />
+            ))}
+          </div>
+          <BodyMap size="lg" interativo estados={{ peito: 'ativo', costas: 'descansado', gluteo: 'descansado' }} />
+        </div>
+      </Section>
+
       <Section title="Tipografia">
         <div className="flex flex-col gap-2">
           <span className="ds-display-lg text-brasa">83</span>

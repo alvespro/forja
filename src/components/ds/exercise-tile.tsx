@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils'
 export type ExerciseTileProps = {
   nome: string
   grupo: string | null
+  /** Linha de apoio sob o nome. Padrão: o grupo muscular. */
+  detalhe?: string | null
   youtubeId?: string | null
   /** Última carga usada, em kg. */
   ultimaCarga?: number | null
@@ -24,6 +26,7 @@ type Ripple = { id: number; x: number; y: number }
 export function ExerciseTile({
   nome,
   grupo,
+  detalhe,
   youtubeId,
   ultimaCarga,
   recorde,
@@ -83,7 +86,7 @@ export function ExerciseTile({
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="ds-body-md truncate font-semibold text-foreground">{nome}</span>
-        {grupo && <span className="ds-body-sm text-aco-texto">{grupo}</span>}
+        {(detalhe ?? grupo) && <span className="ds-body-sm truncate text-aco-texto">{detalhe ?? grupo}</span>}
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-1">

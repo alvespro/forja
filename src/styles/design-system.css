@@ -241,3 +241,9 @@
   60% { transform: scale(1.25); opacity: 1; }
   100% { transform: scale(1); }
 }
+
+/* Grupo muscular acendendo no BodyMap. */
+@keyframes ds-muscle-on {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

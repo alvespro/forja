@@ -2,15 +2,16 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Plus } from 'lucide-react'
 
+import { BodyMap } from '@/components/BodyMap'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { ExerciseTile } from '@/components/ds/exercise-tile'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ExerciseForm } from '@/components/workout/exercise-form'
 import { useExerciseLoadSummary } from '@/hooks/use-exercise-load-summary'
 import { useCreateExercise, useExercises } from '@/hooks/use-exercises'
-import { groupSortIndex, iconForGroup, SEM_GRUPO } from '@/lib/muscle-groups'
+import { gradientForGroup, groupSortIndex, SEM_GRUPO } from '@/lib/muscle-groups'
 import type { Exercise } from '@/types/database'
 
 type GroupBucket = { grupo: string; exercises: Exercise[] }
@@ -43,7 +44,7 @@ export function ExerciseLibrary() {
     return (
       <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
         {Array.from({ length: 9 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full" />
+          <Skeleton key={i} className="aspect-square w-full rounded-[var(--radius-lg)]" />
         ))}
       </div>
     )
@@ -72,11 +73,11 @@ export function ExerciseLibrary() {
           <button
             type="button"
             onClick={() => setSelectedGroup(null)}
-            className="flex min-h-11 items-center gap-1 rounded-md pr-2 text-left font-heading text-lg font-bold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-11 min-w-0 items-center gap-2 rounded-md pr-2 text-left ds-h3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <ChevronLeft className="size-5 text-aco-texto" aria-hidden="true" />
-            {iconForGroup(selectedGroup)} {selectedGroup}
-            <span className="ml-1 text-sm font-normal text-aco-texto">({selectedExercises.length})</span>
+            <span className="truncate first-letter:uppercase">{selectedGroup}</span>
+            <span className="ds-data-md text-aco-texto">{selectedExercises.length}</span>
           </button>
           <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
             <Plus className="size-3.5" aria-hidden="true" />
@@ -97,7 +98,7 @@ export function ExerciseLibrary() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-aco-texto">Escolha o grupo muscular.</p>
+        <span className="ds-label">Grupos musculares</span>
         <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
           <Plus className="size-3.5" aria-hidden="true" />
           Exercício
@@ -108,20 +109,20 @@ export function ExerciseLibrary() {
         <EmptyState message="Nenhum exercício cadastrado ainda." />
       ) : (
         <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
-          {buckets.map((bucket) => (
+          {buckets.map((bucket, i) => (
             <button
               key={bucket.grupo}
               type="button"
               onClick={() => setSelectedGroup(bucket.grupo)}
-              className="flex min-h-24 flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card p-3 text-center outline-none transition-colors hover:border-brasa/50 focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+              aria-label={`${bucket.grupo}: ${bucket.exercises.length} exercício${bucket.exercises.length === 1 ? '' : 's'}`}
+              className="ds-pressable-card ds-stagger relative flex aspect-square flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[var(--radius-lg)] border border-white/5 p-2 text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              style={{ background: gradientForGroup(bucket.grupo), animationDelay: `${i * 40}ms` }}
             >
-              <span className="text-3xl leading-none" aria-hidden="true">
-                {iconForGroup(bucket.grupo)}
+              <span className="absolute right-2 top-2 rounded-full bg-black/35 px-1.5 py-0.5 ds-data-sm text-nevoa">
+                {bucket.exercises.length}
               </span>
-              <span className="line-clamp-1 text-sm font-medium text-foreground">{bucket.grupo}</span>
-              <span className="text-xs text-aco-texto">
-                {bucket.exercises.length} {bucket.exercises.length === 1 ? 'exercício' : 'exercícios'}
-              </span>
+              <BodyMap size="tile" musculosAtivos={[bucket.grupo]} />
+              <span className="line-clamp-1 w-full shrink-0 ds-body-sm font-semibold text-foreground first-letter:uppercase">{bucket.grupo}</span>
             </button>
           ))}
         </div>
@@ -130,56 +131,27 @@ export function ExerciseLibrary() {
   )
 }
 
-/** Lista de exercícios de um grupo, com thumbnail, última carga e badge de recorde. */
+/** Lista de exercícios de um grupo: thumbnail, última carga em destaque e recorde. */
 function ExerciseGroupList({ exercises }: { exercises: Exercise[] }) {
   const navigate = useNavigate()
   const loads = useExerciseLoadSummary(exercises.map((e) => e.id))
 
   return (
-    <div className="flex flex-col gap-3">
-      {exercises.map((exercise) => {
+    <div className="flex flex-col gap-2">
+      {exercises.map((exercise, i) => {
         const summary = loads.data?.get(exercise.id)
         return (
-          <Card key={exercise.id}>
-            <CardContent className="flex items-center gap-3">
-              {exercise.youtube_video_id ? (
-                <img
-                  src={`https://img.youtube.com/vi/${exercise.youtube_video_id}/mqdefault.jpg`}
-                  alt=""
-                  loading="lazy"
-                  className="h-14 w-24 shrink-0 rounded-md border border-border object-cover"
-                />
-              ) : (
-                <div className="flex h-14 w-24 shrink-0 items-center justify-center rounded-md border border-border bg-aco text-2xl">
-                  {iconForGroup(exercise.grupo_muscular)}
-                </div>
-              )}
-
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="truncate font-medium text-foreground">{exercise.nome}</span>
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  {summary?.last != null && (
-                    <span className="text-aco-texto">Última: {summary.last}kg</span>
-                  )}
-                  {summary?.max != null && (
-                    <span className="rounded-full bg-brasa/15 px-2 py-0.5 font-medium text-brasa">
-                      PR {summary.max}kg
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="shrink-0"
-                onClick={() => navigate(`/workout/exercicio/${exercise.id}`)}
-              >
-                Ver
-              </Button>
-            </CardContent>
-          </Card>
+          <div key={exercise.id} className="ds-stagger" style={{ animationDelay: `${i * 40}ms` }}>
+            <ExerciseTile
+              nome={exercise.nome}
+              grupo={exercise.grupo_muscular}
+              detalhe={summary?.max != null ? `Recorde: ${summary.max} kg` : 'Sem séries registradas'}
+              youtubeId={exercise.youtube_video_id}
+              ultimaCarga={summary?.last ?? null}
+              recorde={summary?.max ?? null}
+              onSelect={() => navigate(`/workout/exercicio/${exercise.id}`)}
+            />
+          </div>
         )
       })}
     </div>

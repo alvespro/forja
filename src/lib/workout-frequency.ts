@@ -61,3 +61,34 @@ export function computeMuscleGroupFreshness(
     }
   })
 }
+
+export type MuscleFreshnessState = 'ativo' | 'recente' | 'descansado' | 'inativo'
+
+/** Até quantos dias sem estímulo um grupo ainda conta como "recente" no BodyMap. */
+export const RECENT_THRESHOLD_DAYS = 3
+
+/**
+ * Converte a frequência por foco de treino (texto livre, ex.: "Costas e Bíceps")
+ * em estado por grupo muscular para o BodyMap. Um grupo presente em vários
+ * treinos assume o estímulo mais recente.
+ *   0 dias → ativo · < 3 → recente · > 7 → descansado · resto/sem registro → inativo
+ */
+export function muscleStatesFromFreshness(
+  freshness: MuscleGroupFreshness[],
+  resolve: (foco: string) => string[],
+): Record<string, MuscleFreshnessState> {
+  const menorDias = new Map<string, number>()
+  for (const f of freshness) {
+    if (f.diasSemEstimulo === null) continue
+    for (const key of resolve(f.foco)) {
+      const atual = menorDias.get(key)
+      if (atual === undefined || f.diasSemEstimulo < atual) menorDias.set(key, f.diasSemEstimulo)
+    }
+  }
+  const estados: Record<string, MuscleFreshnessState> = {}
+  for (const [key, dias] of menorDias) {
+    estados[key] =
+      dias === 0 ? 'ativo' : dias < RECENT_THRESHOLD_DAYS ? 'recente' : dias > STALE_THRESHOLD_DAYS ? 'descansado' : 'inativo'
+  }
+  return estados
+}

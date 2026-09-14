@@ -1,35 +1,44 @@
+import { useMemo } from 'react'
 import { TriangleAlert } from 'lucide-react'
 
+import { BodyMap, type MuscleState } from '@/components/BodyMap'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
-import { Card, CardContent } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useCardioSessions } from '@/hooks/use-cardio-sessions'
 import { useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { useWorkouts } from '@/hooks/use-workouts'
+import { resolveGroupKeys, type MuscleKey } from '@/lib/muscle-groups'
 import { cn } from '@/lib/utils'
-import {
-  computeMuscleGroupFreshness,
-  CORRIDA_WEEKLY_GOAL,
-  countCardioThisWeek,
-  countSessionsThisWeek,
-  FORCA_WEEKLY_GOAL,
-} from '@/lib/workout-frequency'
+import { computeMuscleGroupFreshness, muscleStatesFromFreshness } from '@/lib/workout-frequency'
 
+const LEGENDA: { estado: MuscleState; label: string; cor: string }[] = [
+  { estado: 'ativo', label: 'Hoje', cor: 'var(--brasa)' },
+  { estado: 'recente', label: '< 3 dias', cor: 'var(--ok)' },
+  { estado: 'descansado', label: '> 7 dias', cor: 'var(--alerta)' },
+]
+
+/** Aba "Corpo": quais músculos foram estimulados e quais precisam de atenção. */
 export function FrequencyPanel() {
   const workouts = useWorkouts()
   const sessions = useWorkoutSessions()
-  const cardioSessions = useCardioSessions()
 
-  const isLoading = workouts.isLoading || sessions.isLoading || cardioSessions.isLoading
-  const isError = workouts.isError || sessions.isError || cardioSessions.isError
+  const isLoading = workouts.isLoading || sessions.isLoading
+  const isError = workouts.isError || sessions.isError
+
+  const freshness = useMemo(
+    () => computeMuscleGroupFreshness(workouts.data ?? [], sessions.data ?? []),
+    [workouts.data, sessions.data],
+  )
+  const estados = useMemo(
+    () => muscleStatesFromFreshness(freshness, resolveGroupKeys) as Partial<Record<MuscleKey, MuscleState>>,
+    [freshness],
+  )
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-20 w-full" />
+      <div className="flex flex-col items-center gap-4">
+        <Skeleton className="h-64 w-32 rounded-[var(--radius-xl)]" />
+        <Skeleton className="h-24 w-full" />
       </div>
     )
   }
@@ -41,69 +50,57 @@ export function FrequencyPanel() {
         onRetry={() => {
           workouts.refetch()
           sessions.refetch()
-          cardioSessions.refetch()
         }}
       />
     )
   }
 
-  const sessionsThisWeek = countSessionsThisWeek(sessions.data ?? [])
-  const cardioThisWeek = countCardioThisWeek(cardioSessions.data ?? [])
-  const freshness = computeMuscleGroupFreshness(workouts.data ?? [], sessions.data ?? [])
+  if (freshness.length === 0) {
+    return (
+      <EmptyState
+        message="Nenhum treino com foco definido"
+        description="Defina o foco de cada treino (ex.: Costas e Bíceps) para ver o mapa de estímulo."
+      />
+    )
+  }
 
   return (
-    <div className="flex flex-col gap-3">
-      <Card>
-        <CardContent className="flex flex-col gap-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-aco-texto">Frequência semanal</p>
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col items-center gap-4 rounded-[var(--radius-lg)] bg-card px-4 py-6">
+        <BodyMap size="lg" interativo estados={estados} />
+        <div className="flex flex-wrap justify-center gap-3">
+          {LEGENDA.map((l) => (
+            <span key={l.estado} className="flex items-center gap-1.5 ds-body-sm text-aco-texto">
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: l.cor }} aria-hidden="true" />
+              {l.label}
+            </span>
+          ))}
+        </div>
+      </section>
 
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-foreground">Força</span>
-              <span className="font-mono text-aco-texto">
-                {sessionsThisWeek}/{FORCA_WEEKLY_GOAL}
+      <section className="flex flex-col gap-2">
+        <span className="ds-label">Estímulo por treino</span>
+        <ul className="flex flex-col divide-y divide-linha rounded-[var(--radius-lg)] bg-card">
+          {freshness.map((group) => (
+            <li key={group.foco} className="flex min-h-12 items-center justify-between gap-3 px-4 py-2">
+              <span className="ds-body-md truncate text-foreground">{group.foco}</span>
+              <span
+                className={cn(
+                  'flex shrink-0 items-center gap-1 ds-data-md',
+                  group.alerta ? 'text-alerta' : 'text-aco-texto',
+                )}
+              >
+                {group.alerta && <TriangleAlert className="size-3.5" aria-hidden="true" />}
+                {group.diasSemEstimulo === null
+                  ? 'sem registro'
+                  : group.diasSemEstimulo === 0
+                    ? 'hoje'
+                    : `há ${group.diasSemEstimulo} dia${group.diasSemEstimulo === 1 ? '' : 's'}`}
               </span>
-            </div>
-            <Progress value={Math.min(100, (sessionsThisWeek / FORCA_WEEKLY_GOAL) * 100)} />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-foreground">Corrida / cardio</span>
-              <span className="font-mono text-aco-texto">
-                {cardioThisWeek}/{CORRIDA_WEEKLY_GOAL}
-              </span>
-            </div>
-            <Progress value={Math.min(100, (cardioThisWeek / CORRIDA_WEEKLY_GOAL) * 100)} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {freshness.length === 0 ? (
-        <EmptyState message="Cadastre treinos com um foco para acompanhar a frequência por grupo." />
-      ) : (
-        <Card>
-          <CardContent className="flex flex-col gap-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-aco-texto">Estímulo por grupo</p>
-            {freshness.map((group) => (
-              <div key={group.foco} className="flex items-center justify-between gap-2 text-sm">
-                <span className="text-foreground">{group.foco}</span>
-                <span
-                  className={cn(
-                    'flex items-center gap-1 font-mono text-xs',
-                    group.alerta ? 'text-alerta' : 'text-aco-texto',
-                  )}
-                >
-                  {group.alerta && <TriangleAlert className="size-3.5" aria-hidden="true" />}
-                  {group.diasSemEstimulo === null
-                    ? 'sem registro'
-                    : `${group.diasSemEstimulo} dia(s) sem estímulo`}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   )
 }

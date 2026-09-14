@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { ChevronDown, Pencil, Play, Plus, Trash2, TriangleAlert } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { WorkoutExerciseForm } from '@/components/workout/workout-exercise-form'
 import { WorkoutExerciseRow } from '@/components/workout/workout-exercise-row'
@@ -17,6 +16,8 @@ import {
 import { useCreateWorkoutSession, useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { useDeleteWorkout, useUpdateWorkout } from '@/hooks/use-workouts'
 import { cn } from '@/lib/utils'
+import { toSaoPauloDateString } from '@/lib/date'
+import { gradientForGroup } from '@/lib/muscle-groups'
 import { daysSince } from '@/lib/nutrition'
 import type { Exercise, Workout } from '@/types/database'
 
@@ -46,7 +47,8 @@ export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardP
   const exercisesById = new Map(exercises.map((exercise) => [exercise.id, exercise]))
 
   const lastSession = allSessions.data?.find((session) => session.workout_id === workout.id)
-  const diasSemRealizar = lastSession ? daysSince(lastSession.performed_at.slice(0, 10)) : null
+  // Data da sessão no fuso de São Paulo (slice do timestamp daria a data em UTC).
+  const diasSemRealizar = lastSession ? daysSince(toSaoPauloDateString(lastSession.performed_at)) : null
   const alerta = diasSemRealizar !== null && diasSemRealizar > DIAS_ALERTA
 
   function handleMove(fromIndex: number, toIndex: number) {
@@ -117,70 +119,87 @@ export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardP
   return (
     <>
       {dialog}
-      <Card>
-      <CardContent className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-2">
+      <div className="overflow-hidden rounded-[var(--radius-lg)] border border-linha bg-card">
+        {/* Capa: gradiente de identidade do foco, nome grande, badges e play */}
+        <div
+          className="relative isolate flex min-h-36 flex-col justify-end gap-3 p-4"
+          style={{ background: gradientForGroup(workout.foco) }}
+        >
+          <div
+            className="absolute inset-0 -z-10"
+            style={{ background: 'linear-gradient(180deg, transparent 20%, rgba(11,18,32,0.85) 100%)' }}
+            aria-hidden="true"
+          />
+
+          <div className="absolute right-2 top-2 flex items-center gap-1">
+            {!workout.ativo && <span className="rounded-full bg-black/35 px-2 py-0.5 ds-data-sm text-aco-texto">inativo</span>}
+            <button
+              type="button"
+              aria-label={`Editar treino ${workout.nome}`}
+              onClick={() => setIsEditing(true)}
+              className="flex size-10 items-center justify-center rounded-full text-nevoa/70 outline-none hover:bg-black/30 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Pencil className="size-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label={`Excluir treino ${workout.nome}`}
+              onClick={handleDelete}
+              className="flex size-10 items-center justify-center rounded-full text-nevoa/70 outline-none hover:bg-black/30 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Trash2 className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="flex items-end justify-between gap-3">
+            <div className="flex min-w-0 flex-col gap-2">
+              <h3 className="ds-h3 line-clamp-2 text-foreground">{workout.nome}</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {workout.foco && (
+                  <span className="rounded-full bg-black/35 px-2.5 py-1 ds-data-sm text-nevoa">{workout.foco}</span>
+                )}
+                <span
+                  className={cn(
+                    'flex items-center gap-1 rounded-full px-2.5 py-1 ds-data-sm',
+                    alerta ? 'bg-atencao/25 text-atencao' : 'bg-black/35 text-nevoa',
+                  )}
+                >
+                  {alerta && <TriangleAlert className="size-3" aria-hidden="true" />}
+                  {diasSemRealizar === null
+                    ? 'nunca feito'
+                    : diasSemRealizar === 0
+                      ? 'hoje'
+                      : `há ${diasSemRealizar} dia${diasSemRealizar === 1 ? '' : 's'}`}
+                </span>
+                <span className="rounded-full bg-black/35 px-2.5 py-1 ds-data-sm text-nevoa">
+                  {prescriptions.data?.length ?? 0} exercício{(prescriptions.data?.length ?? 0) === 1 ? '' : 's'}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleIniciar}
+              disabled={createSession.isPending}
+              aria-label={`Iniciar ${workout.nome}`}
+              className="ds-pressable flex size-12 shrink-0 items-center justify-center rounded-full bg-brasa text-meia-noite shadow-[var(--shadow-brasa)] outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+            >
+              <Play className="size-5 fill-current" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        {/* Prescrição (expansível) */}
+        <div className="flex flex-col gap-3 px-4 py-2">
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="flex min-w-0 flex-1 items-start gap-2 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-expanded={expanded}
+            className="flex min-h-11 items-center justify-between gap-2 ds-body-sm font-semibold text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ChevronDown
-              className={cn('mt-0.5 size-4 shrink-0 text-aco-texto transition-transform', expanded && 'rotate-180')}
-              aria-hidden="true"
-            />
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate font-medium text-foreground">{workout.nome}</span>
-              {workout.foco && (
-                <span className="truncate text-xs text-aco-texto">
-                  {workout.foco} · {prescriptions.data?.length ?? 0} exercício
-                  {(prescriptions.data?.length ?? 0) === 1 ? '' : 's'}
-                </span>
-              )}
-              <span className={cn('flex items-center gap-1 font-mono text-xs', alerta ? 'text-alerta' : 'text-aco-texto')}>
-                {alerta && <TriangleAlert className="size-3 shrink-0" aria-hidden="true" />}
-                {diasSemRealizar === null
-                  ? 'Nunca realizado'
-                  : diasSemRealizar === 0
-                    ? 'Último treino: hoje'
-                    : `Último treino: ${diasSemRealizar} dia${diasSemRealizar === 1 ? '' : 's'} atrás`}
-              </span>
-            </div>
+            {expanded ? 'Ocultar exercícios' : 'Ver exercícios'}
+            <ChevronDown className={cn('size-4 transition-transform', expanded && 'rotate-180')} aria-hidden="true" />
           </button>
-
-          <div className="flex shrink-0 items-center gap-2">
-            {!workout.ativo && <span className="text-xs text-aco-texto">inativo</span>}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={createSession.isPending}
-              onClick={handleIniciar}
-            >
-              <Play className="size-3.5" aria-hidden="true" />
-              Iniciar
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Editar treino ${workout.nome}`}
-              onClick={() => setIsEditing(true)}
-            >
-              <Pencil className="size-3.5" aria-hidden="true" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Excluir treino ${workout.nome}`}
-              onClick={handleDelete}
-            >
-              <Trash2 className="size-3.5" aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
 
         {expanded && (
           <div className="flex flex-col gap-2 border-t border-border pt-3">
@@ -230,8 +249,8 @@ export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardP
             )}
           </div>
         )}
-      </CardContent>
-      </Card>
+        </div>
+      </div>
     </>
   )
 }

@@ -54,10 +54,19 @@
   --radius-xl: 28px;
   --radius-full: 9999px;
 
+  /* Nomes curtos do design system (mesmos valores). */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px; --s16: 64px;
+  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px;
+
   /* ---------------------------------- sombras --------------------------------- */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);
-  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-brasa: 0 4px 24px rgba(240, 169, 59, 0.25);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-brasa: 0 4px 24px rgba(252, 76, 19, 0.3);
+  --shadow-glow: 0 0 40px rgba(252, 76, 19, 0.4);
+
+  /* Padrão de pontos (fundo de card sem dado, grids). */
+  --dot-pattern: radial-gradient(#3d3d3d 1px, transparent 1px);
 
   /* ------------------------- movimento (spring, não linear) ------------------- */
   --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -69,7 +78,7 @@
 
   /* ------------------------------ navegação ------------------------------ */
   /* Altura útil da tab bar (sem a safe area, somada à parte). */
-  --tabbar-h: 56px;
+  --tabbar-h: 52px;
   /* Distância do rodapé para elementos flutuantes não cobrirem a tab bar. */
   --float-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 12px);
 }
@@ -133,14 +142,121 @@
   .ds-data-md { font-size: 12px; }
   .ds-data-sm { font-size: 10px; }
 
-  /* Micro-label de seção (uppercase, discreto). */
+  /* Micro-label de seção: dot-matrix (VT323) em caixa alta, estilo DeerFlow. */
   .ds-label {
-    font-family: var(--font-body);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-family: var(--font-terminal);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--aco-texto);
+    color: var(--cinza);
+  }
+
+  /*
+   * Escala VT323. A fonte é pixelada e tem altura-x pequena: em 10–12px os
+   * glifos ficam com 5px e não se leem no celular. Por isso cada degrau aqui
+   * equivale ao tamanho pedido em fonte comum (xs ≈ 10px, sm ≈ 12px, md ≈ 14px…).
+   */
+  .ds-terminal-xs,
+  .ds-terminal-sm,
+  .ds-terminal-md,
+  .ds-terminal-lg,
+  .ds-terminal-xl,
+  .ds-terminal-2xl {
+    font-family: var(--font-terminal);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .ds-terminal-xs { font-size: 15px; }
+  .ds-terminal-sm { font-size: 16px; }
+  .ds-terminal-md { font-size: 19px; }
+  .ds-terminal-lg { font-size: 22px; }
+  .ds-terminal-xl { font-size: 26px; }
+  .ds-terminal-2xl { font-size: 30px; }
+
+  /* Fundo de pontos sutil (card sem dado, grids decorativos). */
+  .ds-dots {
+    background-image: var(--dot-pattern);
+    background-size: 12px 12px;
+  }
+
+  /* Linha decorativa com o gradiente da marca (60×2px). */
+  .ds-brand-line {
+    display: block;
+    width: 60px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--gradient-brand);
+  }
+
+  /* Cursor de terminal piscando ("BOM DIA, WELBER_"). */
+  .ds-cursor::after {
+    content: '_';
+    animation: blink 1s step-end infinite;
+  }
+
+  /* ================================== botões =================================== */
+
+  .ds-btn-primary,
+  .ds-btn-secondary,
+  .ds-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    min-width: 44px;
+    padding-inline: 20px;
+    border-radius: var(--r-md);
+    font-family: var(--font-body);
+    font-weight: 600;
+    transition:
+      background-color var(--dur-fast) var(--spring-snappy),
+      border-color var(--dur-fast) var(--spring-snappy),
+      transform var(--dur-fast) var(--spring-snappy);
+  }
+  .ds-btn-primary:active,
+  .ds-btn-secondary:active,
+  .ds-btn-ghost:active { transform: scale(0.97); }
+  .ds-btn-primary:disabled,
+  .ds-btn-secondary:disabled,
+  .ds-btn-ghost:disabled { opacity: 0.5; transform: none; }
+
+  /* Texto preto sobre o vermilion: 6,2:1 (AA). Branco daria 3,2:1 e reprova em texto de 14–16px. */
+  .ds-btn-primary {
+    background: var(--brasa);
+    color: var(--fundo);
+    box-shadow: var(--shadow-brasa);
+  }
+  @media (hover: hover) {
+    .ds-btn-primary:hover:not(:disabled) { background: var(--brasa2); transform: translateY(-1px); }
+    .ds-btn-secondary:hover:not(:disabled) { background: rgba(252, 76, 19, 0.1); }
+    .ds-btn-ghost:hover:not(:disabled) { border-color: var(--cinza); }
+  }
+
+  .ds-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--brasa);
+    color: var(--brasa);
+  }
+
+  .ds-btn-ghost {
+    background: var(--aco);
+    border: 1px solid var(--linha);
+    color: var(--cinza);
+  }
+
+  /* Entrada numérica de série (carga, reps): Space Mono grande. */
+  .ds-input-num {
+    font-family: var(--font-data);
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+    color: var(--nevoa);
+    background: var(--aco);
+    border: 1px solid var(--linha);
   }
 
   /* ================================ superfícies ================================ */
@@ -164,9 +280,9 @@
   /* ================================= movimento ================================= */
 
   .ds-shimmer {
-    background: linear-gradient(90deg, var(--aco) 25%, var(--aco-claro) 50%, var(--aco) 75%);
+    background: linear-gradient(90deg, #1d1d1d 25%, #2d2d2d 50%, #1d1d1d 75%);
     background-size: 200% 100%;
-    animation: ds-shimmer 1.5s infinite linear;
+    animation: shimmer 1.8s ease infinite;
   }
 
   .ds-pulse {
@@ -213,6 +329,33 @@
   }
 }
 
+/* =================================== toast =================================== */
+
+/* Sonner fora de camada: precisa vencer os estilos padrão da lib. */
+[data-sonner-toaster] [data-sonner-toast].forja-toast {
+  background: var(--aco);
+  border: 1px solid var(--linha);
+  border-left: 3px solid var(--cinza2);
+  border-radius: var(--r-md);
+  color: var(--nevoa);
+  font-family: var(--font-body);
+  box-shadow: var(--shadow-elevated);
+  transition-timing-function: var(--spring-bounce);
+}
+[data-sonner-toaster] [data-sonner-toast].forja-toast[data-type='success'] { border-left-color: var(--ok); }
+[data-sonner-toaster] [data-sonner-toast].forja-toast[data-type='warning'] { border-left-color: var(--brasa); }
+[data-sonner-toaster] [data-sonner-toast].forja-toast[data-type='error'] { border-left-color: var(--alerta); }
+[data-sonner-toaster] [data-sonner-toast].forja-toast[data-type='info'] { border-left-color: var(--nevoa); }
+[data-sonner-toaster] [data-sonner-toast].forja-toast [data-description] { color: var(--cinza); }
+[data-sonner-toaster] [data-sonner-toast].forja-toast[data-type='success'] [data-icon] { color: var(--ok); }
+[data-sonner-toaster] [data-sonner-toast].forja-toast[data-type='warning'] [data-icon] { color: var(--brasa); }
+[data-sonner-toaster] [data-sonner-toast].forja-toast[data-type='error'] [data-icon] { color: var(--alerta-texto); }
+[data-sonner-toaster] [data-sonner-toast].forja-toast [data-close-button] {
+  background: var(--aco);
+  border-color: var(--linha);
+  color: var(--cinza);
+}
+
 /* ================================= keyframes ================================= */
 
 /* Shimmer do skeleton: gradiente percorrendo da esquerda para a direita. */
@@ -221,10 +364,37 @@
   100% { background-position: -200% 0; }
 }
 
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* Pulso suave para o badge "AGORA" e bordas de estado ativo. */
 @keyframes ds-pulse-brasa {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(240, 169, 59, 0.35); }
-  50% { box-shadow: 0 0 0 6px rgba(240, 169, 59, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(252, 76, 19, 0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(252, 76, 19, 0); }
+}
+
+/* StatusDot pulsante (a cor do halo vem de --dot-halo). */
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--dot-halo, rgba(252, 76, 19, 0.5)); }
+  50% { box-shadow: 0 0 0 8px transparent; }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ECG: o brilho percorre o traço da esquerda para a direita (±530 = comprimento do traço em EcgLine). */
+@keyframes ecgDraw {
+  from { stroke-dashoffset: 530; }
+  to { stroke-dashoffset: -530; }
+}
+
+/* Toast entrando de cima com overshoot. */
+@keyframes toastIn {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: none; opacity: 1; }
 }
 
 /* Acender em sequência (body map, listas). */

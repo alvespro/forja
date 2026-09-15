@@ -162,7 +162,7 @@ export function DocumentUpload() {
           </DialogHeader>
 
           {erro ? (
-            <p className="text-sm text-alerta">{erro}</p>
+            <p className="text-sm text-alerta-texto">{erro}</p>
           ) : dadosExtraidos ? (
             <DadosPreview dados={dadosExtraidos} />
           ) : null}

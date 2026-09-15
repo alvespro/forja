@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { groupLogsByHabit, useHabitLogs, useHabits, useToggleHabitLog } from '@/hooks/use-habits'
 import { currentIsoWeekDates, todayInSaoPaulo } from '@/lib/date'
+import { haptic } from '@/lib/haptics'
 
 export function HabitsPage() {
   const habits = useHabits()
@@ -85,9 +86,10 @@ export function HabitsPage() {
               completedDates={logsByHabit.get(habit.id) ?? new Set<string>()}
               weekDates={weekDates}
               today={today}
-              onToggle={(date, completed) =>
+              onToggle={(date, completed) => {
+                haptic('light')
                 toggle.mutate({ habitId: habit.id, date, completed })
-              }
+              }}
             />
           ))}
         </div>

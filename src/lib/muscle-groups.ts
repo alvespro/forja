@@ -110,24 +110,25 @@ export function groupSortIndex(grupo: string): number {
 }
 
 const GROUP_COLORS: Record<MuscleKey, string> = {
-  peito: '#1a3a5c',
-  costas: '#1a4a3a',
-  pernas: '#3a2a1a',
-  biceps: '#2a1a4a',
-  triceps: '#4a2a1a',
-  ombros: '#1a2a4a',
-  gluteo: '#3a1a3a',
-  core: '#2a3a1a',
-  panturrilha: '#1a3a4a',
+  // Tons escuros quase neutros: identidade discreta sobre o Cod Gray, sem competir com a brasa.
+  peito: '#2e1a13',
+  costas: '#1c2420',
+  pernas: '#2b2216',
+  biceps: '#231d28',
+  triceps: '#2e1c17',
+  ombros: '#1b2027',
+  gluteo: '#2a1a21',
+  core: '#20251b',
+  panturrilha: '#1a2326',
 }
 
 /** Cor-base de identidade do grupo muscular (fundo dos cards). */
 export function colorForGroup(grupo: string | null | undefined): string {
   const key = primaryGroupKey(grupo)
-  return key ? GROUP_COLORS[key] : '#1b2a42'
+  return key ? GROUP_COLORS[key] : '#1d1d1d'
 }
 
 /** Gradiente de card por grupo: cor de identidade → meia-noite. */
 export function gradientForGroup(grupo: string | null | undefined): string {
-  return `linear-gradient(160deg, ${colorForGroup(grupo)} 0%, #0b1220 100%)`
+  return `linear-gradient(160deg, ${colorForGroup(grupo)} 0%, #000000 100%)`
 }

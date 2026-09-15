@@ -42,7 +42,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
             onClose()
             void supabase.auth.signOut()
           }}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-linha ds-body-md font-semibold text-aco-texto outline-none hover:text-alerta focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-linha ds-body-md font-semibold text-aco-texto outline-none hover:text-alerta-texto focus-visible:ring-2 focus-visible:ring-ring"
         >
           <LogOut className="size-4" aria-hidden="true" />
           Sair da conta

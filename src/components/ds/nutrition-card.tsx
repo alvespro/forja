@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Check, Plus } from 'lucide-react'
 
 import { MacroBar } from '@/components/ds/macro-bar'
+import { StatusDot } from '@/components/ds/status-dot'
 import { cn } from '@/lib/utils'
 
 type Macro = { atual: number; meta: number }
@@ -24,6 +25,8 @@ export type NutritionCardProps = {
   registrado?: boolean
   /** Versão menor para a lista de próximas refeições. */
   compact?: boolean
+  /** Passou de um limite do plano (ex.: carbo no jantar): borda vermelha. */
+  alerta?: boolean
   className?: string
 }
 
@@ -45,6 +48,7 @@ export function NutritionCard({
   aviso,
   registrado: registradoProp,
   compact = false,
+  alerta = false,
   className,
 }: NutritionCardProps) {
   const registrado = registradoProp ?? kcal.atual > 0
@@ -52,10 +56,11 @@ export function NutritionCard({
   return (
     <div
       className={cn(
-        'flex flex-col rounded-[var(--radius-lg)] border bg-card',
+        'relative flex flex-col rounded-[var(--r-md)] border bg-aco',
         compact ? 'gap-3 p-3.5' : 'gap-4 p-4',
-        agora ? 'ds-card-brasa border-brasa' : 'border-border',
-        passada && !agora && 'opacity-60',
+        alerta ? 'border-alerta' : agora ? 'border-brasa shadow-[var(--shadow-brasa)]' : 'border-linha',
+        // Refeição que já passou e foi registrada sai de foco; passada sem registro continua pedindo atenção.
+        passada && registrado && !agora && 'opacity-50',
         className,
       )}
     >
@@ -63,19 +68,20 @@ export function NutritionCard({
         <div className="flex min-w-0 flex-col gap-0.5">
           <div className="flex items-center gap-2">
             {agora && (
-              <span className="ds-pulse rounded-full bg-brasa px-2 py-0.5 ds-data-sm font-bold text-meia-noite">
-                AGORA
-              </span>
+              <span className="ds-terminal-xs rounded-[4px] bg-brasa px-1.5 pb-px pt-0.5 text-fundo">Agora</span>
             )}
-            <span className={cn('truncate font-semibold text-foreground', agora ? 'ds-h4' : 'ds-body-lg')}>{nome}</span>
+            <span className={cn('truncate font-semibold text-nevoa', agora ? 'ds-h4' : 'ds-body-lg')}>{nome}</span>
             {registrado && <Check className="size-4 shrink-0 text-ok" aria-label="registrado" />}
           </div>
-          {horario && <span className="ds-data-md text-aco-texto">{horario}</span>}
+          {horario && <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">{horario}</span>}
         </div>
 
-        <span className="shrink-0 ds-data-lg text-foreground">
-          {Math.round(kcal.atual)}
-          <span className="text-aco-texto"> / {Math.round(kcal.meta)} kcal</span>
+        <span className="flex shrink-0 items-center gap-2 text-[14px] tabular-nums text-nevoa [font-family:var(--font-display)]">
+          <span>
+            {Math.round(kcal.atual)}
+            <span className="text-cinza"> / {Math.round(kcal.meta)} kcal</span>
+          </span>
+          {agora && <StatusDot color="brasa" pulse />}
         </span>
       </div>
 
@@ -89,8 +95,8 @@ export function NutritionCard({
             type="button"
             onClick={onRegistrar}
             className={cn(
-              'ds-pressable-card flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-dashed outline-none hover:border-brasa/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring',
-              agora ? 'min-h-14 border-brasa/60 ds-body-md font-semibold text-brasa' : 'min-h-11 border-linha ds-body-sm text-aco-texto',
+              'ds-pressable-card flex items-center justify-center gap-2 rounded-[var(--r-sm)] border border-dashed outline-none hover:border-brasa/50 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring',
+              agora ? 'min-h-14 border-brasa/60 ds-body-md font-semibold text-brasa' : 'min-h-11 border-linha ds-body-sm text-cinza',
             )}
           >
             <Plus className="size-4" aria-hidden="true" />
@@ -106,8 +112,8 @@ export function NutritionCard({
               type="button"
               onClick={onRegistrar}
               className={cn(
-                'ds-pressable flex min-h-11 items-center gap-1.5 rounded-full px-4 ds-body-md font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                agora ? 'bg-brasa text-meia-noite' : 'bg-aco-claro text-foreground',
+                'ds-pressable flex min-h-11 items-center gap-1.5 rounded-[var(--r-md)] px-4 ds-body-md font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                agora ? 'bg-brasa text-fundo shadow-[var(--shadow-brasa)]' : 'border border-linha bg-fundo text-nevoa',
               )}
             >
               <Plus className="size-4" aria-hidden="true" />

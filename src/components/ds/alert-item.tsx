@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils'
 
 export type AlertTone = 'critico' | 'atencao' | 'info'
 
-const TONE: Record<AlertTone, { bar: string; icon: string; bg: string }> = {
-  critico: { bar: 'bg-alerta', icon: 'text-alerta', bg: 'bg-alerta/10' },
-  atencao: { bar: 'bg-atencao', icon: 'text-atencao', bg: 'bg-atencao/10' },
-  info: { bar: 'bg-aco-texto', icon: 'text-aco-texto', bg: 'bg-aco-claro/60' },
+const TONE: Record<AlertTone, { borda: string; icon: string; label: string; texto: string }> = {
+  critico: { borda: 'border-alerta', icon: 'text-alerta-texto', label: '⚠ Alerta', texto: 'text-alerta-texto' },
+  atencao: { borda: 'border-brasa', icon: 'text-brasa', label: 'Atenção', texto: 'text-brasa' },
+  info: { borda: 'border-cinza2', icon: 'text-cinza', label: 'Aviso', texto: 'text-cinza' },
 }
 
 export type AlertItemProps = {
@@ -23,26 +23,31 @@ export type AlertItemProps = {
 
 const CLAMP_THRESHOLD = 140
 
-/** Alerta compacto do cockpit: ícone + título curto + ação. Vermelho crítico, âmbar atenção. */
+/** Alerta do cockpit: fundo aço, borda esquerda de 3px pelo tom, label dot-matrix, título e ação. */
 export function AlertItem({ tone = 'atencao', icon: Icon, title, body, action, onDismiss }: AlertItemProps) {
   const [aberto, setAberto] = useState(false)
   const t = TONE[tone]
   const longo = (body?.length ?? 0) > CLAMP_THRESHOLD
 
   return (
-    <div role={tone === 'critico' ? 'alert' : undefined} className={cn('relative flex gap-3 overflow-hidden rounded-[var(--radius-md)] p-4 pl-5', t.bg)}>
-      <span className={cn('absolute inset-y-0 left-0 w-1', t.bar)} aria-hidden="true" />
+    <div
+      role={tone === 'critico' ? 'alert' : undefined}
+      className={cn('flex gap-3 rounded-r-[var(--r-md)] border-l-[3px] bg-aco p-4', t.borda)}
+    >
       <Icon className={cn('mt-0.5 size-5 shrink-0', t.icon)} aria-hidden="true" />
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-start justify-between gap-2">
-          <p className="ds-body-md font-semibold text-foreground">{title}</p>
+          <div className="flex min-w-0 flex-col gap-1">
+            <span className={cn('ds-terminal-xs', t.texto)}>{t.label}</span>
+            <p className="ds-body-md font-semibold text-nevoa">{title}</p>
+          </div>
           {onDismiss && (
             <button
               type="button"
               onClick={onDismiss}
               aria-label="Dispensar alerta"
-              className="-m-2 flex size-10 shrink-0 items-center justify-center rounded-full text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              className="-m-2 flex size-11 shrink-0 items-center justify-center rounded-full text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
             >
               <X className="size-4" aria-hidden="true" />
             </button>
@@ -50,7 +55,7 @@ export function AlertItem({ tone = 'atencao', icon: Icon, title, body, action, o
         </div>
 
         {body && (
-          <p className={cn('ds-body-sm whitespace-pre-line text-aco-texto', longo && !aberto && 'line-clamp-3')}>{body}</p>
+          <p className={cn('ds-body-sm whitespace-pre-line text-cinza', longo && !aberto && 'line-clamp-3')}>{body}</p>
         )}
 
         {(longo || action) && (
@@ -60,7 +65,7 @@ export function AlertItem({ tone = 'atencao', icon: Icon, title, body, action, o
                 type="button"
                 onClick={() => setAberto((v) => !v)}
                 aria-expanded={aberto}
-                className="flex min-h-9 items-center ds-body-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-11 items-center ds-body-sm font-semibold text-nevoa outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {aberto ? 'Recolher' : 'Ler tudo'}
               </button>
@@ -69,7 +74,10 @@ export function AlertItem({ tone = 'atencao', icon: Icon, title, body, action, o
               <button
                 type="button"
                 onClick={action.onClick}
-                className={cn('flex min-h-9 items-center ds-body-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring', t.icon)}
+                className={cn(
+                  'flex min-h-11 min-w-11 items-center ds-body-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  tone === 'info' ? 'text-nevoa' : t.texto,
+                )}
               >
                 {action.label} →
               </button>

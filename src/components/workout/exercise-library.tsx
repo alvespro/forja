@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ExerciseForm } from '@/components/workout/exercise-form'
 import { useExerciseLoadSummary } from '@/hooks/use-exercise-load-summary'
 import { useCreateExercise, useExercises } from '@/hooks/use-exercises'
-import { gradientForGroup, groupSortIndex, SEM_GRUPO } from '@/lib/muscle-groups'
+import { groupSortIndex, SEM_GRUPO } from '@/lib/muscle-groups'
 import type { Exercise } from '@/types/database'
 
 type GroupBucket = { grupo: string; exercises: Exercise[] }
@@ -98,7 +98,7 @@ export function ExerciseLibrary() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="ds-label">Grupos musculares</span>
+        <span className="ds-label whitespace-pre"><span className="text-cinza2-texto">01</span>  Grupos musculares</span>
         <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
           <Plus className="size-3.5" aria-hidden="true" />
           Exercício
@@ -115,14 +115,16 @@ export function ExerciseLibrary() {
               type="button"
               onClick={() => setSelectedGroup(bucket.grupo)}
               aria-label={`${bucket.grupo}: ${bucket.exercises.length} exercício${bucket.exercises.length === 1 ? '' : 's'}`}
-              className="ds-pressable-card ds-stagger relative flex aspect-square flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[var(--radius-lg)] border border-white/5 p-2 text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              style={{ background: gradientForGroup(bucket.grupo), animationDelay: `${i * 40}ms` }}
+              className="ds-pressable-card ds-stagger ds-dots group relative flex aspect-square flex-col items-center justify-between overflow-hidden rounded-[var(--r-md)] border border-linha bg-aco p-2.5 text-center outline-none transition-[border-color,box-shadow] duration-150 hover:border-brasa hover:shadow-[0_0_24px_rgba(252,76,19,0.2)] focus-visible:ring-2 focus-visible:ring-ring"
+              style={{ animationDelay: `${i * 40}ms` }}
             >
-              <span className="absolute right-2 top-2 rounded-full bg-black/35 px-1.5 py-0.5 ds-data-sm text-nevoa">
-                {bucket.exercises.length}
+              <span className="ds-terminal-xs w-full truncate text-left text-cinza group-hover:text-nevoa">{bucket.grupo}</span>
+              <span className="flex w-full items-end justify-between">
+                <span className="text-[20px] font-bold leading-none tabular-nums text-nevoa [font-family:var(--font-display)]">
+                  {bucket.exercises.length}
+                </span>
+                <BodyMap size="tile" musculosAtivos={[bucket.grupo]} />
               </span>
-              <BodyMap size="tile" musculosAtivos={[bucket.grupo]} />
-              <span className="line-clamp-1 w-full shrink-0 ds-body-sm font-semibold text-foreground first-letter:uppercase">{bucket.grupo}</span>
             </button>
           ))}
         </div>

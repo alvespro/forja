@@ -2,9 +2,10 @@ import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
-type MetricHeroSize = 'lg' | 'md' | 'sm' | 'xs'
+type MetricHeroSize = 'xl' | 'lg' | 'md' | 'sm' | 'xs'
 
 const SIZE_CLASS: Record<MetricHeroSize, string> = {
+  xl: 'ds-display-lg text-[80px] tracking-[-0.04em]',
   lg: 'ds-display-lg',
   md: 'ds-display-md',
   sm: 'ds-display-sm',
@@ -28,7 +29,7 @@ const TONE_CLASS = {
   brasa: 'text-brasa',
   foreground: 'text-foreground',
   ok: 'text-ok',
-  alerta: 'text-alerta',
+  alerta: 'text-alerta-texto',
 } as const
 
 /**
@@ -51,7 +52,7 @@ export function MetricHero({
       ? 'text-aco-texto'
       : delta.good
         ? 'text-ok'
-        : 'text-alerta'
+        : 'text-alerta-texto'
 
   return (
     <div className={cn('flex flex-col gap-1', className)}>
@@ -61,12 +62,12 @@ export function MetricHero({
         <span className={cn(SIZE_CLASS[size], TONE_CLASS[tone])}>
           <DecimalValue value={value} />
         </span>
-        {unit && <span className="ds-data-lg text-aco-texto">{unit}</span>}
+        {unit && <span className={cn('text-cinza [font-family:var(--font-display)]', size === 'xl' ? 'text-[24px]' : 'ds-data-lg')}>{unit}</span>}
       </div>
 
       {delta && (
-        <span className={cn('flex items-center gap-1 ds-data-md', deltaTone)}>
-          <DeltaIcon className="size-3" aria-hidden="true" />
+        <span className={cn('flex items-center gap-1', size === 'xl' ? 'text-[14px] [font-family:var(--font-display)]' : 'ds-data-md', deltaTone)}>
+          <DeltaIcon className={size === 'xl' ? 'size-4' : 'size-3'} aria-hidden="true" />
           {delta.value}
         </span>
       )}

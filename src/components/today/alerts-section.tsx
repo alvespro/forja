@@ -34,8 +34,8 @@ export function AlertsSection({ children }: { children: ReactNode }) {
   return (
     <section className={cn('flex flex-col gap-3', total === 0 && 'hidden')}>
       <div className="flex items-baseline justify-between">
-        <span className="ds-label">Alertas</span>
-        <span className="ds-data-md text-aco-texto">{total}</span>
+        <span className="ds-label whitespace-pre"><span className="text-cinza2-texto">09</span>  Alertas</span>
+        <span className="text-[13px] tabular-nums text-cinza [font-family:var(--font-display)]">{total}</span>
       </div>
 
       <div

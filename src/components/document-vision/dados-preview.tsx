@@ -4,7 +4,7 @@ import type { DadosExtraidos } from '@/hooks/useDocumentVision'
 const STATUS_PILL_CLASS: Record<string, string> = {
   normal: 'bg-ok/15 text-ok',
   atencao: 'bg-atencao/15 text-atencao',
-  alerta: 'bg-alerta/15 text-alerta',
+  alerta: 'bg-alerta/15 text-alerta-texto',
 }
 
 /** Renderiza dados_extraidos/dados_confirmados por tipo — nunca exibir o JSON cru ao usuário. */

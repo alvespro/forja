@@ -3,41 +3,48 @@
 @import "shadcn/tailwind.css";
 
 /*
- * Tipografia (referência: dark ember, Anthropic cookbooks):
- * display condensado em caixa alta para títulos, Inter para UI e
- * JetBrains Mono para tudo que é evidência (números, stats, ids).
+ * Tipografia: 3 famílias, todas self-hosted (o PWA funciona offline e não
+ * depende do Google Fonts). Bricolage Grotesque (títulos, texto, navegação),
+ * Space Mono (números e métricas) e VT323 (labels dot-matrix estilo DeerFlow).
+ * As duas primeiras são importadas em design-system.css.
  */
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
-@import "@fontsource/barlow-condensed/600.css";
-@import "@fontsource/barlow-condensed/700.css";
-@import "@fontsource/barlow-condensed/800.css";
-@import "@fontsource/jetbrains-mono/400.css";
-@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/vt323/latin-400.css";
 
-/* Design system do redesign (tokens, escalas e movimento). */
+/* Design system (tokens, escalas e movimento). */
 @import "./styles/design-system.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Barlow Condensed', 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-heading: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+  --font-display: 'Space Mono', ui-monospace, monospace;
+  --font-terminal: 'VT323', ui-monospace, monospace;
 
+  --color-fundo: var(--fundo);
   --color-meia-noite: var(--meia-noite);
   --color-aco: var(--aco);
+  --color-aco2: var(--aco2);
   --color-aco-claro: var(--aco-claro);
   --color-linha: var(--linha);
   --color-brasa: var(--brasa);
+  --color-brasa2: var(--brasa2);
+  --color-brasa3: var(--brasa3);
   --color-brasa-quente: var(--brasa-quente);
   --color-nevoa: var(--nevoa);
+  --color-cinza: var(--cinza);
+  --color-cinza2: var(--cinza2);
+  --color-cinza2-texto: var(--cinza2-texto);
   --color-aco-texto: var(--aco-texto);
   --color-ok: var(--ok);
   --color-atencao: var(--atencao);
   --color-alerta: var(--alerta);
+  --color-alerta-texto: var(--alerta-texto);
+
+  --animate-pulse-brasa: statusPulse 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.8s ease infinite;
+  --animate-blink: blink 1s step-end infinite;
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -80,18 +87,43 @@
 }
 
 :root {
-  /* Seção 7 — paleta nomeada da FORJA (tema escuro único) */
-  --meia-noite: #0b1220;
-  --aco: #131f33;
-  --aco-claro: #1b2a42;
-  --linha: #22324d;
-  --brasa: #f0a93b;
-  --brasa-quente: #e07b2e;
-  --nevoa: #eae5d8;
-  --aco-texto: #8294b0;
-  --ok: #5fa88c;
-  --atencao: #e8a23d;
-  --alerta: #d77356; /* ajustado de #cb6a4e: contraste 4.49:1 sobre --aco falhava AA (mín. 4.5:1) */
+  /* Paleta Vermilion + Cod Gray (tema escuro único) */
+
+  /* fundação */
+  --fundo: #000000;
+  --aco: #1d1d1d;
+  --aco2: #333333;
+  --linha: #3d3d3d;
+
+  /* acento */
+  --brasa: #fc4c13;
+  --brasa2: #e85002;
+  --brasa3: #c10801;
+
+  /* gradientes de marca */
+  --gradient-brand: linear-gradient(135deg, #000000 0%, #c10801 35%, #f16001 70%, #fc4c13 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(192, 8, 1, 0.15) 0%, #000000 60%);
+
+  /* texto */
+  --nevoa: #f9f9f9;
+  --cinza: #a7a7a7;
+  /* #646464 tem 3,5:1 sobre o preto — só para ícones, bordas e texto grande, nunca texto pequeno. */
+  --cinza2: #646464;
+  /* Cinza discreto para TEXTO (ordinais "01", placeholders "—"): 4,9:1 sobre #1D1D1D. */
+  --cinza2-texto: #8a8a8a;
+
+  /* status */
+  --ok: #4caf7d;
+  --atencao: #fc4c13;
+  /* #c10801 tem 3,3:1 sobre o preto: serve para borda, ponto e fundo; texto de erro usa --alerta-texto (6:1). */
+  --alerta: #c10801;
+  --alerta-texto: #ff6b5b;
+
+  /* Nomes antigos continuam valendo (usados em todo o app) e apontam para a paleta nova. */
+  --meia-noite: var(--fundo);
+  --aco-claro: var(--aco2);
+  --brasa-quente: var(--brasa2);
+  --aco-texto: var(--cinza);
 
   /* tokens semânticos shadcn/ui, mapeados para a paleta acima */
   --background: var(--meia-noite);
@@ -152,10 +184,9 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Display condensado: títulos em caixa alta com tracking, números tabulares */
+  /* Títulos em Bricolage: tracking levemente fechado, números tabulares */
   .font-heading {
-    text-transform: uppercase;
-    letter-spacing: 0.035em;
+    letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
   }
 

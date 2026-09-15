@@ -47,7 +47,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6">
         <h1 className="font-heading text-2xl font-bold text-foreground">FORJA</h1>
         <p className="mt-1 text-sm text-aco-texto">Entre na sua conta para continuar.</p>
@@ -62,7 +62,7 @@ export function LoginPage() {
               aria-invalid={!!errors.email}
               {...register('email')}
             />
-            {errors.email && <p className="text-xs text-alerta">{errors.email.message}</p>}
+            {errors.email && <p className="text-xs text-alerta-texto">{errors.email.message}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -74,10 +74,10 @@ export function LoginPage() {
               aria-invalid={!!errors.password}
               {...register('password')}
             />
-            {errors.password && <p className="text-xs text-alerta">{errors.password.message}</p>}
+            {errors.password && <p className="text-xs text-alerta-texto">{errors.password.message}</p>}
           </div>
 
-          {authError && <p className="text-sm text-alerta">{authError}</p>}
+          {authError && <p className="text-sm text-alerta-texto">{authError}</p>}
 
           <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
             {isSubmitting ? 'Entrando…' : 'Entrar'}
@@ -86,11 +86,11 @@ export function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-aco-texto">
           Ainda não tem conta?{' '}
-          <Link to="/signup" className="text-brasa hover:underline">
+          <Link to="/signup" className="font-semibold text-brasa underline underline-offset-2">
             Cadastre-se
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   )
 }

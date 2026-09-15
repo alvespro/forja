@@ -87,7 +87,7 @@ export function FrequencyPanel() {
               <span
                 className={cn(
                   'flex shrink-0 items-center gap-1 ds-data-md',
-                  group.alerta ? 'text-alerta' : 'text-aco-texto',
+                  group.alerta ? 'text-alerta-texto' : 'text-aco-texto',
                 )}
               >
                 {group.alerta && <TriangleAlert className="size-3.5" aria-hidden="true" />}

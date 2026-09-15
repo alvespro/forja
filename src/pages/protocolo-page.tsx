@@ -75,25 +75,25 @@ function statusBadge(status: string | null) {
   switch (status) {
     case 'planejado':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-900/40 px-3 py-1.5 text-sm font-semibold text-blue-300 border border-blue-700/50">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-aco px-3 py-1.5 text-sm font-semibold text-cinza border border-linha">
           📋 PLANEJADO — aguardando exames pré-ciclo
         </span>
       )
     case 'ativo':
       return (
-        <span className="inline-flex animate-pulse items-center gap-1.5 rounded-full bg-green-900/40 px-3 py-1.5 text-sm font-semibold text-green-300 border border-green-700/50">
+        <span className="inline-flex animate-pulse items-center gap-1.5 rounded-full bg-ok/16 px-3 py-1.5 text-sm font-semibold text-ok border border-ok/50">
           🟢 CICLO ATIVO
         </span>
       )
     case 'tpc':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-900/40 px-3 py-1.5 text-sm font-semibold text-amber-300 border border-amber-700/50">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-brasa/16 px-3 py-1.5 text-sm font-semibold text-brasa border border-brasa/50">
           🔄 TPC
         </span>
       )
     case 'concluido':
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-900/40 px-3 py-1.5 text-sm font-semibold text-emerald-400 border border-emerald-700/50">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-ok/16 px-3 py-1.5 text-sm font-semibold text-ok border border-ok/50">
           ✅ CONCLUÍDO
         </span>
       )
@@ -105,11 +105,11 @@ function statusBadge(status: string | null) {
 function examStatusBadge(status: ProtocolExamStatus | string | null) {
   switch (status) {
     case 'realizado':
-      return <span className="rounded-full bg-green-900/40 px-2 py-0.5 text-xs text-green-400 border border-green-700/40">✓ Realizado</span>
+      return <span className="rounded-full bg-ok/16 px-2 py-0.5 text-xs text-ok border border-ok/40">✓ Realizado</span>
     case 'agendado':
-      return <span className="rounded-full bg-amber-900/40 px-2 py-0.5 text-xs text-amber-400 border border-amber-700/40">📅 Agendado</span>
+      return <span className="rounded-full bg-brasa/16 px-2 py-0.5 text-xs text-brasa border border-brasa/40">📅 Agendado</span>
     case 'atrasado':
-      return <span className="rounded-full bg-red-900/40 px-2 py-0.5 text-xs text-red-400 border border-red-700/40">🚨 Atrasado</span>
+      return <span className="rounded-full bg-alerta/20 px-2 py-0.5 text-xs text-alerta-texto border border-alerta/40">🚨 Atrasado</span>
     default:
       return <span className="rounded-full bg-border/40 px-2 py-0.5 text-xs text-aco-texto">Pendente</span>
   }
@@ -579,13 +579,13 @@ export function ProtocoloPage() {
               key={alert.id}
               className={`flex items-start gap-3 rounded-lg border p-3 ${
                 alert.level === 'critico'
-                  ? 'border-red-700/60 bg-red-950/40'
-                  : 'border-amber-700/60 bg-amber-950/30'
+                  ? 'border-alerta/60 bg-alerta/20'
+                  : 'border-brasa/60 bg-brasa/12'
               }`}
             >
-              <AlertTriangle className={`mt-0.5 size-4 shrink-0 ${alert.level === 'critico' ? 'text-red-400' : 'text-amber-400'}`} />
+              <AlertTriangle className={`mt-0.5 size-4 shrink-0 ${alert.level === 'critico' ? 'text-alerta-texto' : 'text-brasa'}`} />
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold ${alert.level === 'critico' ? 'text-red-300' : 'text-amber-300'}`}>
+                <p className={`text-sm font-semibold ${alert.level === 'critico' ? 'text-alerta-texto' : 'text-brasa'}`}>
                   {alert.message}
                 </p>
                 {alert.detail && <p className="text-xs text-aco-texto mt-0.5">{alert.detail}</p>}
@@ -609,12 +609,12 @@ export function ProtocoloPage() {
         <Card style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.4)' }}>
           <CardContent className="flex flex-col gap-3">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 size-5 text-amber-400 shrink-0" />
+              <AlertTriangle className="mt-0.5 size-5 text-brasa shrink-0" />
               <div>
-                <p className="text-sm font-bold text-amber-300">
+                <p className="text-sm font-bold text-brasa">
                   ⚠️ Exames pré-ciclo pendentes ({preRealizados} de {preExams.length} realizados)
                 </p>
-                <p className="mt-0.5 text-xs text-amber-200/70">
+                <p className="mt-0.5 text-xs text-brasa/70">
                   Não inicie o ciclo sem completar todos os exames.
                 </p>
               </div>
@@ -622,7 +622,7 @@ export function ProtocoloPage() {
             <div className="flex flex-col gap-1.5 pl-7">
               {preExams.filter((e) => e.status !== 'realizado').map((e) => (
                 <div key={e.id} className="flex items-center gap-2">
-                  <div className="size-3.5 rounded border border-amber-600/60 shrink-0" />
+                  <div className="size-3.5 rounded border border-brasa/60 shrink-0" />
                   <span className="text-xs text-aco-texto">{e.nome}</span>
                 </div>
               ))}
@@ -735,7 +735,7 @@ export function ProtocoloPage() {
                       <button
                         type="button"
                         onClick={() => deleteCompound.mutate(c.id)}
-                        className="text-aco-texto/40 hover:text-red-400"
+                        className="text-aco-texto/40 hover:text-alerta-texto"
                       >
                         <X className="size-3.5" />
                       </button>
@@ -782,9 +782,9 @@ export function ProtocoloPage() {
       {/* ════════════ TAB: COMPOSTOS ════════════ */}
       {tab === 'compostos' && (
         <div className="flex flex-col gap-4">
-          <Card className="border-amber-700/30 bg-amber-950/20">
+          <Card className="border-brasa/30 bg-brasa/10">
             <CardContent>
-              <p className="text-xs text-amber-300">
+              <p className="text-xs text-brasa">
                 ℹ️ Registre apenas o que foi prescrito pelo seu médico. O FORJA não recomenda compostos ou doses.
               </p>
             </CardContent>
@@ -804,7 +804,7 @@ export function ProtocoloPage() {
                         {c.via && <span className="rounded-full bg-border/40 px-2 py-0.5 text-xs text-aco-texto">{c.via}</span>}
                       </div>
                     </div>
-                    <button type="button" onClick={() => deleteCompound.mutate(c.id)} className="text-aco-texto/40 hover:text-red-400">
+                    <button type="button" onClick={() => deleteCompound.mutate(c.id)} className="text-aco-texto/40 hover:text-alerta-texto">
                       <X className="size-4" />
                     </button>
                   </div>
@@ -851,7 +851,7 @@ export function ProtocoloPage() {
                         <p className={`text-sm ${isCurrent ? 'font-semibold text-foreground' : 'text-aco-texto'}`}>{fase.label}</p>
                         <p className="text-xs text-aco-texto">{done}/{total} exames realizados</p>
                       </div>
-                      {done === total && total > 0 && <CheckCircle2 className="size-4 text-green-400" />}
+                      {done === total && total > 0 && <CheckCircle2 className="size-4 text-ok" />}
                       {isCurrent && done < total && <span className="text-xs text-brasa font-medium">Agora</span>}
                     </div>
                   )
@@ -955,7 +955,7 @@ export function ProtocoloPage() {
                           {current != null ? `${typeof current === 'number' ? current.toFixed(1) : current}${unit}` : '—'}
                         </p>
                         {delta !== null && (
-                          <p className={`text-xs font-medium mt-0.5 ${improved ? 'text-green-400' : 'text-red-400'}`}>
+                          <p className={`text-xs font-medium mt-0.5 ${improved ? 'text-ok' : 'text-alerta-texto'}`}>
                             {delta > 0 ? '+' : ''}{delta.toFixed(1)}{unit}
                           </p>
                         )}
@@ -983,9 +983,9 @@ export function ProtocoloPage() {
                       <YAxis tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} />
                       <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Line type="monotone" dataKey="peso" stroke="#F0A93B" dot={false} name="Peso (kg)" strokeWidth={2} />
-                      <Line type="monotone" dataKey="gordura" stroke="#CB6A4E" dot={false} name="Gordura %" strokeWidth={2} />
-                      <Line type="monotone" dataKey="musculo" stroke="#5FA88C" dot={false} name="Músculo (kg)" strokeWidth={2} />
+                      <Line type="monotone" dataKey="peso" stroke="#FC4C13" dot={false} name="Peso (kg)" strokeWidth={2} />
+                      <Line type="monotone" dataKey="gordura" stroke="#F9F9F9" dot={false} name="Gordura %" strokeWidth={2} />
+                      <Line type="monotone" dataKey="musculo" stroke="#4CAF7D" dot={false} name="Músculo (kg)" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -1006,9 +1006,9 @@ export function ProtocoloPage() {
                       <YAxis domain={[0, 5]} tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} />
                       <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Line type="monotone" dataKey="humor" stroke="#8294B0" dot={false} name="Humor" strokeWidth={2} />
-                      <Line type="monotone" dataKey="energia" stroke="#F0A93B" dot={false} name="Energia" strokeWidth={2} />
-                      <Line type="monotone" dataKey="libido" stroke="#5FA88C" dot={false} name="Libido" strokeWidth={2} />
+                      <Line type="monotone" dataKey="humor" stroke="#A7A7A7" dot={false} name="Humor" strokeWidth={2} />
+                      <Line type="monotone" dataKey="energia" stroke="#FC4C13" dot={false} name="Energia" strokeWidth={2} />
+                      <Line type="monotone" dataKey="libido" stroke="#4CAF7D" dot={false} name="Libido" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -1049,7 +1049,7 @@ export function ProtocoloPage() {
                               </span>
                             )}
                             {exam.data_realizada && (
-                              <span className="flex items-center gap-1 text-green-400">
+                              <span className="flex items-center gap-1 text-ok">
                                 <CheckCircle2 className="size-3" />
                                 {new Date(exam.data_realizada + 'T12:00:00').toLocaleDateString('pt-BR')}
                               </span>
@@ -1103,12 +1103,12 @@ export function ProtocoloPage() {
             </p>
 
             {examResultCritical.length > 0 && (
-              <div className="rounded-lg border border-red-700/60 bg-red-950/40 p-3 flex flex-col gap-1.5">
-                <p className="text-sm font-semibold text-red-300">⚠️ Marcadores críticos detectados</p>
+              <div className="rounded-lg border border-alerta/60 bg-alerta/20 p-3 flex flex-col gap-1.5">
+                <p className="text-sm font-semibold text-alerta-texto">⚠️ Marcadores críticos detectados</p>
                 {examResultCritical.map((msg) => (
-                  <p key={msg} className="text-xs text-red-200/80">{msg}</p>
+                  <p key={msg} className="text-xs text-alerta-texto/80">{msg}</p>
                 ))}
-                <p className="text-xs text-red-200/60 mt-1">Contate seu médico responsável imediatamente.</p>
+                <p className="text-xs text-alerta-texto/60 mt-1">Contate seu médico responsável imediatamente.</p>
               </div>
             )}
 
@@ -1153,7 +1153,7 @@ export function ProtocoloPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 border-red-700/60 text-red-300"
+                  className="flex-1 border-alerta/60 text-alerta-texto"
                   onClick={() => {
                     setShowExamResultModal(null)
                     setExamResultValues({})
@@ -1178,8 +1178,8 @@ export function ProtocoloPage() {
 
       {/* ════ MODAL: Adicionar Composto ════ */}
       <Modal open={showAddCompound} onClose={() => setShowAddCompound(false)} title="Registrar composto">
-        <div className="rounded-lg border border-amber-700/40 bg-amber-950/20 p-3">
-          <p className="text-xs text-amber-300">
+        <div className="rounded-lg border border-brasa/40 bg-brasa/10 p-3">
+          <p className="text-xs text-brasa">
             Registre apenas o que foi prescrito pelo seu médico. O FORJA não recomenda compostos ou doses.
           </p>
         </div>

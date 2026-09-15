@@ -13,7 +13,7 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card/40 p-8 text-center">
-      <TriangleAlert className="size-6 text-alerta" aria-hidden="true" />
+      <TriangleAlert className="size-6 text-alerta-texto" aria-hidden="true" />
       <p className="text-sm text-muted-foreground">{message}</p>
       {onRetry && (
         <Button type="button" variant="outline" size="sm" onClick={onRetry}>

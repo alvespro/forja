@@ -32,7 +32,7 @@ function TrendArrow({ atual, anterior }: { atual: number; anterior: number | und
   return atual > anterior ? (
     <ArrowUp className="size-3 text-ok" aria-label="subiu" />
   ) : (
-    <ArrowDown className="size-3 text-alerta" aria-label="caiu" />
+    <ArrowDown className="size-3 text-alerta-texto" aria-label="caiu" />
   )
 }
 
@@ -111,7 +111,7 @@ export function SeriesAnalysisTab({ logs }: SeriesAnalysisTabProps) {
                       return (
                         <tr key={set.id} className={cn('border-t border-border/60', isMax && 'bg-brasa/5')}>
                           <td className="py-1.5 text-aco-texto">{set.serie_num}ª</td>
-                          <td className={cn('py-1.5 font-medium', abaixo ? 'text-alerta' : 'text-ok')}>
+                          <td className={cn('py-1.5 font-medium', abaixo ? 'text-alerta-texto' : 'text-ok')}>
                             {set.carga_kg != null ? `${set.carga_kg}kg` : '—'}
                           </td>
                           <td className="py-1.5 text-foreground">{set.reps ?? '—'}</td>

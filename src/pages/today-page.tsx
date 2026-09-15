@@ -11,38 +11,39 @@ import { HabitChecklistCard } from '@/components/today/habit-checklist-card'
 import { MoodCheckinCard } from '@/components/today/mood-checkin-card'
 import { NextActionCard } from '@/components/today/next-action-card'
 import { NotificationsCard } from '@/components/today/notifications-card'
-import { NutritionPreviewCard } from '@/components/today/nutrition-preview-card'
 import { PretreinoAlertCard } from '@/components/today/pretreino-alert-card'
 import { ProtocolSummaryCard } from '@/components/today/protocol-summary-card'
 import { PullToRefresh } from '@/components/today/pull-to-refresh'
 import { QuickStatsCard } from '@/components/today/quick-stats-card'
 import { RecoveryCard } from '@/components/today/recovery-card'
 import { SpacedReviewCard } from '@/components/today/spaced-review-card'
-import { WorkoutTodayCard } from '@/components/today/workout-today-card'
+import { StatusBar } from '@/components/today/status-bar'
+import { TodayGrid } from '@/components/today/today-grid'
 
 /**
- * Hoje — cockpit. Uma informação dominante por seção, espaço generoso entre elas:
- * hero (score) → recuperação → ação principal → hábitos → métricas → semana/conquistas →
- * calendário → nutrição → alertas → demais resumos.
+ * Hoje — cockpit estilo DeerFlow. Seções numeradas:
+ * 0 status bar → 1 hero (score) → 2 métricas rápidas → 3 ação principal →
+ * 4 hábitos → 5 grade (recuperação, nutrição, treino, pesagem) → nível/semana →
+ * 6 calendário → 7 alertas → demais resumos.
  */
 export function TodayPage() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
-      <PullToRefresh />
+      <StatusBar />
       <GamifiedDashboard
         afterHero={
           <>
+            <QuickStatsCard />
+            {/* Pergunta de sono/disposição (some quando o score do dia existe; volta pelo tile Recovery). */}
             <RecoveryCard />
             <NextActionCard />
             <HabitChecklistCard />
-            <QuickStatsCard />
+            <TodayGrid />
           </>
         }
       />
 
       <ActivityCalendar />
-
-      <NutritionPreviewCard />
 
       <AlertsSection>
         <NotificationsCard />
@@ -52,7 +53,6 @@ export function TodayPage() {
 
       {/* Demais resumos do dia — cada card se oculta quando não tem conteúdo */}
       <div className="flex flex-col gap-4">
-        <WorkoutTodayCard />
         <FrogTaskCard />
         <ProtocolSummaryCard />
         <MoodCheckinCard />
@@ -62,6 +62,9 @@ export function TodayPage() {
         <CycleProgressCard />
         <DietAdequacyCard collapsible />
       </div>
+
+      {/* Fixo na tela: fica no fim para não somar gap no fluxo. */}
+      <PullToRefresh />
     </div>
   )
 }

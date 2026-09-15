@@ -61,9 +61,10 @@ export function WorkoutBuilder({ onStartSession }: WorkoutBuilderProps) {
         !isAdding && <EmptyState message="Nenhum treino cadastrado ainda." />
       ) : (
         <div className="flex flex-col gap-3">
-          {workouts.data.map((workout) => (
+          {workouts.data.map((workout, i) => (
             <WorkoutCard
               key={workout.id}
+              numero={i + 1}
               workout={workout}
               exercises={exercises.data ?? []}
               onStartSession={onStartSession}

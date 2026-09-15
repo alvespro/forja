@@ -175,7 +175,7 @@ export function LivroDetalhePage() {
           {/* 3 Aprendizados */}
           <Card style={{ backgroundColor: 'rgba(59, 130, 246, 0.06)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
             <CardContent className="flex flex-col gap-3">
-              <p className="text-sm font-semibold text-blue-400">3 Aprendizados</p>
+              <p className="text-sm font-semibold text-cinza">3 Aprendizados</p>
               {[
                 { label: '1.', value: aprendizado1, set: setAprendizado1 },
                 { label: '2.', value: aprendizado2, set: setAprendizado2 },
@@ -198,7 +198,7 @@ export function LivroDetalhePage() {
           {/* 2 Aplicações */}
           <Card style={{ backgroundColor: 'rgba(34, 197, 94, 0.06)', borderColor: 'rgba(34, 197, 94, 0.2)' }}>
             <CardContent className="flex flex-col gap-3">
-              <p className="text-sm font-semibold text-green-400">2 Aplicações</p>
+              <p className="text-sm font-semibold text-ok">2 Aplicações</p>
               {[
                 { label: '1.', value: aplicacao1, set: setAplicacao1 },
                 { label: '2.', value: aplicacao2, set: setAplicacao2 },
@@ -331,7 +331,7 @@ export function LivroDetalhePage() {
       )}
 
       {gerarInsights.isError && (
-        <p className="text-xs text-alerta">
+        <p className="text-xs text-alerta-texto">
           {gerarInsights.error instanceof Error ? gerarInsights.error.message : 'Falha ao gerar insights.'}
         </p>
       )}

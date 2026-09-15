@@ -53,7 +53,7 @@ export function CrmPage() {
 
       {atrasadas > 0 && (
         <div className="rounded-lg border border-alerta/50 bg-alerta/10 px-3 py-2">
-          <p className="text-sm font-medium text-alerta">
+          <p className="text-sm font-medium text-alerta-texto">
             ⚠️ {atrasadas} cliente{atrasadas > 1 ? 's' : ''} com próxima ação vencida
           </p>
         </div>

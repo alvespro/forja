@@ -16,7 +16,7 @@ export function macroStatus(consumido: number, meta: number): MacroStatus {
 export const MACRO_STATUS_TEXT_CLASS: Record<MacroStatus, string> = {
   ok: 'text-ok',
   atencao: 'text-atencao',
-  alerta: 'text-alerta',
+  alerta: 'text-alerta-texto',
 }
 
 export const MACRO_STATUS_BAR_CLASS: Record<MacroStatus, string> = {

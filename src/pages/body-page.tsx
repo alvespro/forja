@@ -21,8 +21,10 @@ import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
-import { HealthMetricCard } from '@/components/ds/health-metric-card'
+import { MetricCard } from '@/components/ds/metric-card'
 import { MetricHero } from '@/components/ds/metric-hero'
+import { Sparkline } from '@/components/ds/sparkline'
+import type { StatusDotColor } from '@/components/ds/status-dot'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BodyMetricForm } from '@/components/body/body-metric-form'
 import { BodyMetricsChart } from '@/components/body/body-metrics-chart'
@@ -55,6 +57,13 @@ const ICONES: Record<CompositionKey, LucideIcon> = {
   tmb_kcal: Zap,
   massa_ossea_kg: Bone,
   idade_corporal: Hourglass,
+}
+
+const STATUS_COMPOSICAO: Record<'ok' | 'atencao' | 'alerta' | 'neutro', { cor: StatusDotColor; label: string; tom: 'ok' | 'brasa' | 'alerta' | 'nevoa'; linha: string }> = {
+  ok: { cor: 'ok', label: 'No alvo', tom: 'ok', linha: 'var(--ok)' },
+  atencao: { cor: 'brasa', label: 'Atenção', tom: 'brasa', linha: 'var(--brasa)' },
+  alerta: { cor: 'alerta', label: 'Fora', tom: 'alerta', linha: 'var(--alerta-texto)' },
+  neutro: { cor: 'cinza', label: 'Sem meta', tom: 'nevoa', linha: 'var(--cinza)' },
 }
 
 /** Métricas que têm projeção "no ritmo atual" (as mesmas que aceitam meta de ciclo). */
@@ -129,8 +138,13 @@ export function BodyPage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       {dialog}
 
-      <header className="flex items-start justify-between gap-3">
-        <h1 className="ds-h1 text-foreground">Corpo</h1>
+      <header className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
+        <div className="flex flex-col gap-1">
+          <span className="ds-label whitespace-pre">
+            <span className="text-cinza2-texto">03</span>  Composição corporal
+          </span>
+          <h1 className="ds-h1 text-nevoa">Corpo</h1>
+        </div>
         <ObjectiveBadge />
       </header>
 
@@ -149,19 +163,19 @@ export function BodyPage() {
         <>
           {/* HERO: última pesagem como número dominante */}
           <section
-            className="flex flex-col gap-5 rounded-[var(--radius-xl)] p-5"
-            style={{ background: 'radial-gradient(120% 90% at 100% 0%, rgba(95,168,140,0.14) 0%, transparent 55%), var(--aco)' }}
+            className="flex flex-col gap-5 rounded-[var(--r-xl)] border border-linha p-5"
+            style={{ background: 'radial-gradient(90% 70% at 50% 0%, rgba(252,76,19,0.14) 0%, transparent 70%), var(--fundo)' }}
           >
             <div className="flex items-center gap-3">
               <span
-                className="flex size-12 shrink-0 items-center justify-center rounded-full bg-aco-claro ds-h4 text-brasa"
+                className="flex size-12 shrink-0 items-center justify-center rounded-full border border-linha bg-aco ds-h4 text-brasa"
                 aria-hidden="true"
               >
                 {iniciais}
               </span>
               <div className="flex min-w-0 flex-col">
                 <span className="ds-body-md truncate font-semibold text-foreground">{nomePerfil ?? 'Você'}</span>
-                <span className="ds-data-md text-aco-texto">
+                <span className="ds-terminal-xs text-cinza">
                   {latest
                     ? `Última pesagem: ${format(parseDateOnly(latest.medido_em), 'EEEEEE, dd/MM', { locale: ptBR })}`
                     : 'Nenhuma pesagem ainda'}
@@ -174,7 +188,7 @@ export function BodyPage() {
                 label="Peso"
                 value={br(pesoAtual)}
                 unit="kg"
-                size="lg"
+                size="xl"
                 tone="foreground"
                 delta={
                   delta != null && anteriorComPeso
@@ -195,7 +209,7 @@ export function BodyPage() {
               <button
                 type="button"
                 onClick={() => setIsAdding(true)}
-                className="ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="ds-btn-primary w-full outline-none"
               >
                 <Plus className="size-4" aria-hidden="true" />
                 Nova medição
@@ -221,9 +235,9 @@ export function BodyPage() {
           {/* GRADE DE MÉTRICAS */}
           {cards.length > 0 && (
             <section className="flex flex-col gap-3">
-              <span className="ds-label">Composição</span>
-              <div className="grid grid-cols-2 gap-3">
-                {cards.map((c) => {
+              <span className="ds-label">Composição · {cards.length} métricas</span>
+              <div className="grid grid-cols-2 gap-2">
+                {cards.map((c, i) => {
                   const semanas =
                     c.meta != null && PROJETAVEIS.has(c.key)
                       ? projectWeeksToGoal(janelaCiclo, c.key as MetricKey, c.meta)
@@ -232,17 +246,45 @@ export function BodyPage() {
                     c.meta != null
                       ? `meta ${br(c.meta)}${c.unit === '%' ? '%' : c.unit ? ` ${c.unit}` : ''}${semanas != null ? ` · ~${semanas} sem` : ''}`
                       : null
+                  const status = STATUS_COMPOSICAO[c.status]
+                  const Icone = ICONES[c.key]
                   return (
-                    <HealthMetricCard
+                    <MetricCard
                       key={c.key}
-                      icon={ICONES[c.key]}
+                      numOrdem={i + 1}
                       label={c.label}
-                      value={br(c.valor)}
-                      unit={c.unit}
-                      status={c.status}
-                      tendencia={c.tendencia.length > 1 ? c.tendencia : undefined}
-                      progressoMeta={c.progressoMeta}
-                      rodape={rodape}
+                      numero={br(c.valor)}
+                      unidade={c.unit}
+                      size="sm"
+                      tone={status.tom}
+                      aside={
+                        c.tendencia.length > 1 ? (
+                          <Sparkline data={c.tendencia} width={60} color={status.linha} label={`Evolução de ${c.label}`} />
+                        ) : (
+                          <Icone className="size-5 text-cinza2" aria-hidden="true" />
+                        )
+                      }
+                      footer={
+                        c.progressoMeta != null || rodape ? (
+                          <div className="flex flex-col gap-1.5">
+                            {c.progressoMeta != null && (
+                              <div className="h-1 w-full overflow-hidden rounded-full bg-aco2">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${Math.max(0, Math.min(100, c.progressoMeta))}%`,
+                                    backgroundColor: status.linha,
+                                    transition: 'width var(--dur-slow) var(--spring-smooth)',
+                                  }}
+                                />
+                              </div>
+                            )}
+                            {rodape && <span className="truncate text-[11px] text-cinza [font-family:var(--font-display)]">{rodape}</span>}
+                          </div>
+                        ) : undefined
+                      }
+                      statusLabel={status.label}
+                      statusColor={status.cor}
                     />
                   )
                 })}
@@ -257,7 +299,7 @@ export function BodyPage() {
           <ProgressPhotosCard pesoAtual={latest?.peso_kg} />
 
           {ordered.length > 0 && (
-            <section className="flex flex-col gap-3 rounded-[var(--radius-lg)] bg-card p-4">
+            <section className="flex flex-col gap-3 rounded-[var(--r-md)] border border-linha bg-aco p-4">
               <span className="ds-label">Evolução</span>
               <BodyMetricsChart metrics={ordered} />
             </section>
@@ -269,7 +311,7 @@ export function BodyPage() {
           ) : (
             <section className="flex flex-col gap-2">
               <span className="ds-label">Histórico</span>
-              <ul className="flex flex-col divide-y divide-linha rounded-[var(--radius-lg)] bg-card">
+              <ul className="flex flex-col divide-y divide-linha rounded-[var(--r-md)] border border-linha bg-aco">
                 {ordered.map((metric) => (
                   <li key={metric.id} className="flex min-h-14 items-center justify-between gap-2 pl-4 pr-1">
                     <span className="ds-data-md text-aco-texto">
@@ -286,7 +328,7 @@ export function BodyPage() {
                         type="button"
                         aria-label={`Excluir medição de ${format(parseDateOnly(metric.medido_em), 'dd/MM')}`}
                         onClick={() => handleDelete(metric.id)}
-                        className="flex size-11 items-center justify-center rounded-full text-aco-texto outline-none hover:text-alerta focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex size-11 items-center justify-center rounded-full text-aco-texto outline-none hover:text-alerta-texto focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <Trash2 className="size-4" aria-hidden="true" />
                       </button>

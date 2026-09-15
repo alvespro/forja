@@ -22,14 +22,14 @@ const comSinal = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${br(Math.ab
 const RISCO_STYLE: Record<RiscoClinico, { classe: string; label: string }> = {
   baixo: { classe: 'bg-ok/15 text-ok', label: 'Risco baixo' },
   intermediario: { classe: 'bg-atencao/15 text-atencao', label: 'Intermediário' },
-  alto: { classe: 'bg-alerta/15 text-alerta', label: 'Risco alto' },
+  alto: { classe: 'bg-alerta/15 text-alerta-texto', label: 'Risco alto' },
   critico: { classe: 'bg-alerta text-meia-noite', label: 'Crítico' },
 }
 
 const STATUS_STYLE: Record<StatusRatio, { classe: string; label: string }> = {
   ok: { classe: 'bg-ok/15 text-ok', label: 'Ideal' },
   atencao: { classe: 'bg-atencao/15 text-atencao', label: 'Atenção' },
-  alerta: { classe: 'bg-alerta/15 text-alerta', label: 'Alto' },
+  alerta: { classe: 'bg-alerta/15 text-alerta-texto', label: 'Alto' },
 }
 
 function Pill({ classe, children }: { classe: string; children: ReactNode }) {

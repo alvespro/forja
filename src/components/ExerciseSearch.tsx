@@ -150,7 +150,7 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
             ))}
           </div>
 
-          {erro && <p className="ds-body-sm text-alerta">{erro}</p>}
+          {erro && <p className="ds-body-sm text-alerta-texto">{erro}</p>}
 
           {carregando ? (
             <div className="flex flex-col gap-2">

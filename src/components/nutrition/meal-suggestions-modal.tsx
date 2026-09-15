@@ -97,7 +97,7 @@ export function MealSuggestionsModal({ slot, open, onOpenChange }: MealSuggestio
             ))
           )}
 
-          {generateError && <p className="text-xs text-alerta">{generateError}</p>}
+          {generateError && <p className="text-xs text-alerta-texto">{generateError}</p>}
 
           <Button
             type="button"
@@ -224,7 +224,7 @@ function IngredientRow({
               <Loader2 className="size-3 animate-spin" aria-hidden="true" /> Buscando alternativas…
             </span>
           ) : error ? (
-            <span className="text-xs text-alerta">{error}</span>
+            <span className="text-xs text-alerta-texto">{error}</span>
           ) : (
             alternatives?.map((alt, i) => (
               <button

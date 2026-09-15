@@ -34,7 +34,7 @@ const STATUS_LABEL: Record<DocumentImportStatus, string> = {
 const STATUS_PILL_CLASS: Record<DocumentImportStatus, string> = {
   confirmado: 'bg-ok/15 text-ok',
   rejeitado: 'bg-aco-claro text-aco-texto',
-  erro: 'bg-alerta/15 text-alerta',
+  erro: 'bg-alerta/15 text-alerta-texto',
   pendente: 'bg-atencao/15 text-atencao',
 }
 

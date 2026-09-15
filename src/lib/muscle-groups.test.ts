@@ -38,7 +38,7 @@ describe('derivados do grupo principal', () => {
   })
 
   it('grupo desconhecido cai no padrão', () => {
-    expect(colorForGroup('Cardio')).toBe('#1b2a42')
+    expect(colorForGroup('Cardio')).toBe('#1d1d1d')
     expect(iconForGroup(null)).toBe('🏋️')
   })
 

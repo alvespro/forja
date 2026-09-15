@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { StatusDot } from '@/components/ds/status-dot'
 import { useRecoveryDecision } from '@/hooks/use-mobility-routines'
 import type { RecoveryGate } from '@/hooks/use-recovery-gate'
 import { cn } from '@/lib/utils'
@@ -30,13 +31,13 @@ export function RecoveryGateCard({ gate, score }: Pick<RecoveryGate, 'gate' | 's
   return (
     <section
       className={cn(
-        'flex flex-col gap-4 rounded-[var(--radius-lg)] border p-5',
-        critico ? 'border-alerta/60 bg-alerta/10' : 'border-atencao/60 bg-atencao/10',
+        'flex flex-col gap-4 rounded-[var(--r-lg)] border bg-aco p-5',
+        critico ? 'border-alerta' : 'border-brasa shadow-[var(--shadow-brasa)]',
       )}
       aria-labelledby="gate-titulo"
     >
       <div className="flex flex-col gap-1">
-        <span className={cn('ds-label', critico ? 'text-alerta' : 'text-atencao')}>Agora</span>
+        <StatusDot color={critico ? 'alerta' : 'brasa'} pulse label={critico ? 'Recuperação crítica' : 'Agora'} colorLabel />
         <h2 id="gate-titulo" className="ds-h3 text-foreground">
           {critico ? `🔴 Recuperação crítica (${score}%) — Descanso ativo recomendado` : `🟡 Recuperação: ${score}% — Treino adaptado`}
         </h2>

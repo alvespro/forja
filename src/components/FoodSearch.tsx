@@ -165,7 +165,7 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
             </div>
           )}
 
-          {search.erro && <p className="text-xs text-alerta">{search.erro}</p>}
+          {search.erro && <p className="text-xs text-alerta-texto">{search.erro}</p>}
 
           {search.carregando ? (
             <div className="flex flex-col gap-2">
@@ -545,7 +545,7 @@ function BarcodeScanner({ onDetect, onCancel }: { onDetect: (code: string) => vo
         </div>
       )}
 
-      {erro && <p className="text-sm text-alerta">{erro}</p>}
+      {erro && <p className="text-sm text-alerta-texto">{erro}</p>}
 
       <div className="flex items-end gap-2">
         <div className="flex flex-1 flex-col gap-1.5">

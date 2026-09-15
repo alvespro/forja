@@ -1,14 +1,17 @@
 import { toast } from 'sonner'
-import { Activity, Droplets, Flame, HeartPulse, Scale } from 'lucide-react'
+import { Activity } from 'lucide-react'
 
 import { BodyMap } from '@/components/BodyMap'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ExerciseTile } from '@/components/ds/exercise-tile'
-import { HealthMetricCard } from '@/components/ds/health-metric-card'
 import { MacroBar } from '@/components/ds/macro-bar'
 import { MetricHero } from '@/components/ds/metric-hero'
 import { NutritionCard } from '@/components/ds/nutrition-card'
+import { EcgLine } from '@/components/ds/ecg-line'
+import { MetricCard } from '@/components/ds/metric-card'
 import { ProgressRing } from '@/components/ds/progress-ring'
+import { Sparkline } from '@/components/ds/sparkline'
+import { StatusDot } from '@/components/ds/status-dot'
 import { WorkoutCard } from '@/components/ds/workout-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -35,8 +38,62 @@ export function DesignSystemPage() {
         </div>
       </Section>
 
+      <Section title="Botões">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="ds-btn-primary">Primário</button>
+          <button type="button" className="ds-btn-secondary">Secundário</button>
+          <button type="button" className="ds-btn-ghost">Ghost</button>
+          <Button>shadcn default</Button>
+          <Button variant="outline">outline</Button>
+        </div>
+      </Section>
+
+      <Section title="StatusDot">
+        <div className="flex flex-wrap gap-4">
+          <StatusDot color="brasa" pulse label="Ativo" />
+          <StatusDot color="ok" label="Sync OK" colorLabel />
+          <StatusDot color="alerta" pulse label="Sessão" colorLabel />
+          <StatusDot color="cinza" label="Offline" />
+        </div>
+      </Section>
+
+      <Section title="MetricCard">
+        <div className="flex flex-col gap-3">
+          <MetricCard
+            numOrdem={1}
+            label="Recovery score"
+            numero={78}
+            unidade="%"
+            size="lg"
+            statusLabel="Treino pesado"
+            statusColor="ok"
+            footer={<EcgLine />}
+          />
+          <div className="grid grid-cols-3 gap-2">
+            <MetricCard label="Peso" numero="84,4" unidade="kg" size="sm" />
+            <MetricCard label="Gordura" numero={null} unidade="%" size="sm" />
+            <MetricCard label="Streak" numero={12} unidade="d" size="sm" tone="brasa" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <MetricCard
+              label="Glicemia"
+              numero={103}
+              unidade="mg/dL"
+              statusLabel="Atenção"
+              statusColor="brasa"
+              aside={<Sparkline data={[96, 99, 101, 98, 103]} />}
+            />
+            <MetricCard label="HDL" numero={52} unidade="mg/dL" statusLabel="Ok" statusColor="ok" aside={<Sparkline data={[44, 47, 49, 52]} color="var(--ok)" />} />
+          </div>
+        </div>
+      </Section>
+
       <Section title="Tipografia">
         <div className="flex flex-col gap-2">
+          <span className="ds-terminal-sm text-cinza">01&nbsp;&nbsp;FORJA Score</span>
+          <span className="text-[80px] font-bold leading-none text-brasa [font-family:var(--font-display)] [text-shadow:var(--shadow-glow)]">83</span>
+          <span className="ds-brand-line" />
+          <span className="ds-terminal-lg ds-cursor text-nevoa">Bom dia, Welber</span>
           <span className="ds-display-lg text-brasa">83</span>
           <span className="ds-h1 text-foreground">Heading 32 — Bom dia, Welber</span>
           <span className="ds-h3 text-foreground">Heading 20 — Treino de hoje</span>
@@ -112,15 +169,6 @@ export function DesignSystemPage() {
         </div>
       </Section>
 
-      <Section title="HealthMetricCard">
-        <div className="grid grid-cols-2 gap-3">
-          <HealthMetricCard icon={Scale} label="Peso" value="84,4" unit="kg" status="atencao" tendencia={[86, 85.4, 85.1, 84.8, 84.4]} progressoMeta={40} />
-          <HealthMetricCard icon={Flame} label="Gordura" value="18,2" unit="%" status="ok" tendencia={[20, 19.5, 19, 18.6, 18.2]} progressoMeta={70} />
-          <HealthMetricCard icon={HeartPulse} label="Visceral" value={9} status="alerta" tendencia={[8, 8, 9, 9, 9]} />
-          <HealthMetricCard icon={Droplets} label="Água" value="58" unit="%" status="neutro" />
-        </div>
-      </Section>
-
       <Section title="Skeleton">
         <div className="flex flex-col gap-2">
           <Skeleton className="h-24 w-full" />
@@ -150,6 +198,9 @@ export function DesignSystemPage() {
           </Button>
           <Button size="sm" variant="outline" onClick={() => toast.error('Não foi possível salvar')}>
             Error
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => toast.info('Sincronizando…')}>
+            Info
           </Button>
         </div>
       </Section>

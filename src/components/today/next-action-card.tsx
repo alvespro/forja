@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 
+import { StatusDot } from '@/components/ds/status-dot'
 import { RecoveryGateCard } from '@/components/today/recovery-gate-card'
 import { useBodyMetrics } from '@/hooks/use-body-metrics'
 import { useRecoveryGate } from '@/hooks/use-recovery-gate'
@@ -59,25 +60,28 @@ export function NextActionCard() {
 
   return (
     <section
-      className="ds-card-brasa relative flex flex-col gap-4 overflow-hidden rounded-[var(--radius-lg)] border border-brasa p-5"
-      style={{ background: 'linear-gradient(135deg, rgba(240,169,59,0.16) 0%, var(--aco) 55%)' }}
+      className="relative flex flex-col gap-4 overflow-hidden rounded-[var(--r-lg)] border border-brasa p-5"
+      style={{ background: 'var(--gradient-subtle), var(--aco)', boxShadow: 'var(--shadow-brasa)' }}
     >
+      <div className="flex items-center justify-between gap-3">
+        <span className="ds-terminal-sm whitespace-pre text-cinza">
+          <span className="text-cinza2-texto">02</span>  Próxima ação
+        </span>
+        <StatusDot color="brasa" pulse label="Agora" colorLabel />
+      </div>
+
       <div className="flex items-start gap-4">
         <span className="text-[32px] leading-none" aria-hidden="true">
           {action.icon}
         </span>
         <div className="flex min-w-0 flex-col gap-1">
-          <span className="ds-label text-brasa">Agora</span>
-          <h2 className="ds-h3 text-foreground">{action.title}</h2>
-          <p className="ds-body-md text-aco-texto">{action.subtitle}</p>
+          <h2 className="ds-h3 text-nevoa">{action.title}</h2>
+          <p className="ds-body-md text-cinza">{action.subtitle}</p>
         </div>
       </div>
 
       {action.ctaLabel && action.to && (
-        <Link
-          to={action.to}
-          className="ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
+        <Link to={action.to} className="ds-btn-primary w-full outline-none">
           {action.ctaLabel}
           <ArrowRight className="size-4" aria-hidden="true" />
         </Link>

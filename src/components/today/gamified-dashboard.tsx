@@ -6,8 +6,8 @@ import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 
 import { ObjectiveBadge } from '@/components/body/objective-badge'
-import { MetricHero } from '@/components/ds/metric-hero'
 import { useAchievements, usePersistAchievements } from '@/hooks/use-achievements'
+import { useProfile } from '@/hooks/use-profile'
 import { useActiveProtocol } from '@/hooks/use-protocols'
 import { useDailyScores, useUpsertDailyScore } from '@/hooks/use-daily-scores'
 import { useHabits, useHabitLogs, groupLogsByHabit } from '@/hooks/use-habits'
@@ -26,16 +26,16 @@ import { weekdayAbbrevOf } from '@/lib/nutrition'
 import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
-// ─── Ranking do dia ──────────────────────────────────────────────────────────
+// ─── Classificação do dia ────────────────────────────────────────────────────
 
-type Rank = { nome: string; emoji: string; cor: string; min: number }
+type Rank = { nome: string; emoji: string; min: number }
 
 const RANKS: Rank[] = [
-  { nome: 'FORJADO', emoji: '🔥', cor: '#F0A93B', min: 80 },
-  { nome: 'Ouro', emoji: '🥇', cor: '#FFD60A', min: 60 },
-  { nome: 'Prata', emoji: '🥈', cor: '#C7C7CC', min: 40 },
-  { nome: 'Bronze', emoji: '🥉', cor: '#CB6A4E', min: 20 },
-  { nome: 'Ferro', emoji: '⚒️', cor: '#8E8E93', min: 0 },
+  { nome: 'Dia forjado', emoji: '🔥', min: 80 },
+  { nome: 'Dia sólido', emoji: '💪', min: 60 },
+  { nome: 'Dia em construção', emoji: '⚙️', min: 40 },
+  { nome: 'Dia fraco', emoji: '🧱', min: 20 },
+  { nome: 'Dia parado', emoji: '💤', min: 0 },
 ]
 
 function rankOf(pct: number): Rank {
@@ -59,6 +59,7 @@ type Activity = {
  */
 export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
   const navigate = useNavigate()
+  const profile = useProfile()
   const today = todayInSaoPaulo()
   const dataFormatada = format(parseDateOnly(today), "EEEEEE, d 'de' MMM", { locale: ptBR })
   const frase = useDailyQuote(today)
@@ -305,50 +306,63 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conquistas, persistedKeys, persisted.isLoading, dailyScores.isLoading])
 
-  const agora = format(new Date(), 'HH:mm')
+  const primeiroNome = (profile.data?.nome?.trim() || 'Welber').split(' ')[0]
 
   return (
     <div className="flex flex-col gap-6">
-      {/* ── HERO: fundo da tela (sem card), score como herói tipográfico ── */}
+      {/* ── SECTION 1 — HERO: preto com brilho vermilion no topo, score como herói ── */}
       <section
-        className="-mx-4 -mt-6 flex flex-col px-5 pb-7 pt-6 md:mx-0 md:mt-0 md:rounded-[var(--radius-xl)] md:px-8"
-        style={{
-          background:
-            'radial-gradient(120% 80% at 0% 0%, rgba(240,169,59,0.14) 0%, transparent 60%), linear-gradient(180deg, var(--aco) 0%, var(--meia-noite) 100%)',
-        }}
+        className="-mx-4 flex flex-col px-5 pb-7 pt-7 md:mx-0 md:rounded-[var(--r-xl)] md:border md:border-linha md:px-8"
+        style={{ background: 'radial-gradient(90% 70% at 50% 0%, rgba(252,76,19,0.16) 0%, transparent 70%), var(--fundo)' }}
       >
-        <p className="ds-data-md text-aco-texto">
-          {dataFormatada} · {agora}
+        <div className="flex items-center justify-between gap-3">
+          <span className="ds-terminal-sm whitespace-pre text-cinza">
+            <span className="text-cinza2-texto">01</span>  FORJA Score
+          </span>
+          <span className="ds-terminal-xs text-cinza first-letter:uppercase">{dataFormatada}</span>
+        </div>
+
+        <div className="mt-3 flex items-baseline gap-2">
+          <span
+            className="text-[80px] font-bold leading-[0.9] tracking-[-0.04em] text-brasa tabular-nums [font-family:var(--font-display)]"
+            style={{ textShadow: 'var(--shadow-glow)' }}
+            aria-label={`FORJA Score ${pct} de 100`}
+          >
+            {pct}
+          </span>
+          <span className="text-[20px] text-cinza2-texto [font-family:var(--font-display)]" aria-hidden="true">
+            /100
+          </span>
+        </div>
+
+        <p className="ds-terminal-md mt-3 text-nevoa">
+          <span aria-hidden="true">{rank.emoji} </span>
+          {rank.nome}
+          <span className="ml-3 text-cinza">
+            {pontos - bonus}/{total} pts
+            {bonus > 0 && <span className="text-ok"> · +{bonus} bônus</span>}
+          </span>
         </p>
-        <h1 className="ds-h2 mt-1 text-foreground">{saudacao}, Welber</h1>
-        <p className="ds-body-sm mt-1 line-clamp-2 italic text-aco-texto">
+
+        <span className="ds-brand-line mt-4" aria-hidden="true" />
+
+        <h1 className="ds-terminal-lg ds-cursor mt-4 text-nevoa">
+          {saudacao}
+          {primeiroNome && `, ${primeiroNome}`}
+        </h1>
+        <p className="ds-body-sm mt-1.5 line-clamp-2 italic text-cinza">
           “{frase.texto}”{frase.fonte ? ` — ${frase.fonte}` : ''}
         </p>
         <div className="mt-3 flex">
           <ObjectiveBadge />
         </div>
 
-        <div className="mt-7 flex items-end justify-between gap-3">
-          <MetricHero label="FORJA Score" value={pct} unit="/100" size="lg" />
-          <span
-            className="mb-2 flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 ds-body-sm font-semibold"
-            style={{ borderColor: `${rank.cor}66`, color: rank.cor, backgroundColor: `${rank.cor}14` }}
-          >
-            {rank.emoji} {rank.nome}
-          </span>
-        </div>
-
-        <p className="ds-data-md mt-2 text-aco-texto">
-          {pontos - bonus} de {total} pts
-          {bonus > 0 && <span className="text-ok"> · +{bonus} bônus</span>}
-        </p>
-
         {/* Pilares do dia: uma barra fina por atividade pontuável */}
         <div className="mt-5 flex gap-1" aria-hidden="true">
           {activities
             .filter((a) => !a.bonus)
             .map((a) => (
-              <div key={a.key} className="h-1.5 flex-1 overflow-hidden rounded-full bg-aco-claro">
+              <div key={a.key} className="h-1 flex-1 overflow-hidden rounded-full bg-aco2">
                 <div
                   className="h-full rounded-full bg-brasa"
                   style={{
@@ -368,12 +382,12 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
               type="button"
               onClick={() => navigate(a.to)}
               className={cn(
-                'ds-pressable flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 ds-body-sm font-medium',
+                'ds-pressable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 ds-body-sm font-medium',
                 a.bonus
                   ? 'border-ok/40 bg-ok/10 text-ok'
                   : a.done
-                    ? 'border-brasa/50 bg-brasa/15 text-brasa'
-                    : 'border-linha bg-aco/60 text-aco-texto',
+                    ? 'border-brasa/60 bg-brasa/15 text-brasa'
+                    : 'border-linha bg-aco text-cinza',
               )}
             >
               <span aria-hidden="true">{a.emoji}</span>
@@ -387,8 +401,8 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
             type="button"
             onClick={() => upsertScore.mutate({ data: today, pontos, total, bonus, rest_day: !restDay })}
             className={cn(
-              'ds-pressable flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 ds-body-sm font-medium',
-              restDay ? 'border-sky-700/60 bg-sky-950/40 text-sky-300' : 'border-linha bg-aco/40 text-aco-texto/70',
+              'ds-pressable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 ds-body-sm font-medium',
+              restDay ? 'border-nevoa/40 bg-nevoa/10 text-nevoa' : 'border-linha bg-aco text-cinza',
             )}
             title={
               restDay
@@ -404,18 +418,21 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
       {afterHero}
 
       {/* ── Nível + semana (compacto) ── */}
-      <section className="flex flex-col gap-4 rounded-[var(--radius-lg)] bg-card p-4">
+      <section className="flex flex-col gap-4 rounded-[var(--r-md)] border border-linha bg-aco p-4">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-col">
+          <div className="flex min-w-0 flex-col gap-1">
             <span className="ds-label">Nível {nivel.nivel}</span>
             <span className="ds-body-md truncate font-semibold text-foreground">
               {nivel.emoji} {nivel.titulo}
             </span>
           </div>
-          <span className="ds-data-md shrink-0 text-aco-texto">{totalXP} XP</span>
+          <span className="shrink-0 text-[18px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">
+            {totalXP}
+            <span className="ml-1 text-[12px] font-normal text-cinza">XP</span>
+          </span>
         </div>
         <div className="flex flex-col gap-1">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-aco-claro">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-aco2">
             <div
               className="h-full rounded-full bg-brasa"
               style={{
@@ -432,17 +449,17 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
         <div className="flex items-end justify-between gap-1.5" role="img" aria-label="Score dos últimos 7 dias">
           {semana.map((d) => (
             <div key={d.data} className="flex flex-1 flex-col items-center gap-1.5">
-              <div className="flex h-12 w-full items-end overflow-hidden rounded-[6px] bg-aco-claro">
+              <div className="flex h-12 w-full items-end overflow-hidden rounded-[4px] bg-aco2">
                 <div
-                  className="w-full rounded-[6px]"
+                  className="w-full rounded-[4px]"
                   style={{
                     height: `${Math.max(d.pct, d.pct > 0 ? 8 : 0)}%`,
-                    backgroundColor: d.pct >= 80 ? 'var(--brasa)' : d.pct >= 50 ? 'var(--ok)' : 'var(--aco-texto)',
+                    backgroundColor: d.pct >= 80 ? 'var(--brasa)' : d.pct >= 50 ? 'rgba(252,76,19,0.45)' : 'var(--cinza2)',
                     transition: 'height var(--dur-slow) var(--spring-smooth)',
                   }}
                 />
               </div>
-              <span className={cn('ds-data-sm', d.isToday ? 'font-bold text-brasa' : 'text-aco-texto')}>
+              <span className={cn('ds-terminal-xs', d.isToday ? 'text-brasa' : 'text-cinza')}>
                 {format(parseDateOnly(d.data), 'EEEEEE', { locale: ptBR })}
               </span>
             </div>

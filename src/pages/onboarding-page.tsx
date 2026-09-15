@@ -231,7 +231,7 @@ export function OnboardingPage() {
           </div>
         )}
 
-        {error && <p className="text-sm text-alerta">{error}</p>}
+        {error && <p className="text-sm text-alerta-texto">{error}</p>}
       </div>
 
       {/* Ações */}

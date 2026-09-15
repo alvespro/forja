@@ -41,7 +41,7 @@ export function CrmActionsCard() {
           <button
             type="button"
             onClick={() => navigate('/crm')}
-            className="text-xs text-aco-texto hover:text-foreground"
+            className="-my-3 flex min-h-11 min-w-11 items-center justify-end px-1 text-xs text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
           >
             Ver →
           </button>
@@ -65,7 +65,7 @@ export function CrmActionsCard() {
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 text-[11px] font-medium ${atrasada ? 'text-alerta' : 'text-cyan-300'}`}
+                  className={`shrink-0 text-[11px] font-medium ${atrasada ? 'text-alerta-texto' : 'text-cyan-300'}`}
                 >
                   {atrasada ? 'vencida' : 'hoje'}
                 </span>

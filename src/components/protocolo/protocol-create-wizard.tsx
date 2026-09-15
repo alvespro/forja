@@ -164,8 +164,8 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
 
         {step === 1 && (
           <>
-            <div className="rounded-lg border border-amber-700/40 bg-amber-950/20 p-3">
-              <p className="text-xs text-amber-300">
+            <div className="rounded-lg border border-brasa/40 bg-brasa/10 p-3">
+              <p className="text-xs text-brasa">
                 Registre apenas o protocolo prescrito pelo seu médico. O FORJA não recomenda
                 compostos, doses ou protocolos.
               </p>
@@ -313,8 +313,8 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
               placeholder="Ex: Supino 120kg, Agachamento 160kg"
             />
             {error && (
-              <div className="rounded-lg border border-red-700/60 bg-red-950/40 p-3">
-                <p className="text-xs text-red-300">{error}</p>
+              <div className="rounded-lg border border-alerta/60 bg-alerta/20 p-3">
+                <p className="text-xs text-alerta-texto">{error}</p>
               </div>
             )}
             <div className="flex gap-2">

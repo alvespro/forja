@@ -47,7 +47,7 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
   const horario = slot.horario_alvo?.slice(0, 5) ?? '—'
 
   const acaoCls =
-    'ds-pressable flex min-h-11 items-center gap-1.5 rounded-full border border-linha px-3 ds-body-sm font-medium text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring'
+    'ds-pressable flex min-h-11 items-center gap-1.5 rounded-[var(--r-md)] border border-linha bg-aco px-3 ds-body-sm font-medium text-cinza outline-none hover:border-cinza hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring'
 
   return (
     <>
@@ -57,6 +57,7 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
         agora={isFeatured}
         passada={passada}
         compact={!isFeatured}
+        alerta={carboAcimaDoLimite}
         registrado={registrado}
         kcal={{ atual: registradoHoje.calorias, meta: slot.calorias_alvo ?? 0 }}
         proteina={{ atual: registradoHoje.proteina_g, meta: slot.proteina_g_alvo ?? 0 }}
@@ -66,14 +67,14 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
         aviso={
           isJantar && (
             <div
+              role={carboAcimaDoLimite ? 'alert' : undefined}
               className={cn(
-                'flex items-center gap-2 rounded-[var(--radius-sm)] px-3 py-2 ds-body-sm',
-                carboAcimaDoLimite ? 'bg-alerta/15 font-semibold text-alerta' : 'bg-alerta/5 text-alerta',
+                'ds-terminal-sm flex items-center gap-2 rounded-[var(--r-sm)] border-l-[3px] px-3 py-2 text-brasa',
+                carboAcimaDoLimite ? 'border-alerta bg-alerta/15' : 'border-brasa/50 bg-brasa/5',
               )}
             >
               <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
-              Limite de {CARBO_LIMITE_JANTAR}g de carbo
-              {carboAcimaDoLimite && ' — acima do limite (glicemia 103)'}
+              {carboAcimaDoLimite ? 'Limite carbo — glicemia 103' : `Limite carbo ${CARBO_LIMITE_JANTAR}g`}
             </div>
           )
         }

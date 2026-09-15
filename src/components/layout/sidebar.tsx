@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { LogOut, Zap } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
+import { StatusDot } from '@/components/ds/status-dot'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
 import { supabase } from '@/lib/supabase'
@@ -15,14 +16,10 @@ export function Sidebar() {
   const nome = profile.data?.nome?.trim() || user?.email?.split('@')[0] || 'Você'
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 flex-col border-r border-linha bg-meia-noite md:flex">
-      <div className="flex h-16 shrink-0 items-center gap-2 px-5">
-        <span className="flex size-8 items-center justify-center rounded-[var(--radius-sm)] bg-brasa text-meia-noite">
-          <Zap className="size-4 fill-current" aria-hidden="true" />
-        </span>
-        <span className="text-[20px] font-extrabold tracking-[-0.02em] text-foreground [font-family:var(--font-heading)]">
-          FORJA
-        </span>
+    <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 flex-col border-r border-linha bg-fundo md:flex">
+      <div className="flex h-16 shrink-0 items-center gap-3 px-5">
+        <span className="ds-terminal-2xl leading-none tracking-[0.12em] text-nevoa">FORJA</span>
+        <StatusDot color="brasa" pulse />
       </div>
 
       <nav aria-label="Navegação principal" className="ds-scroll flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-3">
@@ -53,7 +50,7 @@ export function Sidebar() {
           type="button"
           onClick={() => supabase.auth.signOut()}
           aria-label="Sair da conta"
-          className="flex size-9 items-center justify-center rounded-full text-aco-texto outline-none hover:text-alerta focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex size-9 items-center justify-center rounded-full text-aco-texto outline-none hover:text-alerta-texto focus-visible:ring-2 focus-visible:ring-ring"
         >
           <LogOut className="size-4" aria-hidden="true" />
         </button>
@@ -71,14 +68,10 @@ function SidebarLink({ item }: { item: NavItem }) {
         to={to}
         end={to === '/'}
         className={cn(
-          'relative flex min-h-10 items-center gap-3 rounded-[var(--radius-sm)] px-3 ds-body-md font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
-          isActive ? 'bg-brasa/10 text-foreground' : 'text-aco-texto hover:bg-aco hover:text-foreground',
+          'relative flex min-h-11 items-center gap-3 rounded-r-[var(--r-sm)] border-l-2 px-3 text-[14px] font-medium outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring',
+          isActive ? 'border-brasa bg-aco text-nevoa' : 'border-transparent text-cinza hover:bg-aco hover:text-nevoa',
         )}
       >
-        <span
-          className={cn('absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-brasa', isActive ? 'opacity-100' : 'opacity-0')}
-          aria-hidden="true"
-        />
         <Icon className={cn('size-[18px] shrink-0', isActive && 'text-brasa')} aria-hidden="true" />
         <span className="truncate">{label}</span>
       </NavLink>

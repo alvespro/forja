@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { ChevronDown, Pencil, Play, Plus, Trash2, TriangleAlert } from 'lucide-react'
+import { ChevronDown, Pencil, Play, Plus, Trash2 } from 'lucide-react'
 
+import { StatusDot } from '@/components/ds/status-dot'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { WorkoutExerciseForm } from '@/components/workout/workout-exercise-form'
@@ -17,7 +18,6 @@ import { useCreateWorkoutSession, useWorkoutSessions } from '@/hooks/use-workout
 import { useDeleteWorkout, useUpdateWorkout } from '@/hooks/use-workouts'
 import { cn } from '@/lib/utils'
 import { toSaoPauloDateString } from '@/lib/date'
-import { gradientForGroup } from '@/lib/muscle-groups'
 import { daysSince } from '@/lib/nutrition'
 import type { Exercise, Workout } from '@/types/database'
 
@@ -25,11 +25,13 @@ const DIAS_ALERTA = 7
 
 type WorkoutCardProps = {
   workout: Workout
+  /** Posição na lista, para o label numerado ("01"). */
+  numero?: number
   exercises: Exercise[]
   onStartSession?: () => void
 }
 
-export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardProps) {
+export function WorkoutCard({ workout, numero, exercises, onStartSession }: WorkoutCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [isAddingExercise, setIsAddingExercise] = useState(false)
@@ -119,25 +121,21 @@ export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardP
   return (
     <>
       {dialog}
-      <div className="overflow-hidden rounded-[var(--radius-lg)] border border-linha bg-card">
-        {/* Capa: gradiente de identidade do foco, nome grande, badges e play */}
-        <div
-          className="relative isolate flex min-h-36 flex-col justify-end gap-3 p-4"
-          style={{ background: gradientForGroup(workout.foco) }}
-        >
-          <div
-            className="absolute inset-0 -z-10"
-            style={{ background: 'linear-gradient(180deg, transparent 20%, rgba(11,18,32,0.85) 100%)' }}
-            aria-hidden="true"
-          />
-
-          <div className="absolute right-2 top-2 flex items-center gap-1">
-            {!workout.ativo && <span className="rounded-full bg-black/35 px-2 py-0.5 ds-data-sm text-aco-texto">inativo</span>}
+      <div className="overflow-hidden rounded-[var(--r-md)] border border-linha bg-aco">
+        {/* Cabeçalho: label numerado, nome, "há X dias" e play */}
+        <div className="relative flex flex-col gap-3 p-4">
+          <div className="flex min-h-10 items-center justify-between gap-2">
+            <span className="ds-terminal-sm flex min-w-0 items-center gap-2 text-cinza">
+              {numero != null && <span className="text-cinza2-texto">{String(numero).padStart(2, '0')}</span>}
+              <span className="truncate">{workout.foco ?? 'Treino'}</span>
+              {!workout.ativo && <span className="text-cinza2-texto">· inativo</span>}
+            </span>
+            <span className="flex shrink-0 items-center gap-1">
             <button
               type="button"
               aria-label={`Editar treino ${workout.nome}`}
               onClick={() => setIsEditing(true)}
-              className="flex size-10 items-center justify-center rounded-full text-nevoa/70 outline-none hover:bg-black/30 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex size-11 items-center justify-center rounded-full text-cinza outline-none hover:bg-aco2 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Pencil className="size-4" aria-hidden="true" />
             </button>
@@ -145,35 +143,28 @@ export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardP
               type="button"
               aria-label={`Excluir treino ${workout.nome}`}
               onClick={handleDelete}
-              className="flex size-10 items-center justify-center rounded-full text-nevoa/70 outline-none hover:bg-black/30 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex size-11 items-center justify-center rounded-full text-cinza outline-none hover:bg-aco2 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Trash2 className="size-4" aria-hidden="true" />
             </button>
+            </span>
           </div>
 
           <div className="flex items-end justify-between gap-3">
             <div className="flex min-w-0 flex-col gap-2">
-              <h3 className="ds-h3 line-clamp-2 text-foreground">{workout.nome}</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {workout.foco && (
-                  <span className="rounded-full bg-black/35 px-2.5 py-1 ds-data-sm text-nevoa">{workout.foco}</span>
-                )}
-                <span
-                  className={cn(
-                    'flex items-center gap-1 rounded-full px-2.5 py-1 ds-data-sm',
-                    alerta ? 'bg-atencao/25 text-atencao' : 'bg-black/35 text-nevoa',
-                  )}
-                >
-                  {alerta && <TriangleAlert className="size-3" aria-hidden="true" />}
+              <h3 className="line-clamp-2 text-[18px] font-bold leading-tight text-nevoa">{workout.nome}</h3>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">
                   {diasSemRealizar === null
                     ? 'nunca feito'
                     : diasSemRealizar === 0
                       ? 'hoje'
                       : `há ${diasSemRealizar} dia${diasSemRealizar === 1 ? '' : 's'}`}
                 </span>
-                <span className="rounded-full bg-black/35 px-2.5 py-1 ds-data-sm text-nevoa">
+                <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">
                   {prescriptions.data?.length ?? 0} exercício{(prescriptions.data?.length ?? 0) === 1 ? '' : 's'}
                 </span>
+                {alerta && <StatusDot color="alerta" pulse label="Atrasado" colorLabel />}
               </div>
             </div>
 
@@ -182,7 +173,7 @@ export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardP
               onClick={handleIniciar}
               disabled={createSession.isPending}
               aria-label={`Iniciar ${workout.nome}`}
-              className="ds-pressable flex size-12 shrink-0 items-center justify-center rounded-full bg-brasa text-meia-noite shadow-[var(--shadow-brasa)] outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+              className="ds-pressable flex size-11 shrink-0 items-center justify-center rounded-full bg-brasa text-fundo shadow-[var(--shadow-brasa)] outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
             >
               <Play className="size-5 fill-current" aria-hidden="true" />
             </button>
@@ -190,7 +181,7 @@ export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardP
         </div>
 
         {/* Prescrição (expansível) */}
-        <div className="flex flex-col gap-3 px-4 py-2">
+        <div className="flex flex-col gap-3 border-t border-linha px-4 py-2">
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
@@ -206,7 +197,7 @@ export function WorkoutCard({ workout, exercises, onStartSession }: WorkoutCardP
             {prescriptions.isLoading ? (
               <p className="text-xs text-aco-texto">Carregando prescrição...</p>
             ) : prescriptions.isError ? (
-              <p className="text-xs text-alerta">Não foi possível carregar a prescrição.</p>
+              <p className="text-xs text-alerta-texto">Não foi possível carregar a prescrição.</p>
             ) : prescriptions.data && prescriptions.data.length > 0 ? (
               prescriptions.data.map((prescription, index) => (
                 <WorkoutExerciseRow

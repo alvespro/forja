@@ -89,7 +89,7 @@ export function ExerciseForm({ exercise, onSubmit, onCancel, isSubmitting }: Exe
           }}
           aria-invalid={!!videoError}
         />
-        {videoError && <p className="text-xs text-alerta">{videoError}</p>}
+        {videoError && <p className="text-xs text-alerta-texto">{videoError}</p>}
         <p className="text-xs text-aco-texto">Só o ID é salvo; o vídeo é exibido via youtube-nocookie.</p>
       </div>
 

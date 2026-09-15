@@ -1,11 +1,13 @@
-import { MetricHero } from '@/components/ds/metric-hero'
+import { MetricCard } from '@/components/ds/metric-card'
 import { useBodyMetrics } from '@/hooks/use-body-metrics'
 import { useDailyScores } from '@/hooks/use-daily-scores'
 import { todayInSaoPaulo } from '@/lib/date'
 import { computeStreak } from '@/lib/gamification'
 
+const br = (n: number) => String(n).replace('.', ',')
+
 /**
- * SECTION 4 do cockpit: três métricas do momento, sem borda.
+ * SECTION 2 do cockpit: três métricas do momento em MetricCards pequenos.
  * O streak é o mesmo do placar e das conquistas (computeStreak sobre os scores
  * diários) — antes este card contava pelo calendário de atividades, e a tela
  * mostraria dois "streaks" diferentes.
@@ -17,19 +19,18 @@ export function QuickStatsCard() {
   const latest = metrics.data && metrics.data.length > 0 ? metrics.data[metrics.data.length - 1] : null
   const streak = computeStreak(scores.data ?? [], todayInSaoPaulo())
 
-  const stats = [
-    { label: 'Peso', value: latest?.peso_kg != null ? String(latest.peso_kg).replace('.', ',') : '—', unit: latest?.peso_kg != null ? 'kg' : undefined },
-    { label: 'Gordura', value: latest?.gordura_pct != null ? String(latest.gordura_pct).replace('.', ',') : '—', unit: latest?.gordura_pct != null ? '%' : undefined },
-    { label: 'Streak', value: String(streak), unit: 'd' },
-  ]
-
   return (
-    <section className="grid grid-cols-3 gap-2">
-      {stats.map((s) => (
-        <div key={s.label} className="flex min-w-0 flex-col rounded-[var(--radius-md)] bg-aco/60 px-3 py-3">
-          <MetricHero label={s.label} value={s.value} unit={s.unit} size="xs" tone="foreground" className="min-w-0" />
-        </div>
-      ))}
+    <section className="grid grid-cols-3 gap-2" aria-label="Métricas rápidas">
+      <MetricCard size="sm" label="Peso" numero={latest?.peso_kg != null ? br(latest.peso_kg) : null} unidade="kg" className="border-transparent" />
+      <MetricCard size="sm" label="Gordura" numero={latest?.gordura_pct != null ? br(latest.gordura_pct) : null} unidade="%" className="border-transparent" />
+      <MetricCard
+        size="sm"
+        label="Streak"
+        numero={streak}
+        unidade={streak > 0 ? '🔥' : 'd'}
+        tone={streak > 0 ? 'brasa' : 'nevoa'}
+        className="border-transparent"
+      />
     </section>
   )
 }

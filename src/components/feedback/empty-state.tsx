@@ -11,15 +11,16 @@ type EmptyStateProps = {
   action?: ReactNode
 }
 
+/** Estado vazio: ícone SVG em cinza sobre o padrão de pontos, título, apoio e CTA. */
 export function EmptyState({ message, description, icon: Icon = Inbox, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[var(--radius-lg)] border border-dashed border-border bg-card/40 px-6 py-10 text-center">
-      <span className="flex size-12 items-center justify-center rounded-full bg-aco-claro">
-        <Icon className="size-5 text-aco-texto" aria-hidden="true" />
+    <div className="ds-dots flex flex-col items-center gap-3 rounded-[var(--r-lg)] border border-linha bg-aco/60 px-6 py-10 text-center">
+      <span className="flex size-12 items-center justify-center rounded-full border border-linha bg-fundo">
+        <Icon className="size-5 text-cinza" strokeWidth={1.75} aria-hidden="true" />
       </span>
       <div className="flex max-w-xs flex-col gap-1">
-        <p className="ds-body-md font-semibold text-foreground">{message}</p>
-        {description && <p className="ds-body-sm text-aco-texto">{description}</p>}
+        <p className="text-[18px] font-semibold leading-snug text-nevoa">{message}</p>
+        {description && <p className="text-[14px] leading-normal text-cinza">{description}</p>}
       </div>
       {action}
     </div>

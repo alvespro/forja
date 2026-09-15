@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import { ExerciseMedia } from '@/components/workout/exercise-media'
 import { ExerciseFocus } from '@/components/workout/session/session-views'
 import { SetRow } from '@/components/workout/set-row'
 import { useExerciseHistory } from '@/hooks/use-exercise-history'
@@ -48,6 +49,7 @@ export function SessionExerciseBlock({
   return (
     <div className="flex flex-col gap-6">
       <ExerciseFocus
+        media={exercise && (exercise.video_url || exercise.gif_url) ? <ExerciseMedia exercise={exercise} className="rounded-none" /> : undefined}
         nome={exercise?.nome ?? 'Exercício'}
         grupo={exercise?.grupo_muscular ?? null}
         youtubeId={exercise?.youtube_video_id}

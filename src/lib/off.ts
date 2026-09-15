@@ -30,7 +30,7 @@ export const NOVA_CLASS: Record<number, string> = {
   1: 'bg-ok/20 text-ok',
   2: 'bg-atencao/20 text-atencao',
   3: 'bg-brasa/20 text-brasa',
-  4: 'bg-alerta/20 text-alerta',
+  4: 'bg-alerta/20 text-alerta-texto',
 }
 
 /** Unidades de porção e quanto cada uma vale em gramas (aproximações de uso caseiro). */

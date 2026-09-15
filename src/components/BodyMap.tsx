@@ -15,7 +15,7 @@ const FILL: Record<MuscleState, string> = {
 }
 
 /** Partes do corpo que não são grupos musculares treináveis (cabeça, antebraço, canela…). */
-const BASE_FILL = '#16223a'
+const BASE_FILL = '#262626'
 
 type Region = { key: MuscleKey; el: (props: { fill: string }) => ReactElement }
 
@@ -55,7 +55,7 @@ function BaseSilhouette({ vista }: { vista: BodyView }) {
       <ellipse cx="70" cy="198" rx="6" ry="20" />
       <ellipse cx="49" cy="224" rx="7" ry="4" />
       <ellipse cx="71" cy="224" rx="7" ry="4" />
-      {vista === 'costas' && <rect x="57" y="44" width="6" height="60" rx="3" fill="#0b1220" opacity="0.35" />}
+      {vista === 'costas' && <rect x="57" y="44" width="6" height="60" rx="3" fill="#000000" opacity="0.35" />}
     </g>
   )
 }
@@ -170,7 +170,7 @@ export function BodyMap({
       {interativo && descansados.length > 0 && (
         <div className="flex flex-wrap justify-center gap-1.5">
           {descansados.map((k) => (
-            <span key={k} className="rounded-full bg-alerta/15 px-2 py-0.5 ds-data-sm text-alerta">
+            <span key={k} className="rounded-full bg-alerta/15 px-2 py-0.5 ds-data-sm text-alerta-texto">
               ⚠️ {GROUP_LABEL[k]}
             </span>
           ))}

@@ -67,7 +67,7 @@ export function YoutubeVideoPicker({ exercise, trocar = false, onVinculado }: Yo
           {trocar ? <Search className="size-4" aria-hidden="true" /> : <span aria-hidden="true">🔍</span>}
           {trocar ? 'Trocar vídeo' : 'Buscar vídeo no YouTube'}
         </button>
-        {erro && <p className="ds-body-sm text-alerta">{erro}</p>}
+        {erro && <p className="ds-body-sm text-alerta-texto">{erro}</p>}
       </div>
     )
   }

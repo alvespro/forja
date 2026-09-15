@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Moon } from 'lucide-react'
 
 import { useHeartZones } from '@/hooks/use-heart-zones'
@@ -26,14 +26,21 @@ function tomDoScore(score: number) {
   if (score >= 80) return { cor: 'text-ok', borda: 'border-ok/40' }
   if (score >= 60) return { cor: 'text-atencao', borda: 'border-atencao/40' }
   if (score >= 40) return { cor: 'text-brasa-quente', borda: 'border-brasa-quente/40' }
-  return { cor: 'text-alerta', borda: 'border-alerta/40' }
+  return { cor: 'text-alerta-texto', borda: 'border-alerta/40' }
 }
 
 /**
- * SECTION 1.5 do cockpit: disposição do dia (1–5) + sono da noite anterior →
- * score de recuperação (health-calc). Mover qualquer slider recalcula após 500 ms.
+ * Disposição do dia (1–5) + sono da noite anterior → score de recuperação
+ * (health-calc). Mover qualquer slider recalcula após 500 ms.
+ *
+ * Com o score de hoje já calculado, o número vive no tile "Recovery" da grade
+ * (SECTION 5) e este card some — volta ao tocar no tile (?recuperacao=editar)
+ * ou fica só com o ajuste sugerido quando a recuperação está abaixo de 60.
  */
 export function RecoveryCard() {
+  const [params, setParams] = useSearchParams()
+  const editando = params.get('recuperacao') === 'editar'
+  const cardRef = useRef<HTMLElement>(null)
   const hoje = todayInSaoPaulo()
   const noite = noiteAnterior(hoje)
   const sono = useSleepLogs(14)
@@ -108,13 +115,65 @@ export function RecoveryCard() {
   const tom = score != null ? tomDoScore(score) : null
   const opcao = DISPOSICAO.find((d) => d.valor === disposicaoAtual)
 
+  // Aberto pelo tile da grade: traz o card para a vista.
+  useEffect(() => {
+    if (editando) cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [editando])
+
+  function fecharEdicao() {
+    setParams(
+      (p) => {
+        p.delete('recuperacao')
+        return p
+      },
+      { replace: true },
+    )
+  }
+
+  if (sono.isLoading || scores.isLoading) return null
+
+  const sugestao = score != null && score < 60 && !gate && scoreHoje?.recomendacao ? scoreHoje.recomendacao : null
+
+  if (scoreHoje && !editando && !calculando) {
+    if (!sugestao) return null
+    return (
+      <section className="flex flex-col gap-1.5 rounded-[var(--r-md)] border-l-[3px] border-brasa bg-aco p-4" aria-label="Ajuste sugerido para o treino">
+        <span className="ds-label text-brasa">Ajuste sugerido · recuperação {score}%</span>
+        <p className="ds-body-md text-nevoa">{sugestao}</p>
+        <Link
+          to="/workout"
+          className="flex min-h-11 items-center gap-1 self-start ds-body-sm font-semibold text-brasa outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Ver treino
+          <ArrowRight className="size-3.5" aria-hidden="true" />
+        </Link>
+      </section>
+    )
+  }
+
   return (
-    <section className="flex flex-col gap-4 rounded-[var(--radius-lg)] bg-card p-4" aria-labelledby="recovery-title">
-      <div className="flex flex-col gap-0.5">
-        <h2 id="recovery-title" className="ds-h4 text-foreground">
-          Como está seu corpo hoje?
-        </h2>
-        <p className="ds-body-sm text-aco-texto">Dor muscular / disposição</p>
+    <section
+      ref={cardRef}
+      className="flex scroll-mt-20 flex-col gap-4 rounded-[var(--r-md)] border border-linha bg-aco p-4"
+      aria-labelledby="recovery-title"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <span className="ds-label">Recovery</span>
+          <h2 id="recovery-title" className="ds-h4 text-nevoa">
+            Como está seu corpo hoje?
+          </h2>
+          <p className="ds-body-sm text-cinza">Dor muscular / disposição</p>
+        </div>
+        {editando && (
+          <button
+            type="button"
+            onClick={fecharEdicao}
+            className="min-h-11 shrink-0 rounded-full px-3 ds-body-sm font-semibold text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Concluir
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
@@ -191,7 +250,7 @@ export function RecoveryCard() {
           Calculando recuperação…
         </div>
       ) : erro ? (
-        <p className="ds-body-sm text-alerta">{erro}</p>
+        <p className="ds-body-sm text-alerta-texto">{erro}</p>
       ) : score != null && tom ? (
         <div className={cn('flex flex-col gap-1 rounded-[var(--radius-md)] border p-4', tom.borda)}>
           <p className="ds-h4 text-foreground">

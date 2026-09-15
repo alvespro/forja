@@ -233,7 +233,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                 <button
                   type="button"
                   onClick={() => handleDelete(selecionada)}
-                  className="text-aco-texto/50 hover:text-red-400"
+                  className="text-aco-texto/50 hover:text-alerta-texto"
                   title="Excluir foto"
                   aria-label="Excluir foto"
                 >

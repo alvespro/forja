@@ -13,11 +13,11 @@ export type ActivityLevel = 0 | 1 | 2 | 3 | 4
 
 /** Cores por intensidade (SPEC Sub-passo 4). Índice = nível 0..4. */
 export const ACTIVITY_LEVEL_COLORS: Record<ActivityLevel, string> = {
-  0: '#1B2A42', // sem atividade
-  1: '#22324d', // hábitos < 50%
-  2: '#3d5a80', // hábitos ≥ 50% ou treino/cardio
-  3: 'rgba(240, 169, 59, 0.6)', // treino + hábitos ≥ 70%
-  4: '#F0A93B', // tudo: treino + hábitos 100% + nutrição
+  0: '#1D1D1D', // sem atividade
+  1: '#333333', // hábitos parciais
+  2: 'rgba(252, 76, 19, 0.4)', // treino/cardio ou hábitos ≥ 50%
+  3: 'rgba(252, 76, 19, 0.7)', // treino + hábitos ≥ 70%
+  4: '#FC4C13', // tudo: treino + hábitos 100% + nutrição
 }
 
 /** Deriva os campos calculados do dia a partir das contagens de origem. */

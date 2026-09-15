@@ -102,7 +102,7 @@ export function HealthCalculatorCard() {
         </div>
         {status && (
           <ul className="flex flex-col gap-2">
-            {!status.chave_configurada && <li className="ds-body-sm text-alerta">Chave HEALTH_CALC_API_KEY não configurada.</li>}
+            {!status.chave_configurada && <li className="ds-body-sm text-alerta-texto">Chave HEALTH_CALC_API_KEY não configurada.</li>}
             {status.endpoints.map((e) => (
               <li key={e.endpoint} className="flex flex-col ds-body-sm">
                 <span className="flex items-center justify-between gap-2">

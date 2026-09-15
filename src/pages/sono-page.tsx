@@ -119,7 +119,7 @@ export function SonoPage() {
             <div className="flex flex-col gap-1 rounded-[var(--radius-lg)] bg-card p-4">
               <span className="ds-label">Dívida da semana</span>
               <span
-                className={`ds-display-sm text-[32px] ${semana.divida === 0 ? 'text-ok' : semana.divida < 5 ? 'text-atencao' : 'text-alerta'}`}
+                className={`ds-display-sm text-[32px] ${semana.divida === 0 ? 'text-ok' : semana.divida < 5 ? 'text-atencao' : 'text-alerta-texto'}`}
               >
                 <DecimalValue value={formatHoras(semana.divida)} />
               </span>

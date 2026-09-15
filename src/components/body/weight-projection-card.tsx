@@ -206,7 +206,7 @@ function ProjectionSummary({
   }
   if (projection.status === 'taxa_invalida') {
     return (
-      <p className="text-sm font-medium text-alerta">
+      <p className="text-sm font-medium text-alerta-texto">
         A taxa escolhida afasta você da meta. Ajuste a direção (perda × ganho).
       </p>
     )

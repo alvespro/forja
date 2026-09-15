@@ -19,21 +19,19 @@ function App() {
           <ForjaChat />
           <DocumentUpload />
         </AuthProvider>
+        {/* Toast do design system: topo central, até 3, some em 3s, arrasta para cima para
+            fechar; borda esquerda colorida por tipo (estilos em design-system.css → .forja-toast). */}
         <Toaster
           theme="dark"
           position="top-center"
-          richColors
           closeButton
-          visibleToasts={2}
+          visibleToasts={3}
           duration={3000}
+          swipeDirections={['top']}
           offset="calc(env(safe-area-inset-top, 0px) + 12px)"
-          toastOptions={{
-            style: {
-              background: 'var(--aco)',
-              border: '1px solid var(--linha)',
-              color: 'var(--nevoa)',
-            },
-          }}
+          mobileOffset="calc(env(safe-area-inset-top, 0px) + 12px)"
+          style={{ zIndex: 9999 }}
+          toastOptions={{ classNames: { toast: 'forja-toast' } }}
         />
         <SpeedInsights />
       </QueryClientProvider>

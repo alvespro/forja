@@ -14,7 +14,7 @@ import { calculateStreak } from '@/lib/streak'
 import { cn } from '@/lib/utils'
 
 /**
- * SECTION 3 do cockpit: hábitos em linha horizontal (círculos de 48px),
+ * SECTION 4 do cockpit: hábitos em linha horizontal (círculos de 52px),
  * toque alterna com feedback háptico; todos feitos → celebração. "Mover o corpo"
  * abre a ativação matinal (treino de hoje + 5 min de mobilidade) em vez de só marcar.
  */
@@ -38,11 +38,13 @@ export function HabitChecklistCard() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
-        <span className="ds-label">Hábitos</span>
+        <span className="ds-label whitespace-pre">
+          <span className="text-cinza2-texto">03</span>  Hábitos
+        </span>
         {lista.length > 0 && (
           <span
             key={todosFeitos ? 'completo' : 'parcial'}
-            className={cn('ds-data-md', todosFeitos ? 'ds-celebrate font-bold text-brasa' : 'text-aco-texto')}
+            className={cn('ds-data-md', todosFeitos ? 'ds-celebrate font-bold text-brasa' : 'text-cinza')}
           >
             {feitos}/{lista.length} hoje{todosFeitos && ' 🔥'}
           </span>
@@ -53,7 +55,7 @@ export function HabitChecklistCard() {
         <div className="flex gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
-              <Skeleton className="size-12 rounded-full" />
+              <Skeleton className="size-[52px] rounded-full" />
               <Skeleton className="h-2.5 w-12" />
             </div>
           ))}
@@ -76,7 +78,7 @@ export function HabitChecklistCard() {
             const streak = calculateStreak(completedDates, today)
 
             return (
-              <li key={habit.id} className="w-16 shrink-0">
+              <li key={habit.id} className="w-[68px] shrink-0">
                 <button
                   type="button"
                   aria-pressed={isDone}
@@ -89,19 +91,19 @@ export function HabitChecklistCard() {
                   }}
                   className="flex w-full flex-col items-center gap-1.5 outline-none focus-visible:[&>span:nth-child(2)]:ring-2 focus-visible:[&>span:nth-child(2)]:ring-ring"
                 >
-                  <span className={cn('h-3.5 ds-data-sm', streak > 0 ? 'text-brasa' : 'text-transparent')}>
-                    🔥{streak}
+                  <span className={cn('ds-terminal-xs h-4', streak > 0 ? 'text-brasa' : 'invisible')} aria-hidden={streak === 0}>
+                    {streak}d
                   </span>
                   <span
                     className={cn(
-                      'ds-pressable flex size-12 items-center justify-center rounded-full border-2',
-                      isDone ? 'border-brasa bg-brasa text-meia-noite' : 'border-linha bg-aco text-transparent',
+                      'ds-pressable flex size-[52px] items-center justify-center rounded-full border',
+                      isDone ? 'border-brasa bg-brasa text-nevoa shadow-[var(--shadow-brasa)]' : 'border-linha bg-aco text-transparent',
                     )}
                     style={{ transition: 'background-color var(--dur-normal) var(--spring-bounce), transform var(--dur-fast) var(--spring-bounce)' }}
                   >
-                    <Check className="size-5" strokeWidth={3} aria-hidden="true" />
+                    <Check className="size-6" strokeWidth={3} aria-hidden="true" />
                   </span>
-                  <span className={cn('w-full truncate text-center text-[10px] leading-tight', isDone ? 'text-foreground' : 'text-aco-texto')}>
+                  <span className={cn('w-full truncate text-center text-[11px] leading-tight', isDone ? 'text-nevoa' : 'text-cinza')}>
                     {habit.nome}
                   </span>
                 </button>

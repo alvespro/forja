@@ -45,8 +45,8 @@ export function SkillsRadarChart({ areas, onClickArea }: SkillsRadarChartProps) 
           <Radar
             name="Atual"
             dataKey="atual"
-            stroke="#F0A93B"
-            fill="#F0A93B"
+            stroke="#FC4C13"
+            fill="#FC4C13"
             fillOpacity={0.25}
             strokeWidth={2}
           />

@@ -114,16 +114,16 @@ export function FoodBodyChart({ plan }: FoodBodyChartProps) {
                 <ReferenceLine
                   yAxisId="kcal"
                   y={metaKcal}
-                  stroke="#F0A93B"
+                  stroke="#FC4C13"
                   strokeDasharray="4 3"
-                  label={{ value: 'meta', fontSize: 9, fill: '#F0A93B' }}
+                  label={{ value: 'meta', fontSize: 9, fill: '#FC4C13' }}
                 />
               )}
               <Line
                 yAxisId="kcal"
                 type="monotone"
                 dataKey="kcal"
-                stroke="#5FA88C"
+                stroke="#4CAF7D"
                 dot={false}
                 connectNulls
                 name="kcal"
@@ -133,7 +133,7 @@ export function FoodBodyChart({ plan }: FoodBodyChartProps) {
                 yAxisId="peso"
                 type="monotone"
                 dataKey="peso"
-                stroke="#8294B0"
+                stroke="#A7A7A7"
                 dot={{ r: 2 }}
                 connectNulls
                 name="peso (kg)"

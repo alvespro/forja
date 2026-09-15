@@ -48,7 +48,7 @@ export function WorkoutCard({
       {/* Overlay para legibilidade do título sobre qualquer capa */}
       <div
         className="absolute inset-0 -z-10"
-        style={{ background: 'linear-gradient(180deg, transparent 30%, #0b1220 100%)' }}
+        style={{ background: 'linear-gradient(180deg, transparent 30%, #000000 100%)' }}
         aria-hidden="true"
       />
 

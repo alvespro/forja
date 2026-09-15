@@ -1,10 +1,10 @@
 import type { DevAreaCategoria } from '@/types/database'
 
 export const AREA_COR: Record<DevAreaCategoria, string> = {
-  mentalidade: '#F0A93B',
-  interpessoal: '#5FA88C',
-  soft_skill: '#8294B0',
-  hard_skill: '#CB6A4E',
+  mentalidade: '#FC4C13',
+  interpessoal: '#4CAF7D',
+  soft_skill: '#A7A7A7',
+  hard_skill: '#F9F9F9',
 }
 
 export const AREA_LABEL: Record<DevAreaCategoria, string> = {

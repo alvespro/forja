@@ -65,7 +65,7 @@ export function ReadingForm({ defaultTrilha, reading, onSubmit, onCancel, isSubm
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="titulo">Título</Label>
         <Input id="titulo" aria-invalid={!!errors.titulo} {...register('titulo')} />
-        {errors.titulo && <p className="text-xs text-alerta">{errors.titulo.message}</p>}
+        {errors.titulo && <p className="text-xs text-alerta-texto">{errors.titulo.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

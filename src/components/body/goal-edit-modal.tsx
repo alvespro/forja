@@ -157,7 +157,7 @@ export function GoalEditModal({ open, onOpenChange, currentGoal }: GoalEditModal
             )}
             Calcular metas sugeridas pela IA
           </Button>
-          {sugestaoError && <p className="text-xs text-alerta">{sugestaoError}</p>}
+          {sugestaoError && <p className="text-xs text-alerta-texto">{sugestaoError}</p>}
           {justificativa && <p className="text-xs text-aco-texto">{justificativa}</p>}
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -188,7 +188,7 @@ export function GoalEditModal({ open, onOpenChange, currentGoal }: GoalEditModal
           </div>
 
           {upsertGoal.isError && (
-            <p className="text-xs text-alerta">
+            <p className="text-xs text-alerta-texto">
               {upsertGoal.error instanceof Error ? upsertGoal.error.message : 'Falha ao salvar o objetivo.'}
             </p>
           )}

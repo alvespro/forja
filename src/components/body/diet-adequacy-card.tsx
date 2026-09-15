@@ -18,7 +18,7 @@ type Veredito = 'ADEQUADA' | 'PARCIALMENTE ADEQUADA' | 'INADEQUADA'
 const VEREDITO_CLASS: Record<Veredito, string> = {
   ADEQUADA: 'border-ok/40 bg-ok/10 text-ok',
   'PARCIALMENTE ADEQUADA': 'border-atencao/40 bg-atencao/10 text-atencao',
-  INADEQUADA: 'border-alerta/40 bg-alerta/10 text-alerta',
+  INADEQUADA: 'border-alerta/40 bg-alerta/10 text-alerta-texto',
 }
 
 const VEREDITO_TEXTO: Record<Veredito, string> = {
@@ -183,7 +183,7 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
             )}
 
             {analisar.isError && (
-              <p className="text-xs text-alerta">
+              <p className="text-xs text-alerta-texto">
                 {analisar.error instanceof Error ? analisar.error.message : 'Falha ao analisar a dieta.'}
               </p>
             )}

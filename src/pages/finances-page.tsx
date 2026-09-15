@@ -90,13 +90,13 @@ export function FinancesPage() {
           <Card size="sm">
             <CardContent className="flex flex-col gap-1">
               <span className="text-xs text-aco-texto">Gastos</span>
-              <span className="font-mono text-lg text-alerta">{currency.format(summary.gastos)}</span>
+              <span className="font-mono text-lg text-alerta-texto">{currency.format(summary.gastos)}</span>
             </CardContent>
           </Card>
           <Card size="sm">
             <CardContent className="flex flex-col gap-1">
               <span className="text-xs text-aco-texto">Saldo</span>
-              <span className={`font-mono text-lg ${summary.saldo >= 0 ? 'text-ok' : 'text-alerta'}`}>
+              <span className={`font-mono text-lg ${summary.saldo >= 0 ? 'text-ok' : 'text-alerta-texto'}`}>
                 {currency.format(summary.saldo)}
               </span>
             </CardContent>
@@ -140,7 +140,7 @@ export function FinancesPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <span
-                    className={`font-mono text-sm ${finance.tipo === 'receita' ? 'text-ok' : 'text-alerta'}`}
+                    className={`font-mono text-sm ${finance.tipo === 'receita' ? 'text-ok' : 'text-alerta-texto'}`}
                   >
                     {finance.tipo === 'receita' ? '+' : '−'}
                     {currency.format(finance.valor)}

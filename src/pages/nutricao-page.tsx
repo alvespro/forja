@@ -6,6 +6,7 @@ import { FoodSearch } from '@/components/FoodSearch'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MacroBar } from '@/components/ds/macro-bar'
+import { StatusDot } from '@/components/ds/status-dot'
 import { FoodBodyChart } from '@/components/nutrition/food-body-chart'
 import { MealSlotCard } from '@/components/nutrition/meal-slot-card'
 import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
@@ -100,14 +101,25 @@ export function NutricaoPage() {
       ) : (
         <>
           {/* HEADER FIXO: macros do dia em destaque */}
-          <section className="sticky top-[env(safe-area-inset-top,0px)] z-20 -mx-4 flex flex-col gap-3 border-b border-linha bg-meia-noite/90 px-4 pb-4 pt-3 backdrop-blur-md md:mx-0 md:rounded-[var(--radius-lg)] md:border md:px-5">
+          <section className="sticky top-[env(safe-area-inset-top,0px)] z-20 -mx-4 flex flex-col gap-3 border-b border-linha bg-fundo/90 px-4 pb-4 pt-3 backdrop-blur-[20px] md:mx-0 md:rounded-[var(--r-md)] md:border md:px-5">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-col">
-                <span className="text-[18px] font-bold text-foreground [font-family:var(--font-data)] tabular-nums">
+              <span className="ds-label whitespace-pre">
+                <span className="text-cinza2-texto">02</span>  Nutrição
+              </span>
+              <StatusDot
+                color={mealLogs.isFetching ? 'brasa' : 'ok'}
+                pulse={mealLogs.isFetching}
+                label={mealLogs.isFetching ? 'Sincronizando' : 'Sync OK'}
+                colorLabel
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-[18px] font-bold uppercase text-nevoa [font-family:var(--font-display)] tabular-nums">
                   {Math.round(consumido.calorias).toLocaleString('pt-BR')}
-                  <span className="ds-data-md font-normal text-aco-texto"> / {kcalMeta.toLocaleString('pt-BR')} kcal</span>
+                  <span className="font-normal text-cinza"> / {kcalMeta.toLocaleString('pt-BR')} kcal</span>
                 </span>
-                <span className="ds-body-sm text-aco-texto">
+                <span className="ds-body-sm text-cinza">
                   {refeicoesHoje === 0
                     ? 'Nenhuma refeição registrada hoje'
                     : `${refeicoesHoje} ${refeicoesHoje === 1 ? 'refeição registrada' : 'refeições registradas'} hoje`}
@@ -116,7 +128,7 @@ export function NutricaoPage() {
               <button
                 type="button"
                 onClick={() => setBuscando(true)}
-                className="ds-pressable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-brasa px-4 ds-body-sm font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="ds-btn-primary shrink-0 px-4 text-[13px] outline-none"
               >
                 <Plus className="size-4" aria-hidden="true" />
                 Registrar alimento

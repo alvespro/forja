@@ -32,9 +32,9 @@ export class AppErrorBoundary extends Component<Props, State> {
           gap: 16,
           padding: 24,
           textAlign: 'center',
-          background: 'var(--meia-noite, #0b1220)',
-          color: 'var(--nevoa, #eae5d8)',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          background: 'var(--meia-noite, #000000)',
+          color: 'var(--nevoa, #F9F9F9)',
+          fontFamily: "'Bricolage Grotesque Variable', system-ui, sans-serif",
         }}
       >
         <p style={{ fontSize: 40 }}>⚒️</p>
@@ -51,8 +51,8 @@ export class AppErrorBoundary extends Component<Props, State> {
             padding: '10px 24px',
             borderRadius: 999,
             border: 0,
-            background: 'var(--brasa, #f0a93b)',
-            color: '#0b1220',
+            background: 'var(--brasa, #FC4C13)',
+            color: '#000000',
             fontWeight: 700,
             fontSize: 14,
             cursor: 'pointer',

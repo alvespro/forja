@@ -64,7 +64,7 @@ export function ImmersiveHeader({
 
         <div className="flex min-w-0 flex-col items-center">
           {treinoNome && <span className="ds-label truncate">{treinoNome}</span>}
-          <span className="ds-data-lg text-foreground tabular-nums">{formatClock(elapsedSeconds)}</span>
+          <span className="text-[16px] tabular-nums text-nevoa [font-family:var(--font-display)]">{formatClock(elapsedSeconds)}</span>
         </div>
 
         <button
@@ -89,13 +89,17 @@ export function ImmersiveHeader({
         </button>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="ds-data-md text-center text-aco-texto">
-            Exercício <span className="text-foreground">{atual}</span> / {total}
+          <span className="ds-terminal-sm text-center text-cinza">
+            Exercício <span className="text-nevoa">{atual}</span> / {total}
           </span>
-          <div className="h-1 w-full overflow-hidden rounded-full bg-aco-claro">
+          <div className="h-[2px] w-full overflow-hidden rounded-full bg-aco2">
             <div
-              className="h-full rounded-full bg-brasa"
-              style={{ width: `${pct}%`, transition: 'width var(--dur-normal) var(--spring-smooth)' }}
+              className="h-full rounded-full"
+              style={{
+                width: `${pct}%`,
+                background: 'var(--gradient-brand)',
+                transition: 'width var(--dur-normal) var(--spring-smooth)',
+              }}
             />
           </div>
         </div>
@@ -127,6 +131,8 @@ export function ImmersiveHeader({
 /* ─────────────────────────── exercício em foco ─────────────────────────── */
 
 export type ExerciseFocusProps = {
+  /** Mídia do ExerciseDB (MP4/GIF) já renderizada; sem ela, YouTube ou BodyMap. */
+  media?: React.ReactNode
   nome: string
   grupo: string | null
   youtubeId?: string | null
@@ -136,41 +142,43 @@ export type ExerciseFocusProps = {
 }
 
 /** Exercício atual: nome em destaque, vídeo (ou BodyMap), última carga e sugestão de progressão. */
-export function ExerciseFocus({ nome, grupo, youtubeId, prescricao, ultima, sugestao }: ExerciseFocusProps) {
+export function ExerciseFocus({ media, nome, grupo, youtubeId, prescricao, ultima, sugestao }: ExerciseFocusProps) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <h2 className="text-[28px] font-extrabold leading-tight tracking-[-0.015em] text-brasa [font-family:var(--font-heading)]">
+        <h2 className="text-[28px] font-extrabold leading-tight tracking-[-0.015em] text-nevoa [font-family:var(--font-heading)]">
           {nome}
         </h2>
         <div className="flex flex-wrap items-center gap-2">
           {grupo && (
-            <span className="rounded-full bg-aco-claro px-2.5 py-1 ds-body-sm font-medium text-foreground first-letter:uppercase">
+            <span className="rounded-full border border-linha bg-aco px-2.5 py-1 ds-body-sm font-medium text-nevoa first-letter:uppercase">
               {grupo}
             </span>
           )}
           {prescricao && (
-            <span className="ds-data-md text-aco-texto">
+            <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">
               {prescricao.series ?? '—'}×{prescricao.reps ?? '—'} · pausa {prescricao.pausaSeg ?? '—'}s
             </span>
           )}
         </div>
       </div>
 
-      {youtubeId ? (
-        <div className="overflow-hidden rounded-[var(--radius-lg)]">
+      {media ? (
+        <div className="overflow-hidden rounded-xl bg-aco">{media}</div>
+      ) : youtubeId ? (
+        <div className="overflow-hidden rounded-xl bg-aco">
           <YoutubeEmbed videoId={youtubeId} title={nome} />
         </div>
       ) : (
-        <div className="flex justify-center rounded-[var(--radius-lg)] bg-aco py-4">
+        <div className="flex justify-center rounded-xl bg-aco py-4">
           <BodyMap size="md" musculosAtivos={grupo ? [grupo] : []} />
         </div>
       )}
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <span className="ds-body-sm text-aco-texto">Última sessão</span>
-          <span className="text-[20px] font-bold text-foreground [font-family:var(--font-data)]">
+          <span className="ds-terminal-xs text-cinza">Última carga</span>
+          <span className="text-[24px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">
             {ultima ? `${kg(ultima.cargaKg)} kg × ${ultima.reps ?? '—'}` : 'primeira vez'}
           </span>
         </div>
@@ -178,11 +186,11 @@ export function ExerciseFocus({ nome, grupo, youtubeId, prescricao, ultima, suge
           <span
             title={sugestao.texto}
             className={cn(
-              'rounded-full px-3 py-1.5 ds-body-sm font-semibold',
-              sugestao.tipo === 'sobe' ? 'bg-brasa text-meia-noite' : 'bg-aco-claro text-foreground',
+              'ds-terminal-sm rounded-full border px-3 py-1.5',
+              sugestao.tipo === 'sobe' ? 'border-brasa/60 bg-brasa/10 text-brasa' : 'border-linha bg-aco text-cinza',
             )}
           >
-            {sugestao.tipo === 'sobe' ? `💪 Tente ${kg(sugestao.cargaKg)} kg` : `↺ Repita ${kg(sugestao.cargaKg)} kg`}
+            {sugestao.tipo === 'sobe' ? `↑ Tente ${kg(sugestao.cargaKg)}kg` : `↺ Repita ${kg(sugestao.cargaKg)}kg`}
           </span>
         )}
       </div>
@@ -230,14 +238,14 @@ export function SetRowView({
         type="button"
         onClick={onEdit}
         aria-label={`Série ${serieNum} concluída: ${carga || '—'} kg × ${reps || '—'}. Tocar para editar`}
-        className="ds-pressable-card flex min-h-14 w-full items-center gap-3 rounded-[var(--radius-md)] border border-ok/30 bg-ok/10 px-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="ds-pressable-card flex min-h-14 w-full items-center gap-3 rounded-[var(--r-md)] border border-ok/30 bg-ok/10 px-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="ds-data-md w-6 text-aco-texto">{serieNum}</span>
         <span className="flex-1 text-[18px] font-bold text-foreground [font-family:var(--font-data)]">
           {carga || '—'} <span className="ds-data-md text-aco-texto">kg</span> × {reps || '—'}
           {rpe && <span className="ds-data-md text-aco-texto"> · RPE {rpe}</span>}
         </span>
-        <span className="flex size-9 items-center justify-center rounded-full bg-ok text-meia-noite ds-celebrate">
+        <span className="flex size-9 items-center justify-center rounded-full bg-ok text-fundo ds-celebrate">
           <Check className="size-5" strokeWidth={3} aria-hidden="true" />
         </span>
       </button>
@@ -245,13 +253,14 @@ export function SetRowView({
   }
 
   const inputCls =
-    'h-12 w-full min-w-0 rounded-[var(--radius-sm)] border border-linha bg-meia-noite px-2 text-center text-[20px] font-bold text-foreground [font-family:var(--font-data)] outline-none focus:border-brasa focus:shadow-[0_0_0_3px_rgba(240,169,59,0.2)]'
+    'h-12 w-full min-w-0 rounded-[var(--r-sm)] border border-linha bg-aco px-2 text-center text-[20px] font-bold text-nevoa tabular-nums [font-family:var(--font-data)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-brasa focus:shadow-[0_0_0_3px_rgba(252,76,19,0.2)]'
 
   return (
-    <div className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-linha bg-aco p-3">
-      <div className="flex items-center gap-2">
-        <span className="ds-data-md w-6 shrink-0 text-aco-texto">{serieNum}</span>
-        <label className="flex min-w-0 flex-1 flex-col gap-0.5">
+    <div className="flex flex-col gap-2 rounded-[var(--r-md)] border border-linha bg-fundo p-3">
+      <div className="flex items-end gap-2">
+        <span className="ds-terminal-md flex h-12 w-6 shrink-0 items-center text-cinza">{String(serieNum).padStart(2, '0')}</span>
+        <label className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="ds-terminal-xs text-cinza">Carga (kg)</span>
           <input
             type="number"
             inputMode="decimal"
@@ -261,12 +270,12 @@ export function SetRowView({
             aria-label={`Carga da série ${serieNum} em kg`}
             className={inputCls}
           />
-          <span className="ds-data-sm text-center text-aco-texto">kg</span>
         </label>
-        <span className="pb-4 ds-data-lg text-aco-texto" aria-hidden="true">
+        <span className="flex h-12 items-center text-[16px] text-cinza2-texto [font-family:var(--font-display)]" aria-hidden="true">
           ×
         </span>
-        <label className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <label className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="ds-terminal-xs text-cinza">Reps</span>
           <input
             type="number"
             inputMode="numeric"
@@ -275,14 +284,13 @@ export function SetRowView({
             aria-label={`Repetições da série ${serieNum}`}
             className={inputCls}
           />
-          <span className="ds-data-sm text-center text-aco-texto">reps</span>
         </label>
         <button
           type="button"
           onClick={onComplete}
           disabled={saving}
           aria-label={`Concluir série ${serieNum}`}
-          className="ds-pressable mb-4 flex size-12 shrink-0 items-center justify-center rounded-full bg-brasa text-meia-noite outline-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring"
+          className="ds-pressable flex size-12 shrink-0 items-center justify-center rounded-full bg-brasa text-fundo shadow-[var(--shadow-brasa)] outline-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Check className="size-6" strokeWidth={3} aria-hidden="true" />
         </button>
@@ -335,7 +343,7 @@ export type RestTimerViewProps = {
   position?: 'fixed' | 'absolute'
 }
 
-/** Cronômetro de pausa fixo no rodapé: âmbar contando, verde ao zerar. */
+/** Cronômetro de pausa fixo no rodapé: vermilion contando, verde ao zerar; a barra fina encolhe com o tempo. */
 export function RestTimerView({ remainingSeconds, targetSeconds, onFinish, position = 'fixed' }: RestTimerViewProps) {
   const zerou = remainingSeconds <= 0
   const pct = targetSeconds > 0 ? Math.max(0, Math.min(100, (remainingSeconds / targetSeconds) * 100)) : 0
@@ -346,23 +354,23 @@ export function RestTimerView({ remainingSeconds, targetSeconds, onFinish, posit
       aria-live={zerou ? 'assertive' : 'off'}
       className={cn(
         position,
-        'inset-x-0 bottom-0 z-40 flex flex-col border-t border-linha backdrop-blur-md ds-safe-bottom',
+        'inset-x-0 bottom-0 z-40 flex flex-col border-t border-linha backdrop-blur-[20px] ds-safe-bottom',
       )}
-      style={{ backgroundColor: 'rgba(27,42,66,0.92)' }}
+      style={{ backgroundColor: 'rgba(29,29,29,0.9)' }}
     >
-      <div className="h-1 w-full bg-aco">
+      <div className="h-[3px] w-full bg-aco2">
         <div
-          className={cn('h-full', zerou ? 'bg-ok' : 'bg-atencao')}
+          className={cn('h-full', zerou ? 'bg-ok' : 'bg-brasa')}
           style={{ width: `${pct}%`, transition: 'width 1s linear' }}
         />
       </div>
       <div className="flex items-center justify-between gap-3 px-5 py-3">
         <div className="flex flex-col">
-          <span className={cn('ds-label', zerou ? 'text-ok' : 'text-atencao')}>{zerou ? 'Pode começar!' : 'Pausa'}</span>
+          <span className={cn('ds-terminal-sm', zerou ? 'text-ok' : 'text-cinza')}>{zerou ? 'Pode começar' : 'Pausa'}</span>
           <span
             className={cn(
               'text-[56px] font-bold leading-none tracking-[-0.02em] tabular-nums [font-family:var(--font-display)]',
-              zerou ? 'text-ok' : 'text-atencao',
+              zerou ? 'text-ok' : 'text-brasa',
             )}
           >
             {formatClock(remainingSeconds)}
@@ -373,7 +381,7 @@ export function RestTimerView({ remainingSeconds, targetSeconds, onFinish, posit
           onClick={onFinish}
           className={cn(
             'ds-pressable flex min-h-12 shrink-0 items-center rounded-full px-5 ds-body-md font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            zerou ? 'bg-ok text-meia-noite' : 'border border-nevoa/25 bg-meia-noite/60 text-foreground',
+            zerou ? 'bg-ok text-fundo' : 'border border-linha bg-fundo/60 text-nevoa',
           )}
         >
           {zerou ? 'Próxima série' : 'Pular'}
@@ -419,16 +427,16 @@ export function PostWorkoutSummary({ duracaoSeg, series, volumeKg, exercicios, m
       </div>
       <div className="grid w-full grid-cols-2 gap-2">
         {stats.map((s) => (
-          <div key={s.label} className="flex flex-col rounded-[var(--radius-md)] bg-aco-claro px-3 py-3">
+          <div key={s.label} className="flex flex-col gap-1 rounded-[var(--r-md)] border border-linha bg-aco px-3 py-3">
             <span className="ds-label">{s.label}</span>
-            <span className="text-[22px] font-bold text-foreground [font-family:var(--font-display)] tabular-nums">{s.valor}</span>
+            <span className="text-[22px] font-bold text-nevoa [font-family:var(--font-display)] tabular-nums">{s.valor}</span>
           </div>
         ))}
       </div>
       <button
         type="button"
         onClick={onClose}
-        className="ds-pressable flex min-h-12 w-full items-center justify-center rounded-full bg-brasa ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="ds-btn-primary w-full outline-none"
       >
         Fechar
       </button>

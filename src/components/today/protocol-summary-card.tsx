@@ -56,11 +56,11 @@ export function ProtocolSummaryCard() {
   }
 
   return (
-    <Card className="border-blue-700/30 bg-blue-950/10">
+    <Card className="border-linha bg-aco">
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FlaskConical className="size-4 text-blue-400" />
+            <FlaskConical className="size-4 text-cinza" />
             <span className="text-sm font-semibold text-foreground">
               🔬 Protocolo — Semana {weekNum}
             </span>
@@ -68,7 +68,7 @@ export function ProtocolSummaryCard() {
           <button
             type="button"
             onClick={() => navigate('/protocolo')}
-            className="text-xs text-aco-texto hover:text-foreground"
+            className="-my-3 flex min-h-11 min-w-11 items-center justify-end px-1 text-xs text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
           >
             Ver →
           </button>
@@ -76,7 +76,7 @@ export function ProtocolSummaryCard() {
 
         {/* Composto principal */}
         {mainCompound && p.status === 'ativo' && (
-          <div className="flex items-center justify-between rounded-md border border-blue-700/30 bg-blue-950/20 px-3 py-2">
+          <div className="flex items-center justify-between rounded-md border border-linha bg-aco px-3 py-2">
             <div>
               <p className="text-xs text-aco-texto">Composto principal</p>
               <p className="text-sm font-medium text-foreground">
@@ -120,11 +120,11 @@ export function ProtocolSummaryCard() {
         {proximoExame && (
           <div className={`rounded-md border px-3 py-2 ${
             diasParaExame !== null && diasParaExame <= 3
-              ? 'border-amber-700/40 bg-amber-950/20'
+              ? 'border-brasa/40 bg-brasa/10'
               : 'border-border/30 bg-card/20'
           }`}>
             <p className="text-xs text-aco-texto">Próximo exame</p>
-            <p className={`text-sm font-medium ${diasParaExame !== null && diasParaExame <= 3 ? 'text-amber-300' : 'text-foreground'}`}>
+            <p className={`text-sm font-medium ${diasParaExame !== null && diasParaExame <= 3 ? 'text-brasa' : 'text-foreground'}`}>
               {proximoExame.nome}
               {diasParaExame !== null && (
                 <span className="ml-1.5 text-xs font-normal text-aco-texto">

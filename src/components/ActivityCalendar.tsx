@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 
-import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
 import { useActivityCalendar } from '@/hooks/use-activity-calendar'
@@ -54,45 +53,55 @@ export function ActivityCalendar() {
     return rows
   }, [calendar.data])
 
-  return (
-    <Card size="sm">
-      <CardContent className="flex flex-col gap-3">
-        <p className="ds-label">Últimos 3 meses</p>
+  const ativos = (calendar.data ? [...calendar.data.values()] : []).filter((d) => activityLevel(d) > 0).length
 
-        {calendar.isLoading ? (
-          <Skeleton className="h-40 w-full max-w-[220px]" />
-        ) : (
-          <div className="flex flex-col gap-1">
-            {/* Cabeçalho de dias da semana */}
-            <div className="grid grid-cols-7 gap-1" style={{ maxWidth: 154 }} aria-hidden="true">
+  return (
+    <section className="flex flex-col gap-3 rounded-[var(--r-md)] border border-linha bg-fundo p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="ds-label whitespace-pre">
+          <span className="text-cinza2-texto">08</span>  Atividade · 90 dias
+        </span>
+        {!calendar.isLoading && (
+          <span className="text-[13px] tabular-nums text-nevoa [font-family:var(--font-display)]">
+            {ativos}
+            <span className="text-cinza"> dias ativos</span>
+          </span>
+        )}
+      </div>
+
+      {calendar.isLoading ? (
+        <Skeleton className="h-[88px] w-full max-w-[200px]" />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {/* Coluna = semana (mais antiga à esquerda), linha = dia da semana */}
+          <div className="ds-scroll flex gap-[3px] overflow-x-auto">
+            <div className="flex flex-col gap-[3px] pr-1" aria-hidden="true">
               {WEEKDAY_LABELS.map((label, i) => (
-                <span key={i} className="text-center text-[9px] leading-none text-aco-texto">
-                  {label}
+                <span key={i} className="flex h-[10px] items-center text-[9px] leading-none text-cinza2-texto [font-family:var(--font-display)]">
+                  {i % 2 === 0 ? label : ''}
                 </span>
               ))}
             </div>
-
-            {/* Grade de semanas (linha = semana, coluna = dia) */}
-            <div className="flex flex-col gap-1" role="img" aria-label="Calendário de atividades dos últimos 90 dias">
+            <div className="flex gap-[3px]" role="img" aria-label={`Calendário de atividades: ${ativos} dias ativos nos últimos 90 dias`}>
               {weeks.map((week, wi) => (
-                <div key={wi} className="grid grid-cols-7 gap-1" style={{ maxWidth: 154 }}>
+                <div key={wi} className="flex flex-col gap-[3px]">
                   {week.map((cell, ci) => (
                     <Cell key={ci} cell={cell} />
                   ))}
                 </div>
               ))}
             </div>
-
-            <Legend />
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <Legend />
+        </div>
+      )}
+    </section>
   )
 }
 
 function Cell({ cell }: { cell: Cell }) {
-  if (!cell) return <span className="size-[14px]" />
+  if (!cell) return <span className="size-[10px]" />
   const level: ActivityLevel = cell.day
     ? activityLevel(cell.day)
     : 0
@@ -102,7 +111,7 @@ function Cell({ cell }: { cell: Cell }) {
   const title = `${format(parseDateOnly(cell.date), 'dd/MM')} — Treino: ${treino} | Hábitos: ${habitos}% | Score: ${score}`
   return (
     <span
-      className="size-[14px] rounded-[2px]"
+      className="size-[10px] rounded-[2px]"
       style={{ backgroundColor: ACTIVITY_LEVEL_COLORS[level] }}
       title={title}
     />
@@ -112,8 +121,8 @@ function Cell({ cell }: { cell: Cell }) {
 function Legend() {
   const levels: ActivityLevel[] = [0, 1, 2, 3, 4]
   return (
-    <div className="flex items-center gap-1 text-[9px] text-aco-texto">
-      <span>Menos</span>
+    <div className="ds-terminal-xs flex items-center gap-[3px] text-cinza">
+      <span className="mr-1">Menos</span>
       {levels.map((l) => (
         <span
           key={l}
@@ -121,7 +130,7 @@ function Legend() {
           style={{ backgroundColor: ACTIVITY_LEVEL_COLORS[l] }}
         />
       ))}
-      <span>Mais</span>
+      <span className="ml-1">Mais</span>
     </div>
   )
 }

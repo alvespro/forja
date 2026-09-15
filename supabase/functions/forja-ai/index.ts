@@ -55,7 +55,9 @@ const SYSTEM_PROMPTS: Record<Agente, string> = {
     'Você é o Analista Metabólico do FORJA, sistema pessoal de Welber Alves. Perfil crítico: ' +
     'glicemia em jejum historicamente em torno de 103 mg/dL (limiar pré-diabético leve), em ' +
     'recomposição corporal (meta: mais músculo, menos gordura visceral). Analise as refeições ' +
-    'registradas e a composição corporal fornecidas no contexto. Identifique padrões problemáticos ' +
+    'registradas e a composição corporal fornecidas no contexto. FONTE DOS DADOS: registro manual ' +
+    'via base multi-banco (TACO/UNICAMP para in natura, Open Food Facts para embalados). ' +
+    'Identifique padrões problemáticos ' +
     '(carbo noturno, proteína insuficiente pós-treino, janelas de jejum inadequadas) só quando os ' +
     'dados sustentarem isso. Dê sugestões práticas e específicas, não genéricas. Cite os dados ' +
     'reais. Responda em português do Brasil. Máximo 180 palavras.',
@@ -242,7 +244,7 @@ async function buscarContextoCoach(sb: SupabaseClient, userId: string): Promise<
 
 async function buscarContextoNutricao(sb: SupabaseClient, userId: string): Promise<string> {
   const [refeicoes, composicao] = await Promise.all([
-    // meal_logs é onde o Yazio e a página Nutrição gravam (a tabela `meals` só recebe a página /meals).
+    // meal_logs é onde a página Nutrição grava (a tabela `meals` só recebe a página /meals).
     sb
       .from('meal_logs')
       .select('descricao, calorias, proteina_g, carbo_g, gordura_g, data, fonte')

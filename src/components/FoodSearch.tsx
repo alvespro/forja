@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { Camera, Keyboard, Search, Star } from 'lucide-react'
+import { Camera, Keyboard, Plus, Search, Star } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { FoodSourceBadge } from '@/components/nutrition/food-source-badge'
@@ -18,6 +18,7 @@ import {
   foodParaProduto,
   useFavoriteFoods,
   useFoodSearch,
+  useFoodShortcuts,
   useToggleFavorito,
   useUpsertFoodFromSearch,
   type FiltroFonte,
@@ -58,6 +59,7 @@ type FoodSearchProps = {
 export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchProps) {
   const search = useFoodSearch()
   const favoritos = useFavoriteFoods()
+  const atalhos = useFoodShortcuts()
   const [aba, setAba] = useState<'buscar' | 'favoritos'>('buscar')
   const [termo, setTermo] = useState('')
   const [scannerAberto, setScannerAberto] = useState(false)
@@ -79,7 +81,8 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
   }
 
   const lista = aba === 'favoritos' ? (favoritos.data ?? []).map(foodParaProduto) : search.resultados
-  const mostrandoRecentes = aba === 'buscar' && termo.trim().length < 2 && search.recentes.length > 0
+  const temAtalhos = (atalhos.data?.recentes.length ?? 0) + (atalhos.data?.frequentes.length ?? 0) > 0
+  const mostrandoAtalhos = aba === 'buscar' && termo.trim().length < 2 && temAtalhos
 
   if (selecionado) {
     return (
@@ -90,10 +93,7 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
         defaultSlotId={defaultSlotId}
         onVoltar={() => setSelecionado(null)}
         onClose={fechar}
-        onRegistrado={() => {
-          search.atualizarRecentes()
-          fechar()
-        }}
+        onRegistrado={fechar}
       />
     )
   }
@@ -173,12 +173,10 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
               <Skeleton className="h-20 w-full" />
               <Skeleton className="h-20 w-full" />
             </div>
-          ) : mostrandoRecentes ? (
-            <div className="flex flex-col gap-2">
-              <span className="microlabel">Usados recentemente</span>
-              {search.recentes.map((p) => (
-                <ProdutoCard key={p.id} produto={p} onSelecionar={() => setSelecionado(p)} />
-              ))}
+          ) : mostrandoAtalhos ? (
+            <div className="flex flex-col gap-4">
+              <AtalhosSecao titulo="Recentes" itens={atalhos.data?.recentes ?? []} onSelecionar={setSelecionado} />
+              <AtalhosSecao titulo="Frequentes no mês" itens={atalhos.data?.frequentes ?? []} onSelecionar={setSelecionado} />
             </div>
           ) : lista.length === 0 ? (
             <EmptyState
@@ -207,6 +205,48 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
         </div>
       )}
     </Modal>
+  )
+}
+
+/* ---------------------------------- atalhos ---------------------------------- */
+
+/** Linha de 1 toque: o alimento que você come todo dia, direto para a porção. */
+function AtalhosSecao({
+  titulo,
+  itens,
+  onSelecionar,
+}: {
+  titulo: string
+  itens: { foodId: string; produto: ProdutoAlimento }[]
+  onSelecionar: (produto: ProdutoAlimento) => void
+}) {
+  if (itens.length === 0) return null
+  return (
+    <section className="flex flex-col gap-1.5">
+      <span className="ds-label">{titulo}</span>
+      <ul className="flex flex-col divide-y divide-linha overflow-hidden rounded-lg border border-border bg-card/60">
+        {itens.map(({ foodId, produto }) => (
+          <li key={foodId}>
+            <button
+              type="button"
+              onClick={() => onSelecionar(produto)}
+              className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left outline-none hover:bg-aco focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            >
+              <span className="text-lg" aria-hidden="true">
+                {EMOJI_FONTE[produto.fonte]}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-sm font-medium text-foreground">{produto.nome}</span>
+                <span className="font-mono text-[11px] text-aco-texto">
+                  {produto.por_100g.calorias ?? '—'} kcal · P{produto.por_100g.proteina ?? '—'} /100g
+                </span>
+              </span>
+              <Plus className="size-4 shrink-0 text-brasa" aria-hidden="true" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -349,6 +389,7 @@ function PortionModal({
         carbo_g: macros.carbo,
         gordura_g: macros.gordura,
         food_id: foodId,
+        fonte: produto.fonte === 'ia_estimado' ? 'ia_estimado' : 'foods_cache',
       })
 
       toast.success(`✅ ${produto.nome} adicionado${slot ? ` ao ${slot.nome}` : ''} — ${macros.calorias} kcal`)

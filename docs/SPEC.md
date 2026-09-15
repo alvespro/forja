@@ -63,6 +63,10 @@ Gerenciador: `pnpm`. Deploy sugerido: frontend na **Vercel**, backend no **Supab
 6. **Biblioteca** — leituras (3-2-1) + cursos
 7. **Foco** — Pomodoro + anti-procrastinação
 8. **Diário & Revisão** — diário e revisão semanal
+9. **Nutrição** — plano alimentar, refeições do dia, macros e suplementos.
+   Registro de alimentos via FoodSearch (TACO + Open Food Facts + USDA + IA estimada),
+   com código de barras e atalhos de recentes/frequentes. Sem integrações externas de
+   diário alimentar (Yazio removido em 15/09/2026).
 
 ---
 

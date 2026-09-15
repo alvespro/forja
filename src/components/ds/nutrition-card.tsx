@@ -94,7 +94,7 @@ export function NutritionCard({
             )}
           >
             <Plus className="size-4" aria-hidden="true" />
-            {agora ? 'Adicionar alimento' : 'Toque para registrar'}
+            {agora ? 'Registrar alimento' : 'Registrar'}
           </button>
         )
       )}
@@ -111,7 +111,7 @@ export function NutritionCard({
               )}
             >
               <Plus className="size-4" aria-hidden="true" />
-              Adicionar alimento
+              Registrar alimento
             </button>
           )}
           {extra}

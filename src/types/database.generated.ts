@@ -47,6 +47,66 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_calendar: {
+        Row: {
+          cardio: boolean | null
+          data: string
+          habitos_pct: number | null
+          id: string
+          refeicoes_pct: number | null
+          score: number | null
+          treino: boolean | null
+          user_id: string
+        }
+        Insert: {
+          cardio?: boolean | null
+          data: string
+          habitos_pct?: number | null
+          id?: string
+          refeicoes_pct?: number | null
+          score?: number | null
+          treino?: boolean | null
+          user_id: string
+        }
+        Update: {
+          cardio?: boolean | null
+          data?: string
+          habitos_pct?: number | null
+          id?: string
+          refeicoes_pct?: number | null
+          score?: number | null
+          treino?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_messages: {
+        Row: {
+          agente: string
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          agente: string
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          agente?: string
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       body_goals: {
         Row: {
           agua_meta_pct: number | null
@@ -356,6 +416,39 @@ export type Database = {
           data_inicio?: string
           id?: string
           nome?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_scores: {
+        Row: {
+          bonus: number
+          data: string
+          id: string
+          pontos: number
+          rest_day: boolean
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bonus?: number
+          data: string
+          id?: string
+          pontos?: number
+          rest_day?: boolean
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bonus?: number
+          data?: string
+          id?: string
+          pontos?: number
+          rest_day?: boolean
+          total?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -754,6 +847,7 @@ export type Database = {
           duracao_min: number | null
           id: string
           tarefa: string | null
+          task_id: string | null
           tecnica: string | null
           user_id: string
         }
@@ -762,6 +856,7 @@ export type Database = {
           duracao_min?: number | null
           id?: string
           tarefa?: string | null
+          task_id?: string | null
           tecnica?: string | null
           user_id: string
         }
@@ -770,10 +865,19 @@ export type Database = {
           duracao_min?: number | null
           id?: string
           tarefa?: string | null
+          task_id?: string | null
           tecnica?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "focus_sessions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       food_substitutions: {
         Row: {
@@ -825,49 +929,166 @@ export type Database = {
       }
       foods: {
         Row: {
+          acucar_100g: number | null
+          barcode: string | null
           calorias_100g: number | null
           carbo_100g: number | null
           categoria: string | null
           created_at: string | null
           disponivel_rio_verde: boolean | null
+          favorito: boolean
           fibra_100g: number | null
           fonte: string | null
           gordura_100g: number | null
+          gordura_saturada_100g: number | null
           id: string
+          imagem_url: string | null
+          marca: string | null
           nome: string
+          nova_group: number | null
+          nutriscore: string | null
+          off_barcode: string | null
           proteina_100g: number | null
+          ref_externa: string | null
+          sodio_100g: number | null
           user_id: string
-          yazio_id: string | null
         }
         Insert: {
+          acucar_100g?: number | null
+          barcode?: string | null
           calorias_100g?: number | null
           carbo_100g?: number | null
           categoria?: string | null
           created_at?: string | null
           disponivel_rio_verde?: boolean | null
+          favorito?: boolean
           fibra_100g?: number | null
           fonte?: string | null
           gordura_100g?: number | null
+          gordura_saturada_100g?: number | null
           id?: string
+          imagem_url?: string | null
+          marca?: string | null
           nome: string
+          nova_group?: number | null
+          nutriscore?: string | null
+          off_barcode?: string | null
           proteina_100g?: number | null
+          ref_externa?: string | null
+          sodio_100g?: number | null
           user_id: string
-          yazio_id?: string | null
         }
         Update: {
+          acucar_100g?: number | null
+          barcode?: string | null
           calorias_100g?: number | null
           carbo_100g?: number | null
           categoria?: string | null
           created_at?: string | null
           disponivel_rio_verde?: boolean | null
+          favorito?: boolean
           fibra_100g?: number | null
           fonte?: string | null
           gordura_100g?: number | null
+          gordura_saturada_100g?: number | null
           id?: string
+          imagem_url?: string | null
+          marca?: string | null
           nome?: string
+          nova_group?: number | null
+          nutriscore?: string | null
+          off_barcode?: string | null
           proteina_100g?: number | null
+          ref_externa?: string | null
+          sodio_100g?: number | null
           user_id?: string
-          yazio_id?: string | null
+        }
+        Relationships: []
+      }
+      foods_cache: {
+        Row: {
+          acucar_100g: number | null
+          barcode: string | null
+          busca: unknown
+          cached_at: string | null
+          calorias_100g: number | null
+          carbo_100g: number | null
+          categoria: string | null
+          confianca: string | null
+          consulta: string | null
+          fibra_100g: number | null
+          fonte: string | null
+          gordura_100g: number | null
+          gordura_saturada_100g: number | null
+          id: string
+          imagem_url: string | null
+          marca: string | null
+          nome: string
+          nova_group: number | null
+          nutriscore: string | null
+          off_data: Json | null
+          pais: string | null
+          prioridade: number
+          proteina_100g: number | null
+          sodio_100g: number | null
+          taco_id: string | null
+          usda_fdc_id: string | null
+        }
+        Insert: {
+          acucar_100g?: number | null
+          barcode?: string | null
+          busca?: unknown
+          cached_at?: string | null
+          calorias_100g?: number | null
+          carbo_100g?: number | null
+          categoria?: string | null
+          confianca?: string | null
+          consulta?: string | null
+          fibra_100g?: number | null
+          fonte?: string | null
+          gordura_100g?: number | null
+          gordura_saturada_100g?: number | null
+          id?: string
+          imagem_url?: string | null
+          marca?: string | null
+          nome: string
+          nova_group?: number | null
+          nutriscore?: string | null
+          off_data?: Json | null
+          pais?: string | null
+          prioridade?: number
+          proteina_100g?: number | null
+          sodio_100g?: number | null
+          taco_id?: string | null
+          usda_fdc_id?: string | null
+        }
+        Update: {
+          acucar_100g?: number | null
+          barcode?: string | null
+          busca?: unknown
+          cached_at?: string | null
+          calorias_100g?: number | null
+          carbo_100g?: number | null
+          categoria?: string | null
+          confianca?: string | null
+          consulta?: string | null
+          fibra_100g?: number | null
+          fonte?: string | null
+          gordura_100g?: number | null
+          gordura_saturada_100g?: number | null
+          id?: string
+          imagem_url?: string | null
+          marca?: string | null
+          nome?: string
+          nova_group?: number | null
+          nutriscore?: string | null
+          off_data?: Json | null
+          pais?: string | null
+          prioridade?: number
+          proteina_100g?: number | null
+          sodio_100g?: number | null
+          taco_id?: string | null
+          usda_fdc_id?: string | null
         }
         Relationships: []
       }
@@ -1037,6 +1258,42 @@ export type Database = {
         }
         Relationships: []
       }
+      health_metrics_derived: {
+        Row: {
+          calculado_em: string | null
+          dados_input: Json | null
+          dados_output: Json | null
+          id: string
+          interpretacao: string | null
+          risco: string | null
+          tipo: string
+          user_id: string
+          valor: number | null
+        }
+        Insert: {
+          calculado_em?: string | null
+          dados_input?: Json | null
+          dados_output?: Json | null
+          id?: string
+          interpretacao?: string | null
+          risco?: string | null
+          tipo: string
+          user_id: string
+          valor?: number | null
+        }
+        Update: {
+          calculado_em?: string | null
+          dados_input?: Json | null
+          dados_output?: Json | null
+          id?: string
+          interpretacao?: string | null
+          risco?: string | null
+          tipo?: string
+          user_id?: string
+          valor?: number | null
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           conteudo: string | null
@@ -1113,12 +1370,12 @@ export type Database = {
           data: string
           descricao: string | null
           fonte: string | null
+          food_id: string | null
           gordura_g: number | null
           id: string
           meal_slot_id: string | null
           proteina_g: number | null
           user_id: string
-          yazio_sync_id: string | null
         }
         Insert: {
           calorias?: number | null
@@ -1127,12 +1384,12 @@ export type Database = {
           data?: string
           descricao?: string | null
           fonte?: string | null
+          food_id?: string | null
           gordura_g?: number | null
           id?: string
           meal_slot_id?: string | null
           proteina_g?: number | null
           user_id: string
-          yazio_sync_id?: string | null
         }
         Update: {
           calorias?: number | null
@@ -1141,14 +1398,21 @@ export type Database = {
           data?: string
           descricao?: string | null
           fonte?: string | null
+          food_id?: string | null
           gordura_g?: number | null
           id?: string
           meal_slot_id?: string | null
           proteina_g?: number | null
           user_id?: string
-          yazio_sync_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "meal_logs_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "meal_logs_meal_slot_id_fkey"
             columns: ["meal_slot_id"]
@@ -1300,24 +1564,102 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          corpo: string | null
+          created_at: string
+          dedupe_key: string
+          id: string
+          lida: boolean
+          link: string | null
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          corpo?: string | null
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          lida?: boolean
+          link?: string | null
+          tipo?: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          corpo?: string | null
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          lida?: boolean
+          link?: string | null
+          tipo?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
           id: string
           nome: string | null
+          onboarding_completo: boolean | null
+          onboarding_step: number | null
           timezone: string | null
         }
         Insert: {
           created_at?: string | null
           id: string
           nome?: string | null
+          onboarding_completo?: boolean | null
+          onboarding_step?: number | null
           timezone?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           nome?: string | null
+          onboarding_completo?: boolean | null
+          onboarding_step?: number | null
           timezone?: string | null
+        }
+        Relationships: []
+      }
+      progress_photos: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          notas: string | null
+          peso_kg: number | null
+          relatorio_ia: string | null
+          storage_path: string
+          tipo: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          notas?: string | null
+          peso_kg?: number | null
+          relatorio_ia?: string | null
+          storage_path: string
+          tipo?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          notas?: string | null
+          peso_kg?: number | null
+          relatorio_ia?: string | null
+          storage_path?: string
+          tipo?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1712,6 +2054,48 @@ export type Database = {
           },
         ]
       }
+      recovery_scores: {
+        Row: {
+          classificacao: string | null
+          componentes: Json | null
+          data: string
+          dor_muscular: number | null
+          fc_repouso: number | null
+          id: string
+          recomendacao: string | null
+          score: number | null
+          sono_horas: number | null
+          user_id: string
+          volume_ontem: number | null
+        }
+        Insert: {
+          classificacao?: string | null
+          componentes?: Json | null
+          data?: string
+          dor_muscular?: number | null
+          fc_repouso?: number | null
+          id?: string
+          recomendacao?: string | null
+          score?: number | null
+          sono_horas?: number | null
+          user_id: string
+          volume_ontem?: number | null
+        }
+        Update: {
+          classificacao?: string | null
+          componentes?: Json | null
+          data?: string
+          dor_muscular?: number | null
+          fc_repouso?: number | null
+          id?: string
+          recomendacao?: string | null
+          score?: number | null
+          sono_horas?: number | null
+          user_id?: string
+          volume_ontem?: number | null
+        }
+        Relationships: []
+      }
       set_logs: {
         Row: {
           cadencia: string | null
@@ -1822,6 +2206,42 @@ export type Database = {
           },
         ]
       }
+      sleep_logs: {
+        Row: {
+          data: string
+          duracao_min: number | null
+          fonte: string | null
+          hora_acordar: string | null
+          hora_dormir: string | null
+          id: string
+          notas: string | null
+          qualidade: number | null
+          user_id: string
+        }
+        Insert: {
+          data: string
+          duracao_min?: number | null
+          fonte?: string | null
+          hora_acordar?: string | null
+          hora_dormir?: string | null
+          id?: string
+          notas?: string | null
+          qualidade?: number | null
+          user_id: string
+        }
+        Update: {
+          data?: string
+          duracao_min?: number | null
+          fonte?: string | null
+          hora_acordar?: string | null
+          hora_dormir?: string | null
+          id?: string
+          notas?: string | null
+          qualidade?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       supplement_logs: {
         Row: {
           data: string
@@ -1902,8 +2322,10 @@ export type Database = {
       tasks: {
         Row: {
           area: string | null
+          created_at: string
           data: string | null
           e_frog: boolean | null
+          goal_id: string | null
           id: string
           status: string | null
           titulo: string
@@ -1911,8 +2333,10 @@ export type Database = {
         }
         Insert: {
           area?: string | null
+          created_at?: string
           data?: string | null
           e_frog?: boolean | null
+          goal_id?: string | null
           id?: string
           status?: string | null
           titulo: string
@@ -1920,14 +2344,24 @@ export type Database = {
         }
         Update: {
           area?: string | null
+          created_at?: string
           data?: string | null
           e_frog?: boolean | null
+          goal_id?: string | null
           id?: string
           status?: string | null
           titulo?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_xp: {
         Row: {
@@ -2111,42 +2545,49 @@ export type Database = {
         }
         Relationships: []
       }
-      yazio_sync_logs: {
-        Row: {
-          created_at: string | null
-          data: string
-          erro: string | null
-          id: string
-          registros_importados: number
-          status: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          data: string
-          erro?: string | null
-          id?: string
-          registros_importados?: number
-          status: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          data?: string
-          erro?: string | null
-          id?: string
-          registros_importados?: number
-          status?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      f_unaccent: { Args: { "": string }; Returns: string }
+      search_foods_cache: {
+        Args: { p_fonte?: string; p_limit?: number; q: string }
+        Returns: {
+          acucar_100g: number | null
+          barcode: string | null
+          busca: unknown
+          cached_at: string | null
+          calorias_100g: number | null
+          carbo_100g: number | null
+          categoria: string | null
+          confianca: string | null
+          consulta: string | null
+          fibra_100g: number | null
+          fonte: string | null
+          gordura_100g: number | null
+          gordura_saturada_100g: number | null
+          id: string
+          imagem_url: string | null
+          marca: string | null
+          nome: string
+          nova_group: number | null
+          nutriscore: string | null
+          off_data: Json | null
+          pais: string | null
+          prioridade: number
+          proteina_100g: number | null
+          sodio_100g: number | null
+          taco_id: string | null
+          usda_fdc_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "foods_cache"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never
@@ -2165,12 +2606,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2194,11 +2635,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2219,11 +2660,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2244,11 +2685,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2261,11 +2702,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

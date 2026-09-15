@@ -422,7 +422,8 @@ export type MealSlot = {
   notas: string | null
 }
 
-export type MealLogFonte = 'yazio' | 'manual'
+/** manual = formulário livre; foods_cache = busca multi-banco; ia_estimado = alimento estimado por IA. */
+export type MealLogFonte = 'manual' | 'foods_cache' | 'ia_estimado'
 
 export type MealLog = {
   id: string
@@ -435,7 +436,8 @@ export type MealLog = {
   carbo_g: number | null
   gordura_g: number | null
   fonte: MealLogFonte
-  yazio_sync_id: string | null
+  /** Alimento do catálogo (`foods`) quando o registro veio da busca. */
+  food_id: string | null
   created_at: string
 }
 
@@ -461,12 +463,13 @@ export type MealSuggestion = {
   created_at: string
 }
 
+export type FoodFonte = 'manual' | 'off' | 'taco' | 'usda' | 'ia_estimado'
+
 export type Food = {
   id: string
   user_id: string
   nome: string
-  fonte: MealLogFonte
-  yazio_id: string | null
+  fonte: FoodFonte
   calorias_100g: number | null
   proteina_100g: number | null
   carbo_100g: number | null

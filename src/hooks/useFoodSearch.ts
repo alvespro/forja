@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { todayInSaoPaulo } from '@/lib/date'
+import { atalhosDeAlimentos, type RegistroComAlimento } from '@/lib/food-shortcuts'
 import { FONTES, type FonteAlimento, type ProdutoAlimento } from '@/lib/food-sources'
 import { supabase } from '@/lib/supabase'
 
@@ -8,17 +10,19 @@ import { useAuth } from './use-auth'
 
 const DEBOUNCE_MS = 400
 const MIN_CHARS = 2
-const RECENTES_KEY = 'forja:off:recentes'
-const MAX_RECENTES = 20
+
+/** Colunas de `foods` que viram produto na UI (favoritos e atalhos). */
+const FOOD_COLUNAS =
+  'id, nome, marca, fonte, ref_externa, off_barcode, nutriscore, nova_group, imagem_url, calorias_100g, proteina_100g, carbo_100g, gordura_100g, fibra_100g, acucar_100g'
 
 /** Filtro da busca: `null` = cascata TACO → OFF → USDA → IA. */
 export type FiltroFonte = Extract<FonteAlimento, 'taco' | 'off' | 'usda'> | null
 
-/* ---------------------------------- recentes --------------------------------- */
+/* ------------------------------- normalização -------------------------------- */
 
 /**
- * Recentes gravados antes do multi-banco só tinham `barcode` (eram todos do OFF):
- * completa id/fonte/badge para seguirem funcionando.
+ * Garante id/fonte/badge em produtos que chegam incompletos (favoritos antigos
+ * do OFF só tinham `barcode`).
  */
 function normalizarProduto(p: Partial<ProdutoAlimento> & Pick<ProdutoAlimento, 'nome' | 'por_100g'>): ProdutoAlimento {
   const fonte: FonteAlimento = p.fonte && p.fonte in FONTES ? p.fonte : 'off'
@@ -35,24 +39,6 @@ function normalizarProduto(p: Partial<ProdutoAlimento> & Pick<ProdutoAlimento, '
     badge: p.badge ?? FONTES[fonte].badge,
     confianca: p.confianca ?? FONTES[fonte].confianca,
     por_100g: p.por_100g,
-  }
-}
-
-export function lerRecentes(): ProdutoAlimento[] {
-  try {
-    const raw = localStorage.getItem(RECENTES_KEY)
-    return raw ? (JSON.parse(raw) as ProdutoAlimento[]).map(normalizarProduto) : []
-  } catch {
-    return []
-  }
-}
-
-function gravarRecente(produto: ProdutoAlimento) {
-  try {
-    const atuais = lerRecentes().filter((p) => p.id !== produto.id)
-    localStorage.setItem(RECENTES_KEY, JSON.stringify([produto, ...atuais].slice(0, MAX_RECENTES)))
-  } catch {
-    // localStorage indisponível (aba privada): recentes viram um extra opcional.
   }
 }
 
@@ -84,9 +70,7 @@ export function useFavoriteFoods() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foods')
-        .select(
-          'id, nome, marca, fonte, ref_externa, off_barcode, nutriscore, nova_group, imagem_url, calorias_100g, proteina_100g, carbo_100g, gordura_100g, fibra_100g, acucar_100g',
-        )
+        .select(FOOD_COLUNAS)
         .eq('favorito', true)
         .order('nome')
       if (error) throw error
@@ -173,7 +157,6 @@ export function useUpsertFoodFromSearch() {
       if (existing?.id) {
         const { error } = await supabase.from('foods').update(values).eq('id', existing.id)
         if (error) throw error
-        gravarRecente(produto)
         return existing.id as string
       }
 
@@ -184,12 +167,50 @@ export function useUpsertFoodFromSearch() {
         .single()
       if (error) throw error
 
-      gravarRecente(produto)
       queryClient.invalidateQueries({ queryKey: ['foods'] })
       return created.id as string
     },
     [user, queryClient],
   )
+}
+
+/**
+ * Atalhos do FoodSearch vindos do histórico real (meal_logs → foods): os 5
+ * últimos alimentos registrados e os 5 mais registrados no mês. A query key
+ * fica sob ['meal-logs'], então registrar uma refeição já atualiza os atalhos.
+ */
+export function useFoodShortcuts() {
+  const { user } = useAuth()
+  const hoje = todayInSaoPaulo()
+
+  return useQuery({
+    queryKey: ['meal-logs', 'atalhos', hoje],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('meal_logs')
+        .select(`food_id, created_at, data, foods(${FOOD_COLUNAS})`)
+        .not('food_id', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(300)
+      if (error) throw error
+
+      const linhas = (data ?? []) as unknown as (RegistroComAlimento & { foods: FoodFavorito | FoodFavorito[] | null })[]
+      const porId = new Map<string, ProdutoAlimento>()
+      for (const l of linhas) {
+        const food = Array.isArray(l.foods) ? l.foods[0] : l.foods
+        if (food && !porId.has(l.food_id)) porId.set(l.food_id, foodParaProduto(food))
+      }
+      const { recentes, frequentes } = atalhosDeAlimentos(
+        linhas.filter((l) => porId.has(l.food_id)),
+        hoje,
+      )
+      return {
+        recentes: recentes.map((id) => ({ foodId: id, produto: porId.get(id)! })),
+        frequentes: frequentes.map((id) => ({ foodId: id, produto: porId.get(id)! })),
+      }
+    },
+    enabled: !!user,
+  })
 }
 
 /**
@@ -227,7 +248,6 @@ export function useFoodSearch() {
   const [pagina, setPagina] = useState(1)
   const [filtro, setFiltroState] = useState<FiltroFonte>(null)
   const [origem, setOrigem] = useState<FonteAlimento | null>(null)
-  const [recentes, setRecentes] = useState<ProdutoAlimento[]>(() => lerRecentes())
 
   const queryAtual = useRef('')
   const modoAtual = useRef<'nome' | 'barcode'>('nome')
@@ -323,8 +343,6 @@ export function useFoodSearch() {
     setCarregando(false)
   }, [])
 
-  const atualizarRecentes = useCallback(() => setRecentes(lerRecentes()), [])
-
   return {
     resultados,
     carregando,
@@ -332,12 +350,10 @@ export function useFoodSearch() {
     pagina,
     filtro,
     origem,
-    recentes,
     buscarPorNome,
     buscarPorBarcode,
     setFiltro,
     proximaPagina,
     limpar,
-    atualizarRecentes,
   }
 }

@@ -35,7 +35,7 @@ src/
 supabase/
   migrations/      fonte da verdade do schema (npx supabase db push)
   functions/       forja-ai, forja-vision, weekly-suggestions,
-                   protocol-reminders, analyze-progress-photo, sync-yazio
+                   protocol-reminders, analyze-progress-photo, search-food, health-calc
 docs/              esta doc + plano de refatoração
 ```
 
@@ -118,6 +118,11 @@ se toda palavra do termo estiver no nome/marca e os macros forem possíveis.
 `foods_cache` é só leitura para usuários (escrita via service role);
 `foods.ref_externa` liga o registro à fonte (`taco:3`, `usda:…`, barcode, `ia:…`).
 Regras e badges compartilhados em `supabase/functions/_shared/foods.ts`.
+
+Registro de refeições é só nativo (Yazio removido em 15/09/2026): FoodSearch →
+porção → `meal_logs` com `fonte` `foods_cache` (ou `ia_estimado`); o formulário
+livre grava `manual`. Atalhos "Recentes" (5 últimos) e "Frequentes no mês"
+(top 5) vêm de `meal_logs → foods` (`lib/food-shortcuts.ts`).
 
 ## Edge functions e segurança
 

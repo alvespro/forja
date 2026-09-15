@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
-import { format, isToday } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { ChevronDown, RefreshCw } from 'lucide-react'
+import { ChevronDown, Plus } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
+import { FoodSearch } from '@/components/FoodSearch'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MacroBar } from '@/components/ds/macro-bar'
@@ -14,8 +13,7 @@ import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { SupplementsTodaySection } from '@/components/nutrition/supplements-today-section'
 import { useActiveDietPlan, useMealSlots } from '@/hooks/use-diet-plan'
 import { useMealLogsToday } from '@/hooks/use-meal-logs'
-import { useLastYazioSync, useSyncYazioNow } from '@/hooks/use-yazio-sync'
-import { nowMinutesInSaoPaulo, parseDateOnly } from '@/lib/date'
+import { nowMinutesInSaoPaulo } from '@/lib/date'
 import { classifyMeals } from '@/lib/meal-schedule'
 import { cn } from '@/lib/utils'
 import type { MealLog } from '@/types/database'
@@ -24,9 +22,8 @@ export function NutricaoPage() {
   const dietPlan = useActiveDietPlan()
   const mealSlots = useMealSlots(dietPlan.data?.id)
   const mealLogs = useMealLogsToday()
-  const lastSync = useLastYazioSync()
-  const syncNow = useSyncYazioNow()
   const [showSupps, setShowSupps] = useState(true)
+  const [buscando, setBuscando] = useState(false)
 
   const consumido = useMemo(() => {
     const logs = mealLogs.data ?? []
@@ -63,13 +60,11 @@ export function NutricaoPage() {
   const isLoading = dietPlan.isLoading || mealSlots.isLoading || mealLogs.isLoading
   const isError = dietPlan.isError || mealSlots.isError || mealLogs.isError
 
-  const yazioStatus = lastSync.isLoading
-    ? 'Yazio…'
-    : !lastSync.data
-      ? 'Yazio: nunca'
-      : lastSync.data.status === 'sucesso'
-        ? `✅ ${isToday(new Date(lastSync.data.created_at)) ? 'hoje' : format(parseDateOnly(lastSync.data.data), 'dd/MM')} ${format(new Date(lastSync.data.created_at), 'HH:mm')}`
-        : `⚠️ ${format(new Date(lastSync.data.created_at), 'dd/MM HH:mm', { locale: ptBR })}`
+  // Refeição = slot com pelo menos um alimento; lançamento sem slot conta sozinho.
+  const refeicoesHoje = useMemo(() => {
+    const logs = mealLogs.data ?? []
+    return new Set(logs.map((l) => l.meal_slot_id ?? l.id)).size
+  }, [mealLogs.data])
 
   const agoraNumero = currentSlot?.numero ?? 0
   const kcalMeta = dietPlan.data?.calorias_alvo ?? 0
@@ -106,20 +101,25 @@ export function NutricaoPage() {
         <>
           {/* HEADER FIXO: macros do dia em destaque */}
           <section className="sticky top-[env(safe-area-inset-top,0px)] z-20 -mx-4 flex flex-col gap-3 border-b border-linha bg-meia-noite/90 px-4 pb-4 pt-3 backdrop-blur-md md:mx-0 md:rounded-[var(--radius-lg)] md:border md:px-5">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-[18px] font-bold text-foreground [font-family:var(--font-data)] tabular-nums">
-                {Math.round(consumido.calorias).toLocaleString('pt-BR')}
-                <span className="ds-data-md font-normal text-aco-texto"> / {kcalMeta.toLocaleString('pt-BR')} kcal</span>
-              </span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-col">
+                <span className="text-[18px] font-bold text-foreground [font-family:var(--font-data)] tabular-nums">
+                  {Math.round(consumido.calorias).toLocaleString('pt-BR')}
+                  <span className="ds-data-md font-normal text-aco-texto"> / {kcalMeta.toLocaleString('pt-BR')} kcal</span>
+                </span>
+                <span className="ds-body-sm text-aco-texto">
+                  {refeicoesHoje === 0
+                    ? 'Nenhuma refeição registrada hoje'
+                    : `${refeicoesHoje} ${refeicoesHoje === 1 ? 'refeição registrada' : 'refeições registradas'} hoje`}
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => syncNow.mutate()}
-                disabled={syncNow.isPending}
-                aria-label={`Sincronizar Yazio (${yazioStatus})`}
-                className="-mr-2 flex min-h-11 items-center gap-1.5 rounded-full px-2 ds-data-sm text-aco-texto outline-none hover:text-foreground disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={() => setBuscando(true)}
+                className="ds-pressable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-brasa px-4 ds-body-sm font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <RefreshCw className={cn('size-3.5', syncNow.isPending && 'animate-spin')} aria-hidden="true" />
-                {yazioStatus}
+                <Plus className="size-4" aria-hidden="true" />
+                Registrar alimento
               </button>
             </div>
             <MacroBar
@@ -187,6 +187,8 @@ export function NutricaoPage() {
 
           <DietAdequacyCard />
           <FoodBodyChart plan={dietPlan.data} />
+
+          <FoodSearch open={buscando} onClose={() => setBuscando(false)} slots={slots} defaultSlotId={currentSlot?.id ?? null} />
         </>
       )}
     </div>

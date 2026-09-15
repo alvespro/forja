@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
 import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
-import type { MealLog } from '@/types/database'
+import type { MealLog, MealLogFonte } from '@/types/database'
 
 export type MealLogInput = {
   meal_slot_id: string | null
@@ -13,11 +13,13 @@ export type MealLogInput = {
   proteina_g: number | null
   carbo_g: number | null
   gordura_g: number | null
-  /** Vínculo com o catálogo (`foods`) quando veio do Open Food Facts. */
+  /** Vínculo com o catálogo (`foods`) quando veio da busca multi-banco. */
   food_id?: string | null
+  /** Padrão: manual. */
+  fonte?: MealLogFonte
 }
 
-/** Refeições registradas hoje (fuso America/Sao_Paulo), de qualquer fonte (manual ou Yazio). */
+/** Refeições registradas hoje (fuso America/Sao_Paulo), de qualquer fonte (busca multi-banco ou manual). */
 export function useMealLogsToday() {
   const { user } = useAuth()
   const today = todayInSaoPaulo()
@@ -59,7 +61,7 @@ export function useCreateMealLog() {
   return useMutation({
     mutationFn: async (values: MealLogInput) => {
       if (!user) throw new Error('Usuário não autenticado')
-      const { error } = await supabase.from('meal_logs').insert({ ...values, user_id: user.id, fonte: 'manual' })
+      const { error } = await supabase.from('meal_logs').insert({ ...values, fonte: values.fonte ?? 'manual', user_id: user.id })
       if (error) throw error
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['meal-logs'] }),

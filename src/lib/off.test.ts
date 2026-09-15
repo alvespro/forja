@@ -7,11 +7,16 @@ import {
   isUltraprocessado,
   nutriscoreClass,
   nutriscoreRuim,
-  type ProdutoOFF,
+  type ProdutoAlimento,
 } from './off'
 
-const produto = (over: Partial<ProdutoOFF> = {}): ProdutoOFF => ({
+const produto = (over: Partial<ProdutoAlimento> = {}): ProdutoAlimento => ({
+  id: '789',
   barcode: '789',
+  categoria: null,
+  fonte: 'off',
+  badge: '🌍 Open Food Facts',
+  confianca: 'media',
   nome: 'Teste',
   marca: null,
   nutriscore: null,

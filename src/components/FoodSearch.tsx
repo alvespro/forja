@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { Camera, Keyboard, Search, Star } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
+import { FoodSourceBadge } from '@/components/nutrition/food-source-badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,12 +13,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useCreateMealLog } from '@/hooks/use-meal-logs'
 import {
+  chaveDoFood,
   contarUltraprocessadosHoje,
   foodParaProduto,
   useFavoriteFoods,
   useFoodSearch,
   useToggleFavorito,
-  useUpsertFoodFromOff,
+  useUpsertFoodFromSearch,
+  type FiltroFonte,
 } from '@/hooks/useFoodSearch'
 import { todayInSaoPaulo } from '@/lib/date'
 import {
@@ -30,11 +33,20 @@ import {
   nutriscoreClass,
   nutriscoreRuim,
   UNIDADES,
-  type ProdutoOFF,
+  type ProdutoAlimento,
   type UnidadeValue,
 } from '@/lib/off'
 import { cn } from '@/lib/utils'
 import type { MealSlot } from '@/types/database'
+
+const FILTROS: { label: string; valor: FiltroFonte }[] = [
+  { label: 'Todos', valor: null },
+  { label: '🇧🇷 In natura', valor: 'taco' },
+  { label: '📦 Embalados', valor: 'off' },
+  { label: '🔬 Científico', valor: 'usda' },
+]
+
+const EMOJI_FONTE = { taco: '🥗', off: '📦', usda: '🔬', ia_estimado: '🤖' } as const
 
 type FoodSearchProps = {
   open: boolean
@@ -49,7 +61,7 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
   const [aba, setAba] = useState<'buscar' | 'favoritos'>('buscar')
   const [termo, setTermo] = useState('')
   const [scannerAberto, setScannerAberto] = useState(false)
-  const [selecionado, setSelecionado] = useState<ProdutoOFF | null>(null)
+  const [selecionado, setSelecionado] = useState<ProdutoAlimento | null>(null)
 
   function fechar() {
     setTermo('')
@@ -134,6 +146,25 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
             ))}
           </div>
 
+          {aba === 'buscar' && (
+            <div role="group" aria-label="Filtrar por fonte" className="ds-scroll -mx-1 flex gap-2 overflow-x-auto px-1">
+              {FILTROS.map((f) => (
+                <button
+                  key={f.label}
+                  type="button"
+                  aria-pressed={search.filtro === f.valor}
+                  onClick={() => search.setFiltro(f.valor)}
+                  className={cn(
+                    'flex min-h-11 shrink-0 items-center rounded-full border px-3 text-xs font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+                    search.filtro === f.valor ? 'border-brasa bg-brasa/15 text-foreground' : 'border-linha text-aco-texto',
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {search.erro && <p className="text-xs text-alerta">{search.erro}</p>}
 
           {search.carregando ? (
@@ -146,7 +177,7 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
             <div className="flex flex-col gap-2">
               <span className="microlabel">Usados recentemente</span>
               {search.recentes.map((p) => (
-                <ProdutoCard key={p.barcode} produto={p} onSelecionar={() => setSelecionado(p)} />
+                <ProdutoCard key={p.id} produto={p} onSelecionar={() => setSelecionado(p)} />
               ))}
             </div>
           ) : lista.length === 0 ? (
@@ -156,13 +187,15 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
                   ? 'Nenhum favorito ainda. Toque na estrela em um resultado.'
                   : termo.trim().length < 2
                     ? 'Digite ao menos 2 letras ou escaneie um código de barras.'
-                    : 'Nenhum produto encontrado. Tente o código de barras ou verifique a grafia.'
+                    : search.filtro
+                      ? `Nada encontrado em ${FILTROS.find((f) => f.valor === search.filtro)?.label}. Tente "Todos".`
+                      : 'Nenhum alimento encontrado em nenhuma base. Tente o código de barras ou verifique a grafia.'
               }
             />
           ) : (
             <div className="flex flex-col gap-2">
               {lista.map((p) => (
-                <ProdutoCard key={p.barcode} produto={p} onSelecionar={() => setSelecionado(p)} />
+                <ProdutoCard key={p.id} produto={p} onSelecionar={() => setSelecionado(p)} />
               ))}
               {aba === 'buscar' && search.resultados.length >= 10 && (
                 <Button type="button" variant="outline" size="sm" onClick={search.proximaPagina}>
@@ -179,12 +212,12 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
 
 /* ------------------------------- card de produto ------------------------------ */
 
-function ProdutoCard({ produto, onSelecionar }: { produto: ProdutoOFF; onSelecionar: () => void }) {
+function ProdutoCard({ produto, onSelecionar }: { produto: ProdutoAlimento; onSelecionar: () => void }) {
   const favoritos = useFavoriteFoods()
-  const upsertFood = useUpsertFoodFromOff()
+  const upsertFood = useUpsertFoodFromSearch()
   const toggleFav = useToggleFavorito()
 
-  const favorito = (favoritos.data ?? []).find((f) => f.off_barcode === produto.barcode)
+  const favorito = (favoritos.data ?? []).find((f) => chaveDoFood(f) === produto.id)
   const p = produto.por_100g
 
   async function handleFavoritar(event: React.MouseEvent) {
@@ -202,17 +235,26 @@ function ProdutoCard({ produto, onSelecionar }: { produto: ProdutoOFF; onSelecio
       {produto.imagem_url ? (
         <img src={produto.imagem_url} alt="" loading="lazy" className="size-14 shrink-0 rounded-md border border-border object-cover" />
       ) : (
-        <div className="flex size-14 shrink-0 items-center justify-center rounded-md border border-border bg-aco text-xl">🍽️</div>
+        <div
+          className="flex size-14 shrink-0 items-center justify-center rounded-md border border-border bg-aco text-xl"
+          aria-hidden="true"
+        >
+          {EMOJI_FONTE[produto.fonte]}
+        </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="line-clamp-2 text-sm font-medium text-foreground">{produto.nome}</span>
         {produto.marca && <span className="truncate text-xs text-aco-texto">🏷️ {produto.marca}</span>}
+        <FoodSourceBadge fonte={produto.fonte} />
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-bold uppercase', nutriscoreClass(produto.nutriscore))}>
-            {produto.nutriscore ? produto.nutriscore.toUpperCase() : 'N/D'}
-          </span>
+          {/* Nutri-Score só existe para embalados (OFF). */}
+          {produto.fonte === 'off' && (
+            <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-bold uppercase', nutriscoreClass(produto.nutriscore))}>
+              {produto.nutriscore ? produto.nutriscore.toUpperCase() : 'N/D'}
+            </span>
+          )}
           {produto.nova_group != null && NOVA_LABEL[produto.nova_group] && (
             <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-medium', NOVA_CLASS[produto.nova_group])}>
               {NOVA_LABEL[produto.nova_group]}
@@ -254,7 +296,7 @@ function PortionModal({
   onRegistrado,
 }: {
   open: boolean
-  produto: ProdutoOFF
+  produto: ProdutoAlimento
   slots: MealSlot[]
   defaultSlotId: string | null
   onVoltar: () => void
@@ -266,7 +308,7 @@ function PortionModal({
   const [slotId, setSlotId] = useState<string>(defaultSlotId ?? slots[0]?.id ?? '')
   const [salvando, setSalvando] = useState(false)
 
-  const upsertFood = useUpsertFoodFromOff()
+  const upsertFood = useUpsertFoodFromSearch()
   const createLog = useCreateMealLog()
   const { confirm, dialog } = useConfirm()
 
@@ -336,6 +378,13 @@ function PortionModal({
       <div className="flex flex-col gap-4">
         {produto.imagem_url && (
           <img src={produto.imagem_url} alt="" className="mx-auto h-28 rounded-lg border border-border object-contain" />
+        )}
+
+        <FoodSourceBadge fonte={produto.fonte} />
+        {produto.fonte === 'ia_estimado' && (
+          <p className="rounded-lg border border-atencao/40 bg-atencao/10 p-2 text-xs text-foreground">
+            Valores estimados por IA — se tiver a embalagem ou uma tabela, prefira o registro manual.
+          </p>
         )}
 
         <div className="flex items-end gap-2">

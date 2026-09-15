@@ -1,25 +1,9 @@
-// Domínio da integração com o Open Food Facts: tipos, badges e cálculo de porção.
+// Badges do Open Food Facts (Nutri-Score, NOVA) e cálculo de porção — valem para
+// produtos de qualquer fonte do multi-banco (TACO, OFF, USDA, IA).
 
-export type Por100g = {
-  calorias: number | null
-  proteina: number | null
-  carbo: number | null
-  gordura: number | null
-  fibra: number | null
-  sodio: number | null
-  acucar: number | null
-  gordura_saturada: number | null
-}
+import type { Por100g, ProdutoAlimento } from '@/lib/food-sources'
 
-export type ProdutoOFF = {
-  barcode: string
-  nome: string
-  marca: string | null
-  nutriscore: string | null
-  nova_group: number | null
-  imagem_url: string | null
-  por_100g: Por100g
-}
+export type { Por100g, ProdutoAlimento }
 
 /** Nutri-Score: A (melhor) → E (pior). Sem dado = cinza. */
 export const NUTRISCORE_CLASS: Record<string, string> = {
@@ -93,15 +77,15 @@ const SLOT_JANTAR = 6
  * Regra do perfil: açúcar alto no jantar conversa com a glicemia de jejum 103.
  * Baseada no teor por 100g do produto, como especificado.
  */
-export function alertaAcucarNoJantar(produto: ProdutoOFF, slotNumero: number | null): boolean {
+export function alertaAcucarNoJantar(produto: ProdutoAlimento, slotNumero: number | null): boolean {
   return (produto.por_100g.acucar ?? 0) > ACUCAR_LIMITE_JANTAR && slotNumero === SLOT_JANTAR
 }
 
-export function isUltraprocessado(produto: ProdutoOFF): boolean {
+export function isUltraprocessado(produto: ProdutoAlimento): boolean {
   return produto.nova_group === 4
 }
 
-export function nutriscoreRuim(produto: ProdutoOFF): boolean {
+export function nutriscoreRuim(produto: ProdutoAlimento): boolean {
   const g = produto.nutriscore?.toLowerCase()
   return g === 'd' || g === 'e'
 }

@@ -105,6 +105,20 @@ nova pesagem com % de gordura, primeiro treino/cardio (zonas padrão 32 anos /
 FC 62), slider do card de recuperação no Hoje. Sono é manual (`sleep_logs`,
 data = noite em que começou). Apple Health foi removido em 04/07/2026.
 
+### Alimentos multi-banco (search-food)
+Cascata por nome: **TACO** (597 alimentos, importados em `foods_cache` por
+`scripts/import-taco.ts`) → **Open Food Facts** (search.openfoodfacts.org; o
+`cgi/search.pl` legado respondia 503 em 14/09/2026) → **USDA FoodData
+Central** (`USDA_API_KEY`, senão DEMO_KEY) → **estimativa por IA**
+(claude-sonnet-4-6, JSON estruturado, validada por Atwater e cacheada pelo
+termo). Código de barras vai direto ao OFF. Filtro `fonte` pula a cascata.
+Busca no cache: `search_foods_cache()` — sem acento (`f_unaccent`), por
+prefixo, `prioridade` (alimentos do plano) primeiro. Resultado do OFF só entra
+se toda palavra do termo estiver no nome/marca e os macros forem possíveis.
+`foods_cache` é só leitura para usuários (escrita via service role);
+`foods.ref_externa` liga o registro à fonte (`taco:3`, `usda:…`, barcode, `ia:…`).
+Regras e badges compartilhados em `supabase/functions/_shared/foods.ts`.
+
 ## Edge functions e segurança
 
 - `verify_jwt` em todas; as **agendadas** (weekly-suggestions,

@@ -12,7 +12,9 @@ function getAudioContext(): AudioContext | null {
   return audioContext
 }
 
-export function playBeep() {
+type BeepOptions = { frequency?: number; volume?: number; duration?: number }
+
+export function playBeep({ frequency = 880, volume = 0.3, duration = 0.35 }: BeepOptions = {}) {
   const ctx = getAudioContext()
   if (!ctx) return
 
@@ -20,16 +22,16 @@ export function playBeep() {
     const oscillator = ctx.createOscillator()
     const gain = ctx.createGain()
     oscillator.type = 'sine'
-    oscillator.frequency.value = 880
+    oscillator.frequency.value = frequency
 
     gain.gain.setValueAtTime(0.0001, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.01)
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35)
+    gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + 0.01)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration)
 
     oscillator.connect(gain)
     gain.connect(ctx.destination)
     oscillator.start()
-    oscillator.stop(ctx.currentTime + 0.35)
+    oscillator.stop(ctx.currentTime + duration)
   } catch {
     // Web Audio indisponível neste navegador; ignora silenciosamente.
   }
@@ -43,4 +45,9 @@ export function vibrate(pattern: number[] = [200, 100, 200]) {
   } catch {
     // navigator.vibrate pode lançar em alguns navegadores/contextos; ignora silenciosamente.
   }
+}
+
+/** Beep suave da mobilidade: mais grave, baixo e curto que o de fim de pausa. */
+export function playSoftBeep() {
+  playBeep({ frequency: 523, volume: 0.12, duration: 0.25 })
 }

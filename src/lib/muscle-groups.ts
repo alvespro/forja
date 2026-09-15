@@ -1,7 +1,7 @@
 // Grupos musculares: reconhecimento a partir de texto livre, ícones, cores e ordenação.
 
 const norm = (s: string) =>
-  s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+  s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 
 export type MuscleKey =
   | 'peito'

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Moon } from 'lucide-react'
 
 import { useHeartZones } from '@/hooks/use-heart-zones'
+import { useRecoveryGate } from '@/hooks/use-recovery-gate'
 import { useRecoveryScores, useSleepLogs, useTrainingVolumeOn, useUpsertSleepLog } from '@/hooks/use-sleep-logs'
 import { useHealthCalc } from '@/hooks/useHealthCalc'
 import { todayInSaoPaulo } from '@/lib/date'
@@ -41,6 +42,7 @@ export function RecoveryCard() {
   const { zones } = useHeartZones()
   const upsertSleep = useUpsertSleepLog()
   const { calcRecoveryScore } = useHealthCalc()
+  const { gate } = useRecoveryGate()
 
   const registroSono = sono.data?.find((l) => l.data === noite) ?? null
   const scoreHoje = scores.data?.find((s) => s.data === hoje) ?? null
@@ -210,7 +212,8 @@ export function RecoveryCard() {
             {scoreHoje?.dor_muscular != null && ` · Dor: ${scoreHoje.dor_muscular}/5`}
           </p>
 
-          {score < 60 && scoreHoje?.recomendacao && (
+          {/* Com treino de força em jogo, o card de ação logo abaixo assume a decisão. */}
+          {score < 60 && !gate && scoreHoje?.recomendacao && (
             <div className="mt-2 flex flex-col gap-1 border-t border-linha pt-3">
               <span className="ds-label text-atencao">Ajuste sugerido para o treino de hoje</span>
               <p className="ds-body-sm text-foreground">{scoreHoje.recomendacao}</p>

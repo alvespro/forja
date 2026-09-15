@@ -8,6 +8,8 @@ const PATTERNS = {
   double: [30, 10, 30],
   /** Forte: cronômetro de pausa zerou. */
   strong: 200,
+  /** Suave: fim de um exercício de mobilidade (menor que o fim de pausa). */
+  soft: 60,
 } as const
 
 export type HapticKind = keyof typeof PATTERNS

@@ -1,23 +1,31 @@
-import { Check } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Check, Play } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { groupLogsByHabit, useHabitLogs, useHabits, useToggleHabitLog } from '@/hooks/use-habits'
+import { useRecoveryGate } from '@/hooks/use-recovery-gate'
 import { todayInSaoPaulo } from '@/lib/date'
 import { haptic } from '@/lib/haptics'
+import { ehHabitoDeMovimento } from '@/lib/mobility'
 import { calculateStreak } from '@/lib/streak'
 import { cn } from '@/lib/utils'
 
 /**
  * SECTION 3 do cockpit: hábitos em linha horizontal (círculos de 48px),
- * toque alterna com feedback háptico; todos feitos → celebração.
+ * toque alterna com feedback háptico; todos feitos → celebração. "Mover o corpo"
+ * abre a ativação matinal (treino de hoje + 5 min de mobilidade) em vez de só marcar.
  */
 export function HabitChecklistCard() {
   const today = todayInSaoPaulo()
   const habits = useHabits()
   const logs = useHabitLogs()
   const toggle = useToggleHabitLog()
+  const navigate = useNavigate()
+  const { treinoDeHoje } = useRecoveryGate()
+  const [movimentoAberto, setMovimentoAberto] = useState(false)
 
   const isLoading = habits.isLoading || logs.isLoading
   const isError = habits.isError || logs.isError
@@ -73,9 +81,11 @@ export function HabitChecklistCard() {
                   type="button"
                   aria-pressed={isDone}
                   aria-label={`${habit.nome}${isDone ? ', feito' : ''}`}
+                  aria-expanded={ehHabitoDeMovimento(habit.nome) ? movimentoAberto : undefined}
                   onClick={() => {
                     haptic('light')
-                    toggle.mutate({ habitId: habit.id, date: today, completed: !isDone })
+                    if (ehHabitoDeMovimento(habit.nome)) setMovimentoAberto((v) => !v)
+                    else toggle.mutate({ habitId: habit.id, date: today, completed: !isDone })
                   }}
                   className="flex w-full flex-col items-center gap-1.5 outline-none focus-visible:[&>span:nth-child(2)]:ring-2 focus-visible:[&>span:nth-child(2)]:ring-ring"
                 >
@@ -100,6 +110,36 @@ export function HabitChecklistCard() {
           })}
         </ul>
       )}
+
+      {movimentoAberto &&
+        (() => {
+          const movimento = lista.find((h) => ehHabitoDeMovimento(h.nome))
+          if (!movimento) return null
+          const feito = logsByHabit.get(movimento.id)?.has(today) ?? false
+          return (
+            <div className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-linha bg-card p-4">
+              <p className="ds-body-md text-foreground">💪 Treino de hoje: {treinoDeHoje ?? 'descanso'}</p>
+              <p className="ds-body-md text-foreground">🧘 Movimento: 3–5 min de mobilidade antes</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/mobilidade?rotina=manha&iniciar=1&habito=${movimento.id}`)}
+                  className="ds-pressable flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Play className="size-4 fill-current" aria-hidden="true" />
+                  Iniciar ativação
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggle.mutate({ habitId: movimento.id, date: today, completed: !feito })}
+                  className="flex min-h-12 flex-1 items-center justify-center rounded-full border border-linha px-5 ds-body-sm font-semibold text-aco-texto outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {feito ? 'Desmarcar' : 'Já me movi — marcar feito'}
+                </button>
+              </div>
+            </div>
+          )
+        })()}
     </section>
   )
 }

@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom'
 import { CardioTab } from '@/components/workout/cardio-tab'
 import { EvolutionTab } from '@/components/workout/evolution-tab'
 import { ExerciseLibrary } from '@/components/workout/exercise-library'
+import { MobilityRoutines } from '@/components/mobility/mobility-routines'
 import { FrequencyPanel } from '@/components/workout/frequency-panel'
 import { SessionRunner } from '@/components/workout/session-runner'
 import { WorkoutBuilder } from '@/components/workout/workout-builder'
@@ -18,7 +19,7 @@ import {
   FORCA_WEEKLY_GOAL,
 } from '@/lib/workout-frequency'
 
-type WorkoutTab = 'visao_geral' | 'exercicios' | 'treinos' | 'sessao' | 'evolucao' | 'cardio'
+type WorkoutTab = 'visao_geral' | 'exercicios' | 'treinos' | 'sessao' | 'evolucao' | 'cardio' | 'mobilidade'
 
 // Treinos primeiro: a ação principal da tela é começar um treino.
 const TABS: { id: WorkoutTab; label: string }[] = [
@@ -28,6 +29,7 @@ const TABS: { id: WorkoutTab; label: string }[] = [
   { id: 'sessao', label: 'Sessão' },
   { id: 'evolucao', label: 'Evolução' },
   { id: 'cardio', label: 'Cardio' },
+  { id: 'mobilidade', label: 'Mobilidade 🧘' },
 ]
 
 export function WorkoutPage() {
@@ -81,6 +83,7 @@ export function WorkoutPage() {
       {tab === 'sessao' && <SessionRunner />}
       {tab === 'evolucao' && <EvolutionTab />}
       {tab === 'cardio' && <CardioTab />}
+      {tab === 'mobilidade' && <MobilityRoutines />}
     </div>
   )
 }

@@ -2,7 +2,9 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 
+import { RecoveryGateCard } from '@/components/today/recovery-gate-card'
 import { useBodyMetrics } from '@/hooks/use-body-metrics'
+import { useRecoveryGate } from '@/hooks/use-recovery-gate'
 import { useActiveDietPlan, useMealSlots } from '@/hooks/use-diet-plan'
 import { useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { useWorkouts } from '@/hooks/use-workouts'
@@ -24,6 +26,7 @@ export function NextActionCard() {
   const metrics = useBodyMetrics()
   const sessions = useWorkoutSessions()
   const workouts = useWorkouts()
+  const recuperacao = useRecoveryGate()
 
   const action = useMemo(() => {
     const nowMinutes = nowMinutesInSaoPaulo()
@@ -50,6 +53,9 @@ export function NextActionCard() {
 
     return computeNextAction({ nowMinutes, isSunday, weighedThisWeek, treinouHoje, currentMeal, proximoTreino })
   }, [metrics.data, mealSlots.data, sessions.data, workouts.data])
+
+  // Recuperação baixa vem antes de qualquer outra ação do dia.
+  if (recuperacao.gate) return <RecoveryGateCard gate={recuperacao.gate} score={recuperacao.score} />
 
   return (
     <section

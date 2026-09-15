@@ -35,7 +35,7 @@ export type NavGroup = {
 /** Os quatro destinos fixos da tab bar (o quinto botão é "Mais"). */
 export const primaryNavItems: NavItem[] = [
   { to: '/', label: 'Hoje', icon: Sun },
-  { to: '/workout', label: 'Treino', icon: Dumbbell },
+  { to: '/workout', label: 'Treino', icon: Dumbbell, ativoEm: ['/mobilidade'] },
   { to: '/nutricao', label: 'Nutrição', icon: Salad },
   { to: '/health', label: 'Saúde', icon: HeartPulse, ativoEm: ['/sono'] },
 ]

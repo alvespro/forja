@@ -139,6 +139,18 @@ pt-BR do usuário e os `cues` escritos à mão são preservados. Mapeamentos
 `supabase/functions/_shared/exercisedb.ts`. Mídia na tela de detalhe: vídeo →
 GIF → YouTube → imagem → BodyMap.
 
+### Mobilidade
+`sync_seed` também importa mobility/stretching/rehabilitation sem equipamento
+(nomes traduzidos em lote; instruções só dos que entram em rotina) e cria 4
+`mobility_routines` (Ativação Matinal 5AM, Aquecimento Pré-Força, Mobilidade
+Pós-Corrida, Recuperação Ativa) via `montarRotina` — um exercício por região do
+corpo. Execução em tela cheia (`MobilityRunner`): tempo por exercício
+30/45/60s, avanço automático, beep/vibração suaves. Ao concluir: `activity_calendar.mobilidade`,
++15 XP em `xp_logs` (o total de XP exibido ainda soma só `daily_scores`) e, vindo
+do hábito "Mover o corpo", marca o hábito. No Hoje, `useRecoveryGate` troca a ação
+principal: score < 40 → só mobilidade suave; < 60 com treino de força
+programado → mobilidade ou "treinar mesmo" (`recovery_scores.decisao_treino`).
+
 ## Edge functions e segurança
 
 - `verify_jwt` em todas; as **agendadas** (weekly-suggestions,

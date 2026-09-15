@@ -1,4 +1,5 @@
-// Domínio da integração ExerciseDB v2 (AscendAPI via RapidAPI): normalização
+// Domínio da integração ExerciseDB (RapidAPI — API clássica `exercisedb.p.rapidapi.com`;
+// o normalizador também aceita o formato da v2 com vídeos): normalização
 // da resposta, mapeamento para o schema do FORJA (pt-BR) e montagem das
 // rotinas de mobilidade. Puro (sem Deno/DOM): usado pela Edge Function
 // exercise-import e pelos testes do app.
@@ -50,12 +51,14 @@ export type ExerciseDBExercise = {
   variations: string[]
   keywords: string[]
   relatedIds: string[]
+  nivel: 'iniciante' | 'intermediario' | 'avancado' | null
 }
 
 // deno-lint-ignore no-explicit-any
 type Json = any
 
 const lower = (s: unknown) => String(s ?? '').trim().toLowerCase()
+const NIVEL_POR_DIFICULDADE = { beginner: 'iniciante', intermediate: 'intermediario', advanced: 'avancado' } as const
 const lista = (v: unknown): string[] =>
   Array.isArray(v) ? v.map((x) => String(x ?? '').trim()).filter(Boolean) : []
 
@@ -67,21 +70,23 @@ export function normalizeExercise(raw: Json): ExerciseDBExercise | null {
   return {
     exercisedb_id: id,
     nome_original: nome,
-    bodyParts: lista(raw?.bodyParts).map(lower),
-    targetMuscles: lista(raw?.targetMuscles).map(lower),
+    // Clássica: bodyPart/target/equipment/category (strings); v2: arrays e exerciseType.
+    bodyParts: lista(raw?.bodyParts ?? (raw?.bodyPart ? [raw.bodyPart] : [])).map(lower),
+    targetMuscles: lista(raw?.targetMuscles ?? (raw?.target ? [raw.target] : [])).map(lower),
     secondaryMuscles: lista(raw?.secondaryMuscles).map(lower),
-    equipments: lista(raw?.equipments).map(lower),
-    exerciseType: raw?.exerciseType ? lower(raw.exerciseType) : null,
+    equipments: lista(raw?.equipments ?? (raw?.equipment ? [raw.equipment] : [])).map(lower),
+    exerciseType: raw?.exerciseType ?? raw?.category ? lower(raw.exerciseType ?? raw.category) : null,
     videoUrl: raw?.videoUrl ? String(raw.videoUrl) : null,
     gifUrl: raw?.gifUrl ? String(raw.gifUrl) : null,
     // 480p é o tamanho recomendado para cards; a detalhe usa o vídeo.
     imageUrl: imagens['480p'] ?? imagens['720p'] ?? raw?.imageUrl ?? null,
-    overview: raw?.overview ? String(raw.overview).trim() : null,
+    overview: raw?.overview ?? raw?.description ? String(raw.overview ?? raw.description).trim() : null,
     instructions: lista(raw?.instructions),
     tips: lista(raw?.exerciseTips),
     variations: lista(raw?.variations),
     keywords: lista(raw?.keywords),
     relatedIds: lista(raw?.relatedExerciseIds),
+    nivel: NIVEL_POR_DIFICULDADE[lower(raw?.difficulty ?? raw?.difficultyLevel) as keyof typeof NIVEL_POR_DIFICULDADE] ?? null,
   }
 }
 
@@ -177,6 +182,7 @@ export function buildExerciseRow(ex: ExerciseDBExercise, traducao?: Traducao | n
     grupo_muscular: mapGrupoMuscular(ex.bodyParts, ex.targetMuscles),
     categoria: mapCategoria(ex.exerciseType),
     tipo_exercicio: ex.exerciseType,
+    nivel: ex.nivel,
     equipamento: mapEquipamento(ex.equipments),
     video_url: ex.videoUrl,
     gif_url: ex.gifUrl,
@@ -234,7 +240,7 @@ export const ROTINAS_PADRAO: RotinaDef[] = [
     descricao: 'Mobilidade de corpo inteiro, sem equipamento, para acordar articulações.',
     contexto: 'manha',
     categorias: ['mobilidade', 'alongamento'],
-    regioes: [['neck', 'shoulder'], ['spine', 'back', 'thoracic'], ['hip', 'glute'], ['hamstring', 'upper legs', 'quadricep'], ['ankle', 'calf', 'calves', 'lower legs']],
+    regioes: [['neck', 'shoulder', 'delts', 'levator'], ['spine', 'back', 'thoracic', 'traps'], ['hip', 'glute', 'abductors', 'adductors'], ['hamstring', 'upper legs', 'quad'], ['ankle', 'calf', 'calves', 'lower legs']],
     total: 5,
     segundos: 45,
     semEquipamento: true,
@@ -244,7 +250,7 @@ export const ROTINAS_PADRAO: RotinaDef[] = [
     descricao: 'Mobilidade articular de ombro, quadril e coluna torácica antes do treino.',
     contexto: 'pre_forca',
     categorias: ['mobilidade'],
-    regioes: [['shoulder', 'rotator', 'deltoid'], ['hip', 'glute'], ['thoracic', 'spine', 'back'], ['shoulder', 'chest']],
+    regioes: [['shoulder', 'rotator', 'delt'], ['hip', 'glute', 'abductors'], ['thoracic', 'spine', 'back', 'traps'], ['shoulder', 'chest', 'pectorals', 'serratus']],
     total: 4,
     segundos: 40,
     semEquipamento: true,
@@ -254,7 +260,7 @@ export const ROTINAS_PADRAO: RotinaDef[] = [
     descricao: 'Alongamento estático de panturrilha, flexores do quadril, isquiotibiais e glúteos.',
     contexto: 'pos_treino',
     categorias: ['alongamento'],
-    regioes: [['calf', 'calves', 'gastrocnemius', 'soleus', 'lower legs'], ['hip flexor', 'iliopsoas', 'quadricep'], ['hamstring'], ['glute']],
+    regioes: [['calf', 'calves', 'gastrocnemius', 'soleus', 'lower legs'], ['hip flexor', 'iliopsoas', 'quad'], ['hamstring'], ['glute']],
     total: 4,
     segundos: 50,
     semEquipamento: true,
@@ -264,7 +270,7 @@ export const ROTINAS_PADRAO: RotinaDef[] = [
     descricao: 'Movimentos suaves para dias de recuperação baixa (score abaixo de 60).',
     contexto: 'recuperacao',
     categorias: ['reabilitacao', 'mobilidade'],
-    regioes: [['spine', 'back'], ['hip', 'glute'], ['shoulder', 'neck'], ['knee', 'upper legs', 'hamstring'], ['ankle', 'calf', 'lower legs']],
+    regioes: [['spine', 'back'], ['hip', 'glute'], ['shoulder', 'neck', 'delts'], ['knee', 'upper legs', 'hamstring', 'quad'], ['ankle', 'calf', 'lower legs']],
     total: 5,
     segundos: 45,
     semEquipamento: true,
@@ -307,14 +313,14 @@ export function montarRotina(def: RotinaDef, candidatos: Candidato[]): string[] 
 // Regiões que preparam cada grupo de força (termos em inglês do ExerciseDB + pt do FORJA).
 const PREPARA_GRUPO: Record<string, string[]> = {
   peito: ['chest', 'pector', 'shoulder', 'peito', 'ombro'],
-  ombros: ['shoulder', 'deltoid', 'rotator', 'neck', 'ombro'],
+  ombros: ['shoulder', 'delt', 'rotator', 'neck', 'ombro'],
   'tríceps': ['tricep', 'shoulder', 'upper arms', 'ombro'],
   'bíceps': ['bicep', 'forearm', 'wrist', 'upper arms'],
-  costas: ['back', 'spine', 'thoracic', 'lat', 'costas'],
-  pernas: ['hip', 'hamstring', 'quadricep', 'upper legs', 'knee', 'glute', 'pernas'],
+  costas: ['back', 'spine', 'thoracic', 'lats', 'traps', 'costas'],
+  pernas: ['hip', 'hamstring', 'quad', 'upper legs', 'knee', 'glute', 'adductors', 'abductors', 'pernas'],
   'glúteos': ['glute', 'hip', 'glúteo'],
   panturrilha: ['calf', 'calves', 'ankle', 'lower legs', 'panturrilha'],
-  'abdômen': ['spine', 'waist', 'abdominal', 'hip', 'lower back'],
+  'abdômen': ['spine', 'waist', 'abs', 'hip', 'lower back'],
 }
 
 /** Mobilidade/alongamento que prepara o grupo do exercício de força (máx. `max`, mobilidade antes de alongamento). */

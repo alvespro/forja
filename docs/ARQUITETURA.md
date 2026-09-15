@@ -125,23 +125,26 @@ livre grava `manual`. Atalhos "Recentes" (5 últimos) e "Frequentes no mês"
 (top 5) vêm de `meal_logs → foods` (`lib/food-shortcuts.ts`).
 
 ### Biblioteca de exercícios (exercise-import)
-ExerciseDB v2 (AscendAPI via RapidAPI, host
-`edb-with-videos-and-images-by-ascendapi.p.rapidapi.com`, secret
-`EXERCISEDB_API_KEY`; plano grátis = mídia com marca d'água, 1.000 req/h).
-Cache-first: a API só é chamada para `busca` / `importar` / `sync_seed`; o app
-lê sempre de `exercises`. Sem a chave, a função responde 503 com mensagem —
-não há fallback para a versão OSS (resultados de busca imprecisos gravariam
-vídeo errado em exercício real). A API não tem pt-BR: nome, instruções, dicas e
-variações são traduzidos por IA no import; o original fica em
-`exercises.exercisedb_data`. Ao vincular a um exercício existente, o nome em
-pt-BR do usuário e os `cues` escritos à mão são preservados. Mapeamentos
-(grupo, categoria, equipamento) e montagem das rotinas de mobilidade em
-`supabase/functions/_shared/exercisedb.ts`. Mídia na tela de detalhe: vídeo →
-GIF → YouTube → imagem → BodyMap.
+ExerciseDB clássica na RapidAPI (host `exercisedb.p.rapidapi.com`, secret
+`EXERCISEDB_API_KEY`; plano básico: 690 chamadas/mês, 10 itens por página, GIF
+só em 180px). Campos: nome, bodyPart, target, equipment, category, difficulty,
+description, instruções — **sem vídeo, dicas nem variações** (isso é da v2
+"EDB with Videos and Images", assinatura separada). Cache-first: a API só é
+chamada para `busca` / `importar` / `sync_seed`; o app lê sempre de
+`exercises`. O GIF exige a chave, então é baixado uma vez e guardado no bucket
+público `exercise-media` (`exercisedb/<id>.gif`, compartilhado); a busca só
+mostra miniatura do que já está em cache, para não gastar cota. A API é só em
+inglês: nome, instruções e descrição são traduzidos por IA no import; o
+original fica em `exercises.exercisedb_data`. Ao vincular a um exercício
+existente, o nome em pt-BR e os `cues` escritos à mão são preservados.
+Mapeamentos (grupo, categoria, nível, equipamento) e montagem das rotinas em
+`supabase/functions/_shared/exercisedb.ts` (o normalizador também aceita o
+formato da v2). Mídia na tela de detalhe: vídeo → GIF → YouTube → imagem → BodyMap.
 
 ### Mobilidade
-`sync_seed` também importa mobility/stretching/rehabilitation sem equipamento
-(nomes traduzidos em lote; instruções só dos que entram em rotina) e cria 4
+`sync_seed` também importa mobility/stretching/rehabilitation (a API não filtra
+por categoria: buscas por nome paginadas — "stretch", "circles", "rotation"; nomes
+traduzidos em lote; GIF e instruções só dos que entram em rotina) e cria 4
 `mobility_routines` (Ativação Matinal 5AM, Aquecimento Pré-Força, Mobilidade
 Pós-Corrida, Recuperação Ativa) via `montarRotina` — um exercício por região do
 corpo. Execução em tela cheia (`MobilityRunner`): tempo por exercício

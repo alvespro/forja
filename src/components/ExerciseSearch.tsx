@@ -100,11 +100,11 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Buscar no ExerciseDB" description="Vídeo, instruções e músculos do movimento" maxWidth="lg">
+    <Modal open={open} onClose={onClose} title="Buscar no ExerciseDB" description="GIF, instruções e músculos do movimento" maxWidth="lg">
       {status.data?.configurado === false ? (
         <EmptyState
           message="ExerciseDB ainda não configurado"
-          description="Adicione o secret EXERCISEDB_API_KEY (RapidAPI · EDB with Videos and Images) no Supabase para buscar e importar exercícios."
+          description="Adicione o secret EXERCISEDB_API_KEY (RapidAPI · ExerciseDB) no Supabase para buscar e importar exercícios."
         />
       ) : (
         <div className="flex flex-col gap-3">

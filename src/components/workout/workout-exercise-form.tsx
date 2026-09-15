@@ -79,7 +79,7 @@ export function WorkoutExerciseForm({
         </Select>
         <Button type="button" variant="ghost" size="sm" className="min-h-11 self-start" onClick={() => setBuscandoExerciseDB(true)}>
           <Search className="size-3.5" aria-hidden="true" />
-          Buscar no ExerciseDB (com vídeo)
+          Buscar no ExerciseDB (com GIF)
         </Button>
         <ExerciseSearch
           open={buscandoExerciseDB}

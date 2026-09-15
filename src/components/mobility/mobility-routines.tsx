@@ -71,7 +71,7 @@ export function MobilityRoutines({ iniciarContexto, habitId, onIniciado }: Mobil
           <p className="ds-body-md text-foreground">Nenhuma rotina ainda.</p>
           <p className="ds-body-sm text-aco-texto">
             {status.data?.configurado === false
-              ? 'As rotinas usam exercícios do ExerciseDB (com vídeo). Adicione o secret EXERCISEDB_API_KEY no Supabase e volte aqui.'
+              ? 'As rotinas usam exercícios do ExerciseDB (com GIF). Adicione o secret EXERCISEDB_API_KEY no Supabase e volte aqui.'
               : 'Importa exercícios de mobilidade, alongamento e reabilitação do ExerciseDB e monta 4 rotinas: Ativação Matinal 5AM, Aquecimento Pré-Força, Mobilidade Pós-Corrida e Recuperação Ativa.'}
           </p>
           <button

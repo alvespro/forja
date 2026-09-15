@@ -46,6 +46,32 @@ describe('ExerciseDB → FORJA', () => {
     expect(normalizeExercise({ name: 'sem id' })).toBeNull()
   })
 
+  it('normaliza o formato da API clássica (strings, category, difficulty, description)', () => {
+    const ex = normalizeExercise({
+      bodyPart: 'chest',
+      equipment: 'barbell',
+      id: '0025',
+      name: 'barbell bench press',
+      target: 'pectorals',
+      secondaryMuscles: ['triceps', 'shoulders'],
+      instructions: ['Lie flat on a bench.'],
+      description: 'The barbell bench press is a classic compound exercise.',
+      difficulty: 'intermediate',
+      category: 'strength',
+    })!
+    expect(ex).toMatchObject({
+      exercisedb_id: '0025',
+      bodyParts: ['chest'],
+      targetMuscles: ['pectorals'],
+      equipments: ['barbell'],
+      exerciseType: 'strength',
+      overview: 'The barbell bench press is a classic compound exercise.',
+      nivel: 'intermediario',
+      videoUrl: null,
+    })
+    expect(buildExerciseRow(ex)).toMatchObject({ grupo_muscular: 'peito', categoria: 'forca', nivel: 'intermediario', equipamento: 'barra' })
+  })
+
   it('categorias do ExerciseDB em pt-BR', () => {
     expect(mapCategoria('STRETCHING')).toBe('alongamento')
     expect(mapCategoria('rehabilitation')).toBe('reabilitacao')

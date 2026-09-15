@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Pause, Play, SkipForward, X } from 'lucide-react'
+import { Check, Pause, Play, SkipForward, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { ExerciseMedia } from '@/components/workout/exercise-media'
@@ -11,10 +11,12 @@ import { useWakeLock } from '@/hooks/use-wake-lock'
 import { playSoftBeep } from '@/lib/audio-beep'
 import { splitCues } from '@/lib/cadence'
 import { haptic } from '@/lib/haptics'
-import { progressoRotina, TEMPOS_POR_EXERCICIO } from '@/lib/mobility'
+import { progressoRotina, TEMPOS_POR_EXERCICIO, XP_MOBILIDADE } from '@/lib/mobility'
 import { cn } from '@/lib/utils'
 
 const AVANCO_AUTOMATICO_MS = 1200
+const RAIO = 54
+const CIRCUNFERENCIA = 2 * Math.PI * RAIO
 
 type MobilityRunnerProps = {
   rotina: RotinaComExercicios
@@ -33,6 +35,7 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
   const [segundos, setSegundos] = useState<number>(rotina.segundos_por_exercicio)
   const timer = useCountdownTimer(segundos)
   const concluir = useCompleteMobilityRoutine()
+  const [concluida, setConcluida] = useState(false)
   const avisado = useRef(false)
   const finalizado = useRef(false)
 
@@ -60,8 +63,8 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
       { rotina, habitId },
       {
         onSuccess: () => {
-          toast.success('✅ Mobilidade concluída — corpo preparado')
-          onClose()
+          haptic('soft')
+          setConcluida(true)
         },
         onError: (err) => {
           finalizado.current = false
@@ -86,6 +89,32 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
     return () => window.clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timer.isComplete])
+
+  if (concluida) {
+    return (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Rotina concluída"
+        className="fixed inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-meia-noite p-6 text-center"
+      >
+        <span className="text-[64px] leading-none" aria-hidden="true">
+          🧘
+        </span>
+        <p className="ds-h2 text-foreground">Rotina concluída</p>
+        <p className="text-[40px] font-bold leading-none text-brasa tabular-nums [font-family:var(--font-display)]">+{XP_MOBILIDADE} XP</p>
+        <p className="ds-body-md text-aco-texto">Corpo preparado para o treino 💪</p>
+        <button
+          type="button"
+          autoFocus
+          onClick={onClose}
+          className="mt-2 flex min-h-12 w-full max-w-xs items-center justify-center rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Fechar
+        </button>
+      </div>
+    )
+  }
 
   if (!atual) {
     return (
@@ -140,15 +169,32 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
       </main>
 
       <footer className="flex flex-col items-center gap-3 border-t border-linha px-4 pb-4 pt-3">
-        <span
-          className={cn(
-            'text-[56px] font-bold leading-none tabular-nums [font-family:var(--font-display)]',
-            timer.isComplete ? 'text-ok' : 'text-foreground',
-          )}
-          aria-live="off"
-        >
-          {formatClock(restanteSeg)}
-        </span>
+        <div className="relative flex size-32 items-center justify-center">
+          <svg viewBox="0 0 120 120" className="absolute inset-0 size-full -rotate-90" aria-hidden="true">
+            <circle cx="60" cy="60" r={RAIO} fill="none" stroke="var(--color-aco)" strokeWidth="8" />
+            <circle
+              cx="60"
+              cy="60"
+              r={RAIO}
+              fill="none"
+              stroke={timer.isComplete ? 'var(--color-ok)' : 'var(--color-brasa)'}
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={CIRCUNFERENCIA}
+              strokeDashoffset={CIRCUNFERENCIA * (timer.remainingMs / (segundos * 1000))}
+              className="transition-[stroke-dashoffset] duration-300 ease-linear"
+            />
+          </svg>
+          <span
+            className={cn(
+              'text-[40px] font-bold leading-none tabular-nums [font-family:var(--font-display)]',
+              timer.isComplete ? 'text-ok' : 'text-foreground',
+            )}
+            aria-live="off"
+          >
+            {formatClock(restanteSeg)}
+          </span>
+        </div>
 
         <div role="group" aria-label="Tempo por exercício" className="flex gap-2">
           {TEMPOS_POR_EXERCICIO.map((t) => (
@@ -167,24 +213,32 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
           ))}
         </div>
 
-        <div className="flex w-full max-w-md gap-3">
+        <div className="flex w-full max-w-md gap-2">
+          <button
+            type="button"
+            onClick={proximo}
+            disabled={concluir.isPending}
+            className="flex min-h-14 flex-1 items-center justify-center gap-1.5 rounded-full border border-linha ds-body-sm font-semibold text-aco-texto outline-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <SkipForward className="size-4" aria-hidden="true" />
+            Pular
+          </button>
           <button
             type="button"
             onClick={() => (timer.isRunning ? timer.pause() : timer.start())}
-            aria-label={timer.isRunning ? 'Pausar' : 'Continuar'}
-            className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-full border border-linha ds-body-md font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-14 flex-1 items-center justify-center gap-1.5 rounded-full border border-linha ds-body-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {timer.isRunning ? <Pause className="size-5" aria-hidden="true" /> : <Play className="size-5" aria-hidden="true" />}
+            {timer.isRunning ? <Pause className="size-4" aria-hidden="true" /> : <Play className="size-4" aria-hidden="true" />}
             {timer.isRunning ? 'Pausar' : 'Continuar'}
           </button>
           <button
             type="button"
             onClick={proximo}
             disabled={concluir.isPending}
-            className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-full bg-brasa ds-body-md font-semibold text-meia-noite outline-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-14 flex-[1.3] items-center justify-center gap-1.5 rounded-full bg-brasa ds-body-sm font-semibold text-meia-noite outline-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <SkipForward className="size-5" aria-hidden="true" />
-            {ultimo ? (concluir.isPending ? 'Salvando…' : 'Concluir') : 'Próximo'}
+            <Check className="size-4" aria-hidden="true" />
+            {concluir.isPending ? 'Salvando…' : 'Concluído'}
           </button>
         </div>
       </footer>

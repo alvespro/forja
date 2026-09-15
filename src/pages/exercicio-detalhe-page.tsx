@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowRight, BarChart3, ChevronLeft, Download, Play } from 'lucide-react'
+import { ArrowRight, BarChart3, ChevronLeft, Play } from 'lucide-react'
+import { Line, LineChart, ResponsiveContainer } from 'recharts'
 
 import { ExerciseSearch } from '@/components/ExerciseSearch'
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -11,12 +12,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ExerciseMedia } from '@/components/workout/exercise-media'
+import { YoutubeEmbed } from '@/components/workout/youtube-embed'
+import { YoutubeVideoPicker } from '@/components/workout/youtube-video-picker'
 import { useExerciseHistory } from '@/hooks/use-exercise-history'
 import { useExercises } from '@/hooks/use-exercises'
 import { useWorkoutExercisesByExercise } from '@/hooks/use-workout-exercises'
 import { explainCadence, splitCues } from '@/lib/cadence'
 import { alongamentosRelacionados, CATEGORIA_LABEL, type Candidato } from '@/lib/exercisedb'
 import { computeSessionAggregates } from '@/lib/workout-metrics'
+
+const NIVEL_LABEL: Record<string, string> = { iniciante: 'Iniciante', intermediario: 'Intermediário', avancado: 'Avançado' }
 
 const br = (n: number) => String(Math.round(n * 10) / 10).replace('.', ',')
 
@@ -33,7 +38,7 @@ export function ExercicioDetalhePage() {
 
   const exercise = exercises.data?.find((e) => e.id === id)
 
-  const { last5, setsPerSession, ultimaSerie } = useMemo(() => {
+  const { last5, setsPerSession, ultimaSerie, serie } = useMemo(() => {
     const logs = history.data ?? []
     const aggregates = computeSessionAggregates(logs)
     const counts = new Map<string, number>()
@@ -45,7 +50,12 @@ export function ExercicioDetalhePage() {
           .filter((l) => l.session_id === ultima.sessionId)
           .reduce<(typeof logs)[number] | null>((m, l) => ((l.carga_kg ?? 0) > (m?.carga_kg ?? -1) ? l : m), null)
       : null
-    return { last5: aggregates.slice(-5).reverse(), setsPerSession: counts, ultimaSerie: melhor }
+    return {
+      last5: aggregates.slice(-5).reverse(),
+      setsPerSession: counts,
+      ultimaSerie: melhor,
+      serie: aggregates.slice(-12).map((a) => ({ id: a.sessionId, rm: Math.round(a.melhor1RM) })),
+    }
   }, [history.data])
 
   const relacionados = useMemo(
@@ -105,29 +115,30 @@ export function ExercicioDetalhePage() {
               {exercise.grupo_muscular}
             </span>
           )}
-          {exercise.categoria && (
-            <span className="rounded-full bg-aco-claro px-2.5 py-1 ds-body-sm text-aco-texto">{CATEGORIA_LABEL[exercise.categoria]}</span>
-          )}
           {exercise.equipamento && (
             <span className="rounded-full bg-aco-claro px-2.5 py-1 ds-body-sm text-aco-texto first-letter:uppercase">
               {exercise.equipamento}
             </span>
           )}
+          {exercise.nivel && (
+            <span className="rounded-full bg-aco-claro px-2.5 py-1 ds-body-sm text-aco-texto">{NIVEL_LABEL[exercise.nivel] ?? exercise.nivel}</span>
+          )}
+          {exercise.categoria && (
+            <span className="rounded-full bg-aco-claro px-2.5 py-1 ds-body-sm text-aco-texto">{CATEGORIA_LABEL[exercise.categoria]}</span>
+          )}
         </div>
       </header>
 
-      <ExerciseMedia exercise={exercise} />
-
-      {!exercise.exercisedb_id && (
-        <button
-          type="button"
-          onClick={() => setBusca({ aberta: true, termo: '', vincular: true })}
-          className="ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full border border-brasa/60 px-5 ds-body-md font-semibold text-brasa outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <Download className="size-4" aria-hidden="true" />
-          Importar dados do ExerciseDB
-        </button>
-      )}
+      <section className="flex flex-col gap-2">
+        <ExerciseMedia exercise={exercise} />
+        {/* Com GIF na frente, o vídeo escolhido aparece logo abaixo (a prioridade segue MP4 → GIF → YouTube). */}
+        {(exercise.video_url || exercise.gif_url) && exercise.youtube_video_id && (
+          <YoutubeEmbed videoId={exercise.youtube_video_id} title={exercise.nome} />
+        )}
+        {!exercise.video_url && (
+          <YoutubeVideoPicker key={exercise.id} exercise={exercise} trocar={!!exercise.youtube_video_id} />
+        )}
+      </section>
 
       {ultimaSerie && (
         <div className="flex items-baseline justify-between rounded-[var(--radius-lg)] bg-card px-4 py-3">
@@ -138,22 +149,26 @@ export function ExercicioDetalhePage() {
         </div>
       )}
 
-      {passos.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <h2 className="ds-label">{exercise.instrucoes?.length ? 'Como fazer' : 'Execução'}</h2>
+      <section className="flex flex-col gap-2">
+        <h2 className="ds-label">{exercise.instrucoes?.length || passos.length === 0 ? 'Como fazer' : 'Execução'}</h2>
+        {passos.length === 0 ? (
+          <p className="ds-body-sm text-aco-texto">Cole a URL de um vídeo ou adicione instruções.</p>
+        ) : (
           <ol className="flex flex-col">
             {passos.map((passo, i) => (
               <li key={i} className="flex min-h-11 items-start gap-3 border-b border-linha py-2.5 last:border-b-0">
-                <span className="w-6 shrink-0 text-right ds-data-lg font-bold text-brasa tabular-nums">{i + 1}</span>
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brasa ds-data-md font-bold text-meia-noite tabular-nums">
+                  {i + 1}
+                </span>
                 <span className="ds-body-md text-foreground">{passo}</span>
               </li>
             ))}
           </ol>
-        </section>
-      )}
+        )}
+      </section>
 
       {dicas.length > 0 && (
-        <section className="flex flex-col gap-2 rounded-[var(--radius-lg)] border border-atencao/25 bg-atencao/5 p-4">
+        <section className="flex flex-col gap-2 rounded-lg bg-aco-claro p-4">
           <h2 className="ds-label">Dicas de execução</h2>
           <ul className="flex flex-col gap-2.5">
             {dicas.map((dica, i) => (
@@ -170,17 +185,23 @@ export function ExercicioDetalhePage() {
         <section className="flex flex-col gap-2">
           <h2 className="ds-label">Músculos trabalhados</h2>
           <div className="flex flex-wrap items-center gap-1.5">
+            <span className="ds-body-sm text-aco-texto">Principal:</span>
             {(alvos.length > 0 ? alvos : [exercise.grupo_muscular]).filter(Boolean).map((m) => (
               <span key={m} className="rounded-full bg-brasa/15 px-2.5 py-1 ds-body-sm font-semibold capitalize text-brasa">
                 {m}
               </span>
             ))}
-            {secundarios.map((m) => (
-              <span key={m} className="rounded-full bg-aco-claro px-2 py-0.5 text-xs capitalize text-aco-texto">
-                {m}
-              </span>
-            ))}
           </div>
+          {secundarios.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="ds-body-sm text-aco-texto">Secundários:</span>
+              {secundarios.map((m) => (
+                <span key={m} className="rounded-full bg-aco-claro px-2 py-0.5 text-xs capitalize text-aco-texto">
+                  {m}
+                </span>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -196,7 +217,7 @@ export function ExercicioDetalhePage() {
                   className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--radius-md)] border border-linha bg-card px-3 py-2 text-left outline-none hover:border-brasa/50 focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="ds-body-sm text-foreground">
-                    <span className="text-aco-texto">Tente também: </span>
+                    <span className="text-aco-texto">Experimente também: </span>
                     {nomeDaVariacao(v)}
                   </span>
                   <ArrowRight className="size-4 shrink-0 text-brasa" aria-hidden="true" />
@@ -210,7 +231,7 @@ export function ExercicioDetalhePage() {
       {relacionados.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="ds-label">Alongamentos relacionados</h2>
-          <p className="ds-body-sm text-aco-texto">Antes deste exercício, faça:</p>
+          <p className="ds-body-sm text-aco-texto">Faça antes deste exercício:</p>
           <ul className="grid grid-cols-3 gap-2">
             {relacionados.map((r) => {
               const ex = exercises.data?.find((e) => e.id === r.id)
@@ -227,7 +248,8 @@ export function ExercicioDetalhePage() {
                         🧘
                       </span>
                     )}
-                    <span className="line-clamp-2 px-2 pb-2 text-xs font-medium text-foreground">{r.nome}</span>
+                    <span className="line-clamp-2 px-2 text-xs font-medium text-foreground">{r.nome}</span>
+                    <span className="mt-auto px-2 pb-2 text-[11px] text-aco-texto tabular-nums">{r.categoria === 'mobilidade' ? '45s' : '30s'}</span>
                   </Link>
                 </li>
               )
@@ -250,7 +272,18 @@ export function ExercicioDetalhePage() {
 
       <Card>
         <CardContent className="flex flex-col gap-3">
-          <p className="ds-label">Últimas sessões</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="ds-label">Meu histórico</p>
+            {serie.length >= 2 && (
+              <div className="h-10 w-28" role="img" aria-label="Evolução do 1RM estimado">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={serie} margin={{ top: 4, right: 2, bottom: 4, left: 2 }}>
+                    <Line type="monotone" dataKey="rm" stroke="var(--color-brasa)" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
           {history.isLoading ? (
             <Skeleton className="h-20 w-full" />
           ) : last5.length === 0 ? (
@@ -272,6 +305,22 @@ export function ExercicioDetalhePage() {
           )}
         </CardContent>
       </Card>
+
+      {!exercise.exercisedb_id && (
+        <section className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-atencao/40 bg-atencao/10 p-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="ds-h4 text-foreground">📥 Enriquecer com dados do ExerciseDB</h2>
+            <p className="ds-body-sm text-aco-texto">GIF, instruções, músculos e nível — seu nome e seus cues continuam.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBusca({ aberta: true, termo: '', vincular: true })}
+            className="ds-pressable flex min-h-12 items-center justify-center rounded-full bg-atencao px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Buscar no ExerciseDB
+          </button>
+        </section>
+      )}
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button type="button" variant="outline" className="min-h-11 flex-1" onClick={() => navigate(`/workout/evolucao/${exercise.id}`)}>

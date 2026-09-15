@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, Play } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -119,22 +119,27 @@ export function HabitChecklistCard() {
           return (
             <div className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-linha bg-card p-4">
               <p className="ds-body-md text-foreground">💪 Treino de hoje: {treinoDeHoje ?? 'descanso'}</p>
-              <p className="ds-body-md text-foreground">🧘 Movimento: 3–5 min de mobilidade antes</p>
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/workout')}
+                  className="ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full border border-linha px-5 ds-body-md font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  🏋️ Ir para o treino de hoje
+                </button>
                 <button
                   type="button"
                   onClick={() => navigate(`/mobilidade?rotina=manha&iniciar=1&habito=${movimento.id}`)}
-                  className="ds-pressable flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <Play className="size-4 fill-current" aria-hidden="true" />
-                  Iniciar ativação
+                  🧘 Fazer ativação de 5 min primeiro
                 </button>
                 <button
                   type="button"
                   onClick={() => toggle.mutate({ habitId: movimento.id, date: today, completed: !feito })}
-                  className="flex min-h-12 flex-1 items-center justify-center rounded-full border border-linha px-5 ds-body-sm font-semibold text-aco-texto outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="min-h-11 rounded-full px-3 ds-body-sm text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  {feito ? 'Desmarcar' : 'Já me movi — marcar feito'}
+                  {feito ? 'Desmarcar hábito' : 'Já me movi — só marcar feito'}
                 </button>
               </div>
             </div>

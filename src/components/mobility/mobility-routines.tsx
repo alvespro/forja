@@ -55,7 +55,7 @@ export function MobilityRoutines({ iniciarContexto, habitId, onIniciado }: Mobil
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
         <h2 className="ds-h2 text-foreground">🧘 Mobilidade & Alongamento</h2>
-        <p className="ds-body-sm text-aco-texto">Rotinas curtas, sem carga — só tempo e respiração.</p>
+        <p className="ds-body-sm text-aco-texto">Prepare e recupere seu corpo</p>
       </header>
 
       {rotinas.isLoading ? (
@@ -96,9 +96,10 @@ export function MobilityRoutines({ iniciarContexto, habitId, onIniciado }: Mobil
                     {info.icone}
                   </span>
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="w-fit rounded-full bg-brasa/15 px-2 py-0.5 text-[11px] font-semibold text-brasa">{info.label}</span>
                     <span className="ds-h4 text-foreground">{rotina.nome}</span>
                     <span className="ds-data-md text-aco-texto">
-                      {rotina.duracao_min ?? 5} min · {rotina.exercicios.length} exercícios · {info.label}
+                      {rotina.duracao_min ?? 5} min · {rotina.exercicios.length} exercícios
                     </span>
                     {rotina.descricao && <span className="ds-body-sm text-aco-texto">{rotina.descricao}</span>}
                   </div>

@@ -19,11 +19,12 @@ export type ResultadoBusca = {
   imagem_url: string | null
   gif_url: string | null
   video_url: string | null
+  nivel: string | null
   /** Exercício do FORJA que já tem este exercisedb_id (já importado). */
   exercise_id: string | null
 }
 
-export type GrupoBusca = 'peito' | 'costas' | 'pernas' | 'ombros' | 'biceps' | 'triceps' | 'core'
+export type GrupoBusca = 'peito' | 'costas' | 'pernas' | 'ombros' | 'biceps' | 'triceps' | 'core' | 'gluteo' | 'panturrilha'
 
 export type SyncSeedResult = {
   importados: number

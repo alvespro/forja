@@ -113,6 +113,8 @@ const GRUPO_PARA_API: Record<string, string> = {
   biceps: '/exercises/target/biceps?limit=25',
   triceps: '/exercises/target/triceps?limit=25',
   core: '/exercises/target/abs?limit=25',
+  gluteo: '/exercises/target/glutes?limit=25',
+  panturrilha: '/exercises/target/calves?limit=25',
 }
 
 // ─────────────────────────────── GIF em cache ───────────────────────────────

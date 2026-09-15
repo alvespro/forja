@@ -21,15 +21,16 @@ import {
 
 type WorkoutTab = 'visao_geral' | 'exercicios' | 'treinos' | 'sessao' | 'evolucao' | 'cardio' | 'mobilidade'
 
-// Treinos primeiro: a ação principal da tela é começar um treino.
+// Treinos primeiro: a ação principal da tela é começar um treino. Mobilidade e
+// cardio logo ao lado — são as outras duas formas de "treinar" do dia.
 const TABS: { id: WorkoutTab; label: string }[] = [
-  { id: 'treinos', label: 'Treinos' },
+  { id: 'treinos', label: 'Meus Treinos 🏋️' },
+  { id: 'mobilidade', label: 'Mobilidade 🧘' },
+  { id: 'cardio', label: 'Cardio 🏃' },
   { id: 'exercicios', label: 'Exercícios' },
   { id: 'visao_geral', label: 'Corpo' },
   { id: 'sessao', label: 'Sessão' },
   { id: 'evolucao', label: 'Evolução' },
-  { id: 'cardio', label: 'Cardio' },
-  { id: 'mobilidade', label: 'Mobilidade 🧘' },
 ]
 
 export function WorkoutPage() {

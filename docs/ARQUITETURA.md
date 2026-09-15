@@ -139,7 +139,18 @@ original fica em `exercises.exercisedb_data`. Ao vincular a um exercício
 existente, o nome em pt-BR e os `cues` escritos à mão são preservados.
 Mapeamentos (grupo, categoria, nível, equipamento) e montagem das rotinas em
 `supabase/functions/_shared/exercisedb.ts` (o normalizador também aceita o
-formato da v2). Mídia na tela de detalhe: vídeo → GIF → YouTube → imagem → BodyMap.
+formato da v2). Mídia na tela de detalhe: MP4 do ExerciseDB → GIF → YouTube →
+imagem → BodyMap.
+
+### Vídeos do YouTube (Data API v3)
+`src/hooks/useYouTubeSearch.ts` busca direto do navegador com
+`VITE_YOUTUBE_API_KEY` (a chave vai no bundle — restrinja por referrer HTTP no
+Google Cloud: localhost:5173 e forja-chi.vercel.app). Cada `search.list` custa
+100 unidades de 10.000/dia; o cache é `exercises.youtube_video_id` — com ID salvo
+ou MP4 próprio, nunca busca. Na tela do exercício: "Buscar vídeo no YouTube" →
+grade de 6 → "Usar este vídeo" (e "Trocar vídeo" depois); com GIF, o vídeo
+escolhido aparece abaixo dele. Ao importar do ExerciseDB (ExerciseSearch), busca
+silenciosa grava o primeiro resultado. Embed sempre `youtube-nocookie.com`.
 
 ### Mobilidade
 `sync_seed` também importa mobility/stretching/rehabilitation (a API não filtra

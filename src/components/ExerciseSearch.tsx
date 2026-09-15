@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useExerciseDBStatus, useExerciseImport, type GrupoBusca, type ResultadoBusca } from '@/hooks/useExerciseImport'
+import { useYouTubeVideoLink } from '@/hooks/useYouTubeSearch'
 import { cn } from '@/lib/utils'
 import type { Exercise } from '@/types/database'
 
-const GRUPOS: { valor: GrupoBusca; label: string }[] = [
+const GRUPOS: { valor: GrupoBusca | null; label: string }[] = [
+  { valor: null, label: 'Todos' },
   { valor: 'peito', label: 'Peito' },
   { valor: 'costas', label: 'Costas' },
   { valor: 'pernas', label: 'Pernas' },
@@ -19,7 +21,11 @@ const GRUPOS: { valor: GrupoBusca; label: string }[] = [
   { valor: 'biceps', label: 'Bíceps' },
   { valor: 'triceps', label: 'Tríceps' },
   { valor: 'core', label: 'Core' },
+  { valor: 'gluteo', label: 'Glúteo' },
+  { valor: 'panturrilha', label: 'Panturrilha' },
 ]
+
+const NIVEL_LABEL: Record<string, string> = { iniciante: 'Iniciante', intermediario: 'Intermediário', avancado: 'Avançado' }
 
 const DEBOUNCE_MS = 400
 
@@ -38,6 +44,7 @@ type ExerciseSearchProps = {
 export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', acaoLabel, onImportado }: ExerciseSearchProps) {
   const status = useExerciseDBStatus()
   const { buscar, importar } = useExerciseImport()
+  const { vincularAutomatico } = useYouTubeVideoLink()
   const queryClient = useQueryClient()
   const [termo, setTermo] = useState(termoInicial)
   const [grupo, setGrupo] = useState<GrupoBusca | null>(null)
@@ -90,6 +97,9 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
     try {
       const exercicio = await importar(r.exercisedb_id, exerciseId ?? null)
       toast.success(`✅ ${exercicio.nome} importado do ExerciseDB`)
+      // Sem vídeo próprio do ExerciseDB: busca silenciosa no YouTube e salva o 1º resultado
+      // (não bloqueia o modal; dá para trocar depois na página do exercício).
+      void vincularAutomatico(exercicio)
       onImportado(exercicio)
       onClose()
     } catch (err) {
@@ -117,7 +127,7 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
                 setGrupo(null)
                 setTermo(e.target.value)
               }}
-              placeholder="Buscar em inglês: bench press, squat…"
+              placeholder="Buscar exercício… (em inglês: bench press, squat)"
               className="h-11 pl-9"
               aria-label="Buscar exercício"
             />
@@ -126,7 +136,7 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
           <div role="group" aria-label="Filtrar por grupo" className="ds-scroll -mx-1 flex gap-2 overflow-x-auto px-1">
             {GRUPOS.map((g) => (
               <button
-                key={g.valor}
+                key={g.valor ?? 'todos'}
                 type="button"
                 aria-pressed={grupo === g.valor}
                 onClick={() => setGrupo((atual) => (atual === g.valor ? null : g.valor))}
@@ -150,7 +160,9 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
             </div>
           ) : resultados.length === 0 ? (
             <p className="ds-body-sm text-aco-texto">
-              {grupo || termo.trim().length >= 3 ? 'Nenhum exercício encontrado.' : 'Digite ao menos 3 letras ou escolha um grupo.'}
+              {grupo || termo.trim().length >= 3
+                ? "Nenhum exercício encontrado. Tente em inglês: 'bench press', 'squat'…"
+                : 'Digite ao menos 3 letras ou escolha um grupo.'}
             </p>
           ) : (
             <ul className="flex flex-col gap-2">
@@ -161,16 +173,19 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
                       src={r.gif_url ?? r.imagem_url ?? ''}
                       alt=""
                       loading="lazy"
-                      className="size-16 shrink-0 rounded-[var(--radius-sm)] bg-white object-cover"
+                      className="size-20 shrink-0 rounded-xl bg-white object-cover"
                     />
                   ) : (
-                    <span className="size-16 shrink-0 rounded-[var(--radius-sm)] bg-aco" aria-hidden="true" />
+                    <span className="size-20 shrink-0 rounded-xl bg-aco" aria-hidden="true" />
                   )}
-                  <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="line-clamp-2 ds-body-md font-semibold capitalize text-foreground">{r.nome_original}</span>
                     <span className="truncate ds-body-sm text-aco-texto first-letter:uppercase">
                       {[r.grupo_muscular, r.equipamento].filter(Boolean).join(' · ')}
                     </span>
+                    {r.nivel && (
+                      <span className="w-fit rounded-full bg-aco-claro px-2 py-0.5 text-[11px] text-aco-texto">{NIVEL_LABEL[r.nivel] ?? r.nivel}</span>
+                    )}
                   </div>
                   <button
                     type="button"

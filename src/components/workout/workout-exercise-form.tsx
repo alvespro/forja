@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { Search } from 'lucide-react'
+
+import { ExerciseSearch } from '@/components/ExerciseSearch'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,6 +36,7 @@ export function WorkoutExerciseForm({
   const [pausaAlvoSeg, setPausaAlvoSeg] = useState(String(prescription?.pausa_alvo_seg ?? 60))
   const [cadenciaAlvo, setCadenciaAlvo] = useState(prescription?.cadencia_alvo ?? '')
   const [notas, setNotas] = useState(prescription?.notas ?? '')
+  const [buscandoExerciseDB, setBuscandoExerciseDB] = useState(false)
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -73,6 +77,16 @@ export function WorkoutExerciseForm({
             </option>
           ))}
         </Select>
+        <Button type="button" variant="ghost" size="sm" className="min-h-11 self-start" onClick={() => setBuscandoExerciseDB(true)}>
+          <Search className="size-3.5" aria-hidden="true" />
+          Buscar no ExerciseDB (com vídeo)
+        </Button>
+        <ExerciseSearch
+          open={buscandoExerciseDB}
+          onClose={() => setBuscandoExerciseDB(false)}
+          acaoLabel="Adicionar ao treino"
+          onImportado={(exercicio) => setExerciseId(exercicio.id)}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -248,6 +248,8 @@ export type DevProgress = {
   registrado_em: string | null
 }
 
+export type ExerciseCategoria = 'forca' | 'cardio' | 'mobilidade' | 'equilibrio' | 'alongamento' | 'pliometria' | 'reabilitacao'
+
 export type Exercise = {
   id: string
   user_id: string
@@ -256,6 +258,44 @@ export type Exercise = {
   youtube_video_id: string | null
   cues: string | null
   cadencia_padrao: string | null
+  created_at: string
+  /** ExerciseDB v2 (null = cadastrado à mão, sem import). */
+  exercisedb_id: string | null
+  video_url: string | null
+  gif_url: string | null
+  imagem_url: string | null
+  instrucoes: string[] | null
+  dicas_execucao: string[] | null
+  variacoes: string[] | null
+  musculos_secundarios: string[] | null
+  equipamento: string | null
+  nivel: 'iniciante' | 'intermediario' | 'avancado' | null
+  tipo_exercicio: string | null
+  categoria: ExerciseCategoria | null
+  fonte: 'manual' | 'exercisedb'
+  exercisedb_data: {
+    original_name?: string
+    target_muscles?: string[]
+    body_parts?: string[]
+    equipments?: string[]
+    overview?: string | null
+    variations_en?: string[]
+    keywords?: string[]
+  } | null
+}
+
+export type MobilityContexto = 'manha' | 'pre_forca' | 'pre_corrida' | 'pos_treino' | 'recuperacao' | 'qualquer'
+
+export type MobilityRoutine = {
+  id: string
+  user_id: string
+  nome: string
+  descricao: string | null
+  duracao_min: number | null
+  contexto: MobilityContexto | null
+  ordem_exercicios: string[] | null
+  segundos_por_exercicio: number
+  ativo: boolean
   created_at: string
 }
 
@@ -704,6 +744,8 @@ export type RecoveryScore = {
   volume_ontem: number | null
   recomendacao: string | null
   componentes: Record<string, unknown> | null
+  /** Escolha diante de recuperação baixa no Hoje. */
+  decisao_treino: 'mobilidade' | 'treino' | null
 }
 
 /** Sono manual. `data` = dia em que a noite começou (a noite de ontem grava a data de ontem). */

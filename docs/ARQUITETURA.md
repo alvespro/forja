@@ -124,6 +124,21 @@ porção → `meal_logs` com `fonte` `foods_cache` (ou `ia_estimado`); o formul�
 livre grava `manual`. Atalhos "Recentes" (5 últimos) e "Frequentes no mês"
 (top 5) vêm de `meal_logs → foods` (`lib/food-shortcuts.ts`).
 
+### Biblioteca de exercícios (exercise-import)
+ExerciseDB v2 (AscendAPI via RapidAPI, host
+`edb-with-videos-and-images-by-ascendapi.p.rapidapi.com`, secret
+`EXERCISEDB_API_KEY`; plano grátis = mídia com marca d'água, 1.000 req/h).
+Cache-first: a API só é chamada para `busca` / `importar` / `sync_seed`; o app
+lê sempre de `exercises`. Sem a chave, a função responde 503 com mensagem —
+não há fallback para a versão OSS (resultados de busca imprecisos gravariam
+vídeo errado em exercício real). A API não tem pt-BR: nome, instruções, dicas e
+variações são traduzidos por IA no import; o original fica em
+`exercises.exercisedb_data`. Ao vincular a um exercício existente, o nome em
+pt-BR do usuário e os `cues` escritos à mão são preservados. Mapeamentos
+(grupo, categoria, equipamento) e montagem das rotinas de mobilidade em
+`supabase/functions/_shared/exercisedb.ts`. Mídia na tela de detalhe: vídeo →
+GIF → YouTube → imagem → BodyMap.
+
 ## Edge functions e segurança
 
 - `verify_jwt` em todas; as **agendadas** (weekly-suggestions,

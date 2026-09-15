@@ -28,6 +28,7 @@ const rec = (data: string, score: number): RecoveryScore => ({
   volume_ontem: null,
   recomendacao: null,
   componentes: null,
+  decisao_treino: null,
 })
 
 describe('sono', () => {

@@ -82,6 +82,10 @@ export const ICONS = {
   // Desenvolvimento
   livro: 'menu_book',
   curso: 'school',
+  videoAula: 'play_circle',
+  modulos: 'view_list',
+  link: 'link',
+  analiseArea: 'query_stats',
   habilidade: 'psychology',
   estrela: 'star',
 

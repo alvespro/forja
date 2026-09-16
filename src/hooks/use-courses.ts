@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { supabase } from '@/lib/supabase'
-import type { Course, LibraryStatus } from '@/types/database'
+import type { Course, CourseFormato, LibraryStatus } from '@/types/database'
 
 import { useAuth } from './use-auth'
 
@@ -26,6 +26,10 @@ export type CourseInput = {
   aplicacao_2?: string | null
   acao_1?: string | null
   resumo?: string | null
+  formato?: CourseFormato | null
+  url?: string | null
+  modulos_total?: number | null
+  modulos_feitos?: number | null
 }
 
 export function useCourses() {

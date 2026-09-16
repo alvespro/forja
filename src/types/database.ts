@@ -139,6 +139,8 @@ export type Reading = {
   resumo: string | null
 }
 
+export type CourseFormato = 'leitura' | 'video_aula' | 'modulos' | 'link' | 'analise_area'
+
 export type Course = {
   id: string
   user_id: string
@@ -162,6 +164,10 @@ export type Course = {
   aplicacao_2: string | null
   acao_1: string | null
   resumo: string | null
+  formato: CourseFormato | null
+  url: string | null
+  modulos_total: number | null
+  modulos_feitos: number | null
 }
 
 export type DevAreaCategoria = 'mentalidade' | 'interpessoal' | 'soft_skill' | 'hard_skill'

@@ -288,8 +288,11 @@ export type Database = {
           data_conclusao: string | null
           data_inicio: string | null
           dev_area_id: string | null
+          formato: string | null
           habilidades_desenvolvidas: string[] | null
           id: string
+          modulos_feitos: number | null
+          modulos_total: number | null
           nota_geral: number | null
           plataforma: string | null
           progresso: number | null
@@ -297,6 +300,7 @@ export type Database = {
           resumo: string | null
           status: string | null
           titulo: string
+          url: string | null
           user_id: string
         }
         Insert: {
@@ -312,8 +316,11 @@ export type Database = {
           data_conclusao?: string | null
           data_inicio?: string | null
           dev_area_id?: string | null
+          formato?: string | null
           habilidades_desenvolvidas?: string[] | null
           id?: string
+          modulos_feitos?: number | null
+          modulos_total?: number | null
           nota_geral?: number | null
           plataforma?: string | null
           progresso?: number | null
@@ -321,6 +328,7 @@ export type Database = {
           resumo?: string | null
           status?: string | null
           titulo: string
+          url: string | null
           user_id: string
         }
         Update: {
@@ -336,8 +344,11 @@ export type Database = {
           data_conclusao?: string | null
           data_inicio?: string | null
           dev_area_id?: string | null
+          formato?: string | null
           habilidades_desenvolvidas?: string[] | null
           id?: string
+          modulos_feitos?: number | null
+          modulos_total?: number | null
           nota_geral?: number | null
           plataforma?: string | null
           progresso?: number | null
@@ -345,6 +356,7 @@ export type Database = {
           resumo?: string | null
           status?: string | null
           titulo?: string
+          url?: string | null
           user_id?: string
         }
         Relationships: [

@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 
 import { BodyMap } from '@/components/BodyMap'
+import { NovoCursoForm } from '@/components/desenvolvimento/novo-curso-form'
 import { GlassCard } from '@/components/GlassCard'
 import { Icon } from '@/components/Icon'
 import { HabitChecklistCard } from '@/components/today/habit-checklist-card'
@@ -63,6 +64,10 @@ export function DesignSystemPage() {
             </span>
           ))}
         </div>
+      </Section>
+
+      <Section title="Novo curso (formato)">
+        <NovoCursoForm areas={[]} onDone={() => toast.info('Cancelado')} />
       </Section>
 
       <Section title="Hoje (sem login: estados vazios)">

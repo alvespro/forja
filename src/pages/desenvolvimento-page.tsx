@@ -8,12 +8,13 @@ import { Button } from '@/components/ui/button'
 import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { LivroCard } from '@/components/desenvolvimento/livro-card'
 import { CursoCard } from '@/components/desenvolvimento/curso-card'
+import { NovoCursoForm } from '@/components/desenvolvimento/novo-curso-form'
 import { MediaCardItem, AddMediaButton } from '@/components/desenvolvimento/media-card'
 import { SkillLevelCard } from '@/components/desenvolvimento/skill-level-card'
 import { SkillsRadarChart } from '@/components/desenvolvimento/skills-radar-chart'
 import { SuggestionsCard } from '@/components/desenvolvimento/suggestions-card'
 import { useReadings, useCreateReading } from '@/hooks/use-readings'
-import { useCourses, useCreateCourse } from '@/hooks/use-courses'
+import { useCourses } from '@/hooks/use-courses'
 import { useDevMedia } from '@/hooks/use-dev-media'
 import { useDevAreas } from '@/hooks/use-dev-areas'
 import { cn } from '@/lib/utils'
@@ -50,14 +51,12 @@ export function DesenvolvimentoPage() {
   const [showAddReading, setShowAddReading] = useState(false)
   const [newReadingTitle, setNewReadingTitle] = useState('')
   const [showAddCourse, setShowAddCourse] = useState(false)
-  const [newCourseTitle, setNewCourseTitle] = useState('')
 
   const readings = useReadings()
   const courses = useCourses()
   const media = useDevMedia()
   const devAreas = useDevAreas()
   const createReading = useCreateReading()
-  const createCourse = useCreateCourse()
 
   const filteredReadings = useMemo(() => {
     let items = readings.data ?? []
@@ -230,29 +229,7 @@ export function DesenvolvimentoPage() {
             )}
           </div>
 
-          {showAddCourse && (
-            <form
-              className="flex gap-2"
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (!newCourseTitle.trim()) return
-                createCourse.mutate(
-                  { titulo: newCourseTitle, status: 'quero_ler' },
-                  { onSuccess: () => { setShowAddCourse(false); setNewCourseTitle('') } },
-                )
-              }}
-            >
-              <input
-                autoFocus
-                value={newCourseTitle}
-                onChange={(e) => setNewCourseTitle(e.target.value)}
-                placeholder="Nome do curso"
-                className="flex-1 rounded-md border border-input bg-transparent px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-              <Button type="submit" size="sm" disabled={createCourse.isPending}>Adicionar</Button>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddCourse(false)}>Cancelar</Button>
-            </form>
-          )}
+          {showAddCourse && <NovoCursoForm areas={devAreas.data ?? []} onDone={() => setShowAddCourse(false)} />}
 
           {courses.isLoading ? (
             <div className="flex flex-col gap-3">

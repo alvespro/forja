@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { StarRating } from './star-rating'
+import { formatoInfo, progressoModulos } from '@/lib/course-formato'
 import { STATUS_LABEL, areaTextColor } from '@/lib/desenvolvimento'
 import type { Course, DevArea } from '@/types/database'
 
@@ -30,6 +31,8 @@ export function CursoCard({ course, areas }: CursoCardProps) {
   const navigate = useNavigate()
   const area = areas?.find((a) => a.id === course.dev_area_id)
   const statusIcon = STATUS_ICON[course.status ?? 'quero_ler'] ?? 'schedule'
+  const formato = formatoInfo(course.formato)
+  const pctModulos = course.formato === 'modulos' ? progressoModulos(course.modulos_feitos, course.modulos_total) : null
 
   const initials = course.titulo
     .split(' ')
@@ -51,6 +54,13 @@ export function CursoCard({ course, areas }: CursoCardProps) {
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground line-clamp-1">{course.titulo}</p>
+              {formato && (
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-aco-texto">
+                  <Icon name={formato.icon} size={14} className="text-brasa" />
+                  {formato.label}
+                  {pctModulos != null && <span className="text-cinza2-texto">· {course.modulos_feitos ?? 0}/{course.modulos_total} módulos</span>}
+                </p>
+              )}
               {course.provedor && <p className="text-xs text-aco-texto">{course.provedor}</p>}
               {course.plataforma && <p className="text-xs text-cinza2-texto">{course.plataforma}</p>}
               {course.carga_horaria && <p className="text-xs text-cinza2-texto">{course.carga_horaria}h</p>}
@@ -65,9 +75,9 @@ export function CursoCard({ course, areas }: CursoCardProps) {
             <div className="mt-2">
               <div className="flex justify-between text-xs text-aco-texto mb-1">
                 <span>Progresso</span>
-                <span>{course.progresso ?? 0}%</span>
+                <span>{pctModulos ?? course.progresso ?? 0}%</span>
               </div>
-              <Progress value={course.progresso ?? 0} className="h-1.5" />
+              <Progress value={pctModulos ?? course.progresso ?? 0} className="h-1.5" />
             </div>
           )}
 
@@ -86,6 +96,19 @@ export function CursoCard({ course, areas }: CursoCardProps) {
               )}
             </div>
             <div className="flex gap-1">
+              {course.url && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  className="h-6 gap-1 text-xs"
+                  aria-label={`Abrir ${course.titulo} em nova aba`}
+                  onClick={(e) => { e.stopPropagation(); window.open(course.url!, '_blank', 'noopener,noreferrer') }}
+                >
+                  <Icon name="open_in_new" size={12} />
+                  Abrir
+                </Button>
+              )}
               {course.certificado_url && (
                 <Button
                   type="button"

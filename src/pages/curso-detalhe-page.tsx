@@ -9,15 +9,17 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/feedback/error-state'
+import { FormatoPicker } from '@/components/desenvolvimento/formato-picker'
 import { StarRating } from '@/components/desenvolvimento/star-rating'
 import { useCourse, useUpdateCourse } from '@/hooks/use-courses'
 import { useDevAreas } from '@/hooks/use-dev-areas'
 import { useForjaAI } from '@/hooks/useForjaAI'
 import { useCreateTask } from '@/hooks/use-tasks'
 import { supabase } from '@/lib/supabase'
+import { normalizarUrl, pedeUrl, progressoModulos } from '@/lib/course-formato'
 import { todayInSaoPaulo } from '@/lib/date'
 import { useAuth } from '@/hooks/use-auth'
-import type { LibraryStatus } from '@/types/database'
+import type { CourseFormato, LibraryStatus } from '@/types/database'
 
 export function CursoDetalhePage() {
   const { id } = useParams<{ id: string }>()
@@ -34,6 +36,10 @@ export function CursoDetalhePage() {
 
   const [progresso, setProgresso] = useState(0)
   const [status, setStatus] = useState<LibraryStatus>('quero_ler')
+  const [formato, setFormato] = useState<CourseFormato | null>(null)
+  const [url, setUrl] = useState('')
+  const [modulosTotal, setModulosTotal] = useState<number | null>(null)
+  const [modulosFeitos, setModulosFeitos] = useState(0)
   const [devAreaId, setDevAreaId] = useState('')
   const [plataforma, setPlataforma] = useState('')
   const [cargaHoraria, setCargaHoraria] = useState<number | null>(null)
@@ -55,6 +61,10 @@ export function CursoDetalhePage() {
     if (!c) return
     setProgresso(c.progresso ?? 0)
     setStatus(c.status ?? 'quero_ler')
+    setFormato(c.formato)
+    setUrl(c.url ?? '')
+    setModulosTotal(c.modulos_total)
+    setModulosFeitos(c.modulos_feitos ?? 0)
     setDevAreaId(c.dev_area_id ?? '')
     setPlataforma(c.plataforma ?? '')
     setCargaHoraria(c.carga_horaria)
@@ -69,6 +79,9 @@ export function CursoDetalhePage() {
     setAcao1(c.acao_1 ?? '')
     setCitacao(c.citacao_favorita ?? '')
   }, [c])
+
+  // Em curso por módulos com total conhecido, o progresso vem da contagem (não do slider).
+  const pctModulos = formato === 'modulos' ? progressoModulos(modulosFeitos, modulosTotal) : null
 
   if (course.isLoading) return <div className="flex flex-col gap-3"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>
   if (course.isError || !c) return <ErrorState message="Curso não encontrado." onRetry={() => course.refetch()} />
@@ -94,8 +107,12 @@ export function CursoDetalhePage() {
     updateCourse.mutate({
       id: c!.id,
       values: {
-        progresso,
+        progresso: pctModulos ?? progresso,
         status,
+        formato,
+        url: normalizarUrl(url),
+        modulos_total: formato === 'modulos' ? modulosTotal : c!.modulos_total,
+        modulos_feitos: formato === 'modulos' ? modulosFeitos : c!.modulos_feitos,
         dev_area_id: devAreaId || null,
         plataforma: plataforma || null,
         carga_horaria: cargaHoraria,
@@ -154,7 +171,68 @@ export function CursoDetalhePage() {
             ))}
           </div>
 
-          {status !== 'quero_ler' && (
+          <div className="flex flex-col gap-1.5">
+            <Label>Formato</Label>
+            <FormatoPicker value={formato} onChange={setFormato} />
+          </div>
+
+          {(pedeUrl(formato) || url) && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="curso-url">{formato === 'link' ? 'Link' : 'Link das aulas'}</Label>
+              <div className="flex gap-2">
+                <Input id="curso-url" type="url" inputMode="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+                {normalizarUrl(url) && (
+                  <Button asChild variant="outline" size="icon" aria-label="Abrir link em nova aba" className="size-11 shrink-0">
+                    <a href={normalizarUrl(url)!} target="_blank" rel="noopener noreferrer">
+                      <Icon name="open_in_new" size={18} />
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {formato === 'modulos' && (
+            <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="modulos-total">Total de módulos</Label>
+                  <Input
+                    id="modulos-total"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={modulosTotal ?? ''}
+                    onChange={(e) => setModulosTotal(e.target.value ? Number(e.target.value) : null)}
+                    placeholder="12"
+                  />
+                </div>
+                <div>
+                  <Label id="modulos-feitos-label">Concluídos</Label>
+                  <div className="mt-1 flex items-center gap-1" role="group" aria-labelledby="modulos-feitos-label">
+                    <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Menos um módulo" disabled={modulosFeitos <= 0} onClick={() => setModulosFeitos((n) => Math.max(0, n - 1))}>
+                      <Icon name="remove" size={18} />
+                    </Button>
+                    <span className="min-w-10 text-center font-mono text-base text-foreground" aria-live="polite">{modulosFeitos}</span>
+                    <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Mais um módulo" disabled={modulosTotal != null && modulosFeitos >= modulosTotal} onClick={() => setModulosFeitos((n) => n + 1)}>
+                      <Icon name="add" size={18} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              {pctModulos != null && (
+                <div>
+                  <div className="mb-1 flex justify-between text-xs text-aco-texto">
+                    <span>{modulosFeitos} de {modulosTotal} módulos</span>
+                    <span>{pctModulos}%</span>
+                  </div>
+                  <Progress value={pctModulos} className="h-1.5" />
+                </div>
+              )}
+            </div>
+          )}
+
+          {status !== 'quero_ler' && pctModulos == null && (
             <div>
               <div className="flex justify-between text-xs text-aco-texto mb-1">
                 <Label>Progresso</Label>
@@ -190,7 +268,7 @@ export function CursoDetalhePage() {
           </div>
 
           <div>
-            <Label htmlFor="dev-area">Área de desenvolvimento</Label>
+            <Label htmlFor="dev-area">{formato === 'analise_area' ? 'Área analisada' : 'Área de desenvolvimento'}</Label>
             <select
               id="dev-area"
               value={devAreaId}

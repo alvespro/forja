@@ -92,6 +92,7 @@ export const ICONS = {
   // Status
   check: 'check_circle',
   alerta: 'warning',
+  critico: 'error',
   info: 'info',
   fogo: 'local_fire_department',
   raio: 'bolt',

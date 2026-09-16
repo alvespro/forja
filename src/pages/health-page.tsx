@@ -8,10 +8,12 @@ import { EmptyState } from '@/components/feedback/empty-state'
 import { ClinicalAnalysisSection } from '@/components/health/clinical-analysis'
 import { ErrorState } from '@/components/feedback/error-state'
 import { HealthMetricDetail, HealthMetricTile } from '@/components/health/health-metric-card'
+import { PlacarSaude } from '@/components/health/placar-saude'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHealthMetricDefs } from '@/hooks/use-health-metric-defs'
 import { groupHealthMetricsByKey, useHealthMetrics } from '@/hooks/use-health-metrics'
 import { useHeartZones } from '@/hooks/use-heart-zones'
+import { MARCADORES } from '@/lib/health-markers'
 
 export function HealthPage() {
   const defs = useHealthMetricDefs()
@@ -23,7 +25,9 @@ export function HealthPage() {
   const isError = defs.isError || metrics.isError
   const metricsByKey = useMemo(() => groupHealthMetricsByKey(metrics.data), [metrics.data])
 
-  const lista = defs.data ?? []
+  // Marcadores de exame vão para o placar agrupado; o resto (peso, corrida…) segue no grid simples.
+  const lista = (defs.data ?? []).filter((d) => !MARCADORES[d.chave])
+  const temExames = (metrics.data ?? []).some((m) => MARCADORES[m.chave])
   const indiceSelecionado = lista.findIndex((d) => d.id === selecionado)
   // O painel entra no fim da linha do card escolhido (grade de 2 colunas).
   const fimDaLinha = indiceSelecionado >= 0 ? indiceSelecionado | 1 : -1
@@ -65,34 +69,44 @@ export function HealthPage() {
             metrics.refetch()
           }}
         />
-      ) : lista.length === 0 ? (
+      ) : lista.length === 0 && !temExames ? (
         <EmptyState message="Nenhum marcador de saúde cadastrado ainda." />
       ) : (
-        <div className="grid grid-cols-2 gap-2">
-          {lista.map((def, i) => {
-            const aberto = selecionado != null && i === Math.min(fimDaLinha, lista.length - 1)
-            const escolhido = lista[indiceSelecionado]
-            return (
-              <Fragment key={def.id}>
-                <HealthMetricTile
-                  def={def}
-                  metrics={metricsByKey.get(def.chave) ?? []}
-                  numOrdem={i + 1}
-                  selecionado={def.id === selecionado}
-                  onSelect={() => setSelecionado((atual) => (atual === def.id ? null : def.id))}
-                />
-                {aberto && escolhido && (
-                  <HealthMetricDetail
-                    key={escolhido.id}
-                    def={escolhido}
-                    metrics={metricsByKey.get(escolhido.chave) ?? []}
-                    onClose={() => setSelecionado(null)}
-                  />
-                )}
-              </Fragment>
-            )
-          })}
-        </div>
+        <>
+          <PlacarSaude metrics={metrics.data ?? []} defs={defs.data ?? []} metricsByKey={metricsByKey} />
+          {lista.length > 0 && (
+            <section className="flex flex-col gap-2" aria-labelledby="grupo-outros">
+              <h2 id="grupo-outros" className="ds-label !text-nevoa">
+                Outros marcadores
+              </h2>
+              <div className="grid grid-cols-2 gap-2">
+                {lista.map((def, i) => {
+                  const aberto = selecionado != null && i === Math.min(fimDaLinha, lista.length - 1)
+                  const escolhido = lista[indiceSelecionado]
+                  return (
+                    <Fragment key={def.id}>
+                      <HealthMetricTile
+                        def={def}
+                        metrics={metricsByKey.get(def.chave) ?? []}
+                        numOrdem={i + 1}
+                        selecionado={def.id === selecionado}
+                        onSelect={() => setSelecionado((atual) => (atual === def.id ? null : def.id))}
+                      />
+                      {aberto && escolhido && (
+                        <HealthMetricDetail
+                          key={escolhido.id}
+                          def={escolhido}
+                          metrics={metricsByKey.get(escolhido.chave) ?? []}
+                          onClose={() => setSelecionado(null)}
+                        />
+                      )}
+                    </Fragment>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       <Link

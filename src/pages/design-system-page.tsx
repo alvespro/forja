@@ -2,6 +2,9 @@ import { toast } from 'sonner'
 
 import { BodyMap } from '@/components/BodyMap'
 import { NovoCursoForm } from '@/components/desenvolvimento/novo-curso-form'
+import { PlacarSaude } from '@/components/health/placar-saude'
+import { groupHealthMetricsByKey } from '@/hooks/use-health-metrics'
+import type { HealthMetric } from '@/types/database'
 import { CardioTimerView, MobilidadeBadge, ObservacaoDestaque, PhaseTimerView } from '@/components/workout/session/phase-views'
 import { GlassCard } from '@/components/GlassCard'
 import { Icon } from '@/components/Icon'
@@ -25,6 +28,19 @@ import { StatusDot } from '@/components/ds/status-dot'
 import { WorkoutCard } from '@/components/ds/workout-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+
+
+/** Exames de exemplo (mesmos valores de 25/06 e 15/07/2026) para ver o Placar de Saúde sem login. */
+const EXAMES_EXEMPLO: HealthMetric[] = [
+  ...Object.entries({ colesterol_total: 197, glicemia: 103, ldl: 119.4, lpa: 44 }).map(([chave, valor]) => ({ chave, valor, measured_at: '2026-06-25' })),
+  ...Object.entries({
+    acido_urico: 4.9, apo_a1: 137, apo_b: 84, colesterol_total: 181, creatinina: 1.25, egfr: 78, eritrocitos: 4.86, estradiol: 5, fsh: 2.8,
+    glicemia: 91, hdl: 50, hematocrito: 45.5, hemoglobina: 15.7, homocisteina: 9.6, ldl: 107, leucocitos: 6610, lh: 3.8, linfocitos_pct: 42.1,
+    nao_hdl: 132, neutrofilos_pct: 46, pcr_ultrassensivel: 0.06, plaquetas: 287000, prolactina: 8.4, psa_livre: 0.39, psa_total: 0.59,
+    shbg: 26.91, t4_livre: 1.51, testosterona_biodisponivel: 232.13, testosterona_livre: 9.91, testosterona_total: 431, tgo: 25, tgp: 28,
+    triglicerides: 136, tsh: 2.38, vitamina_b12: 600, vitamina_c: 0.5, vitamina_d: 42, vldl: 25,
+  }).map(([chave, valor]) => ({ chave, valor, measured_at: '2026-07-15' })),
+].map((m, i) => ({ ...m, id: String(i), user_id: '' }))
 
 /**
  * Galeria do design system — só existe em desenvolvimento (rota fora do login),
@@ -65,6 +81,10 @@ export function DesignSystemPage() {
             </span>
           ))}
         </div>
+      </Section>
+
+      <Section title="Placar de Saúde">
+        <PlacarSaude metrics={EXAMES_EXEMPLO} defs={[]} metricsByKey={groupHealthMetricsByKey(EXAMES_EXEMPLO)} />
       </Section>
 
       <Section title="Treino v2 (fases)">

@@ -504,11 +504,6 @@
 
 /* ============================== Material Symbols ============================== */
 
-/* Até a fonte de ícones carregar (index.html), esconde o nome em texto. */
-html:not(.icons-ready) .material-symbols-outlined {
-  visibility: hidden;
-}
-
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
   font-weight: normal;

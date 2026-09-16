@@ -111,7 +111,7 @@ export function LivroDetalhePage() {
           <div>
             <h1 className="font-heading text-xl font-bold text-foreground">{r.titulo}</h1>
             {r.autor && <p className="text-sm text-aco-texto">{r.autor}</p>}
-            {r.trilha && <p className="text-xs text-aco-texto/70">{r.trilha}</p>}
+            {r.trilha && <p className="text-xs text-cinza2-texto">{r.trilha}</p>}
           </div>
 
           {/* Status */}

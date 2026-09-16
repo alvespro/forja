@@ -57,7 +57,7 @@ export function TodayWorkoutHero({ onStart }: { onStart: () => void }) {
           {atrasado && !sessionId && <StatusDot color="alerta" pulse label="Atrasado" colorLabel />}
         </div>
       </div>
-      <button type="button" onClick={iniciar} disabled={criar.isPending} className="ds-btn-primary min-h-12 w-full text-[15px] outline-none">
+      <button type="button" onClick={iniciar} disabled={criar.isPending} className="ds-btn-primary min-h-12 w-full text-[15px]">
         <Icon name="play_arrow" size={22} filled />
         {sessionId ? 'Continuar treino' : criar.isPending ? 'Iniciando…' : 'Iniciar'}
       </button>

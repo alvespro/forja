@@ -140,7 +140,7 @@ export function FinanceGoalCard({ receitasDoMes }: FinanceGoalCardProps) {
               />
             </div>
             {progressoPct < 100 && (
-              <p className="mt-1 text-[11px] text-aco-texto/70">
+              <p className="mt-1 text-[11px] text-cinza2-texto">
                 Faltam {currency.format(meta - receitasDoMes)} para a meta do mês
               </p>
             )}

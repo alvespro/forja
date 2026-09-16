@@ -213,7 +213,7 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
                 value={dataInicio}
                 onChange={(e) => setDataInicio(e.target.value)}
               />
-              <p className="mt-1 text-xs text-aco-texto/60">
+              <p className="mt-1 text-xs text-cinza2-texto">
                 Se vazio, será definida quando você iniciar o ciclo.
               </p>
             </div>
@@ -260,7 +260,7 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
                             checked ? 'border-brasa bg-brasa/20 text-brasa' : 'border-border/60'
                           }`}
                         >
-                          {checked && <span className="text-[9px] leading-none">✓</span>}
+                          {checked && <Icon name="check" size={12} />}
                         </div>
                         <span className="text-sm text-foreground">{item.nome}</span>
                       </button>

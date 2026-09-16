@@ -159,7 +159,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                   />
                 )}
                 <div className="absolute inset-x-0 bottom-0 bg-black/70 px-1 py-0.5">
-                  <p className="text-center text-[9px] text-white/90">{formatarData(foto.data)}</p>
+                  <p className="text-center text-[10px] text-white/90">{formatarData(foto.data)}</p>
                 </div>
                 {foto.relatorio_ia && (
                   <span className="absolute right-1 top-1 rounded-full bg-brasa/90 p-0.5">
@@ -233,7 +233,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                 <button
                   type="button"
                   onClick={() => handleDelete(selecionada)}
-                  className="text-aco-texto/50 hover:text-alerta-texto"
+                  className="text-cinza2-texto hover:text-alerta-texto"
                   title="Excluir foto"
                   aria-label="Excluir foto"
                 >

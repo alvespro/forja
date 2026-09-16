@@ -35,13 +35,13 @@ export function MediaCardItem({ media, areas }: MediaCardItemProps) {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground line-clamp-1">{media.titulo}</p>
               {media.diretor_ou_host && <p className="text-xs text-aco-texto">{media.diretor_ou_host}</p>}
-              {media.plataforma && <p className="text-xs text-aco-texto/70">{media.plataforma}</p>}
-              <p className="text-xs text-aco-texto/60">{MEDIA_TIPO_LABEL[media.tipo ?? ''] ?? media.tipo}</p>
+              {media.plataforma && <p className="text-xs text-cinza2-texto">{media.plataforma}</p>}
+              <p className="text-xs text-cinza2-texto">{MEDIA_TIPO_LABEL[media.tipo ?? ''] ?? media.tipo}</p>
             </div>
             <select
               value={media.status ?? 'quero_ver'}
               onChange={(e) => updateMedia.mutate({ id: media.id, values: { status: e.target.value as DevMediaStatus } })}
-              className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 outline-none cursor-pointer ${STATUS_CLASS[media.status ?? 'quero_ver']}`}
+              className={`rounded-full px-2 py-0.5 text-xs font-medium border-0 cursor-pointer ${STATUS_CLASS[media.status ?? 'quero_ver']}`}
             >
               <option value="quero_ver">{STATUS_LABEL.quero_ver}</option>
               <option value="assistindo">{STATUS_LABEL.assistindo}</option>

@@ -52,8 +52,8 @@ export function CursoCard({ course, areas }: CursoCardProps) {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground line-clamp-1">{course.titulo}</p>
               {course.provedor && <p className="text-xs text-aco-texto">{course.provedor}</p>}
-              {course.plataforma && <p className="text-xs text-aco-texto/70">{course.plataforma}</p>}
-              {course.carga_horaria && <p className="text-xs text-aco-texto/70">{course.carga_horaria}h</p>}
+              {course.plataforma && <p className="text-xs text-cinza2-texto">{course.plataforma}</p>}
+              {course.carga_horaria && <p className="text-xs text-cinza2-texto">{course.carga_horaria}h</p>}
             </div>
             <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[course.status ?? 'quero_ler']}`}>
               <Icon name={statusIcon} size={12} />

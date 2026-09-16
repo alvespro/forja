@@ -53,7 +53,7 @@ export function LivroCard({ reading, areas }: LivroCardProps) {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground line-clamp-1">{reading.titulo}</p>
               {reading.autor && <p className="text-xs text-aco-texto">{reading.autor}</p>}
-              {reading.trilha && <p className="text-xs text-aco-texto/70">{reading.trilha}</p>}
+              {reading.trilha && <p className="text-xs text-cinza2-texto">{reading.trilha}</p>}
             </div>
             <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[reading.status ?? 'quero_ler']}`}>
               <Icon name={statusIcon} size={12} />

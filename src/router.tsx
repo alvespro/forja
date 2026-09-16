@@ -1,11 +1,11 @@
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
-import { AppShell } from '@/components/layout/app-shell'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { OnboardingGate } from '@/components/auth/onboarding-gate'
 import { RouteError } from '@/components/feedback/route-error'
 
+const AppShell = lazy(() => import('@/components/layout/app-shell').then((m) => ({ default: m.AppShell })))
 const LoginPage = lazy(() => import('@/pages/auth/login-page').then((m) => ({ default: m.LoginPage })))
 const SignupPage = lazy(() => import('@/pages/auth/signup-page').then((m) => ({ default: m.SignupPage })))
 const TodayPage = lazy(() => import('@/pages/today-page').then((m) => ({ default: m.TodayPage })))
@@ -70,7 +70,7 @@ export const router = createBrowserRouter([
         errorElement: <RouteError />,
         children: [
       {
-        element: <AppShell />,
+        element: withSuspense(<AppShell />),
         errorElement: <RouteError />,
         children: [
           { index: true, element: <TodayPage /> },

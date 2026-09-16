@@ -100,7 +100,7 @@ export function DesenvolvimentoPage() {
             aria-selected={tab === t.key}
             onClick={() => setTab(t.key)}
             className={cn(
-              'whitespace-nowrap rounded-t px-3 py-2 text-sm font-medium outline-none transition-colors shrink-0',
+              'whitespace-nowrap rounded-t px-3 py-2 text-sm font-medium transition-colors shrink-0',
               tab === t.key
                 ? 'border-b-2 border-brasa text-foreground'
                 : 'text-aco-texto hover:text-foreground',

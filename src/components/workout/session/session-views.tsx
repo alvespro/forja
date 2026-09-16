@@ -442,7 +442,7 @@ export function PostWorkoutSummary({ duracaoSeg, series, volumeKg, exercicios, m
       <button
         type="button"
         onClick={onClose}
-        className="ds-btn-primary w-full outline-none"
+        className="ds-btn-primary w-full"
       >
         Fechar
       </button>

@@ -37,14 +37,15 @@ import {
   type ProdutoAlimento,
   type UnidadeValue,
 } from '@/lib/off'
+import type { IconName } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { MealSlot } from '@/types/database'
 
-const FILTROS: { label: string; valor: FiltroFonte }[] = [
+const FILTROS: { label: string; valor: FiltroFonte; icon?: IconName }[] = [
   { label: 'Todos', valor: null },
-  { label: '🇧🇷 In natura', valor: 'taco' },
-  { label: '📦 Embalados', valor: 'off' },
-  { label: '🔬 Científico', valor: 'usda' },
+  { label: 'In natura', valor: 'taco', icon: 'eco' },
+  { label: 'Embalados', valor: 'off', icon: 'inventory_2' },
+  { label: 'Científico', valor: 'usda', icon: 'science' },
 ]
 
 const EMOJI_FONTE = { taco: '🥗', off: '📦', usda: '🔬', ia_estimado: '🤖' } as const
@@ -141,7 +142,14 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
                 size="sm"
                 onClick={() => setAba(id)}
               >
-                {id === 'buscar' ? 'Buscar' : '⭐ Favoritos'}
+                {id === 'buscar' ? (
+                  'Buscar'
+                ) : (
+                  <>
+                    <Icon name="star" size={16} filled={aba === id} className="text-brasa" />
+                    Favoritos
+                  </>
+                )}
               </Button>
             ))}
           </div>
@@ -155,10 +163,11 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
                   aria-pressed={search.filtro === f.valor}
                   onClick={() => search.setFiltro(f.valor)}
                   className={cn(
-                    'flex min-h-11 shrink-0 items-center rounded-full border px-3 text-xs font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+                    'flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
                     search.filtro === f.valor ? 'border-brasa bg-brasa/15 text-foreground' : 'border-linha text-aco-texto',
                   )}
                 >
+                  {f.icon && <Icon name={f.icon} size={16} />}
                   {f.label}
                 </button>
               ))}
@@ -312,9 +321,10 @@ function ProdutoCard({ produto, onSelecionar }: { produto: ProdutoAlimento; onSe
           type="button"
           onClick={handleFavoritar}
           aria-label={favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-          className="rounded p-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-pressed={!!favorito}
+          className="-m-2 flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Icon name="star" size={16} className={cn('size-4', favorito ? 'fill-brasa text-brasa' : 'text-aco-texto')} />
+          <Icon name="star" size={20} filled={!!favorito} className={favorito ? 'text-brasa' : 'text-aco-texto'} />
         </button>
         <Button type="button" size="sm" onClick={onSelecionar}>
           Adicionar

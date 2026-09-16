@@ -49,7 +49,7 @@ export function RecoveryGateCard({ gate, score }: Pick<RecoveryGate, 'gate' | 's
         </p>
       </div>
       <div className="flex flex-col gap-2">
-        <button type="button" onClick={fazerMobilidade} className="ds-btn-primary w-full gap-1 px-2 text-[13px] outline-none">
+        <button type="button" onClick={fazerMobilidade} className="ds-btn-primary w-full gap-1 px-2 text-[13px]">
           <Icon name="self_improvement" size={16} />
           {critico ? 'Mobilidade suave' : 'Mobilidade'}
         </button>
@@ -58,7 +58,7 @@ export function RecoveryGateCard({ gate, score }: Pick<RecoveryGate, 'gate' | 's
             type="button"
             onClick={treinarMesmo}
             disabled={decidir.isPending}
-            className="ds-btn-ghost w-full gap-1 px-2 text-[13px] outline-none"
+            className="ds-btn-ghost w-full gap-1 px-2 text-[13px]"
           >
             <Icon name="fitness_center" size={16} />
             Treinar mesmo

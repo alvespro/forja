@@ -34,7 +34,7 @@ export function RouteError() {
             : 'O erro foi registrado. Recarregar geralmente resolve.'}
         </p>
         {detail && !is404 && (
-          <p className="mt-2 rounded-md bg-card/60 px-3 py-1.5 font-mono text-xs text-aco-texto/70 max-w-md overflow-hidden text-ellipsis">
+          <p className="mt-2 rounded-md bg-card/60 px-3 py-1.5 font-mono text-xs text-cinza2-texto max-w-md overflow-hidden text-ellipsis">
             {detail}
           </p>
         )}

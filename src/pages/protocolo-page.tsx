@@ -443,7 +443,7 @@ export function ProtocoloPage() {
   if (!p) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-        <Icon name="science" size={48} className="text-aco-texto/40" />
+        <Icon name="science" size={48} className="text-cinza2-texto" />
         <div>
           <p className="font-heading text-lg font-semibold text-foreground">Nenhum protocolo ativo</p>
           <p className="mt-1 text-sm text-aco-texto">Nenhum protocolo planejado, ativo ou em TPC foi encontrado.</p>
@@ -451,7 +451,7 @@ export function ProtocoloPage() {
         <Button type="button" onClick={() => setShowCreateWizard(true)} className="gap-1.5">
           <Icon name="add_circle" size={18} className="mr-1.5 inline-block align-middle" />Cadastrar protocolo prescrito
         </Button>
-        <p className="text-xs text-aco-texto/70 max-w-xs">
+        <p className="text-xs text-cinza2-texto max-w-xs">
           Este módulo registra protocolos prescritos por médico. O FORJA não recomenda compostos ou doses.
         </p>
         {showCreateWizard && (
@@ -506,7 +506,7 @@ export function ProtocoloPage() {
                   type="button"
                   onClick={handleOpenEdit}
                   title="Editar protocolo"
-                  className="text-aco-texto/60 hover:text-foreground text-sm"
+                  className="text-cinza2-texto hover:text-foreground text-sm"
                 >
                   <Icon name="edit" size={18} />
                 </button>
@@ -594,9 +594,10 @@ export function ProtocoloPage() {
                 <button
                   type="button"
                   onClick={() => handleDismissAlert(alert.id)}
-                  className="text-aco-texto hover:text-foreground shrink-0"
+                  aria-label="Dispensar alerta"
+                  className="-m-3 flex size-11 shrink-0 items-center justify-center rounded-full text-aco-texto hover:text-foreground"
                 >
-                  <Icon name="close" size={14} />
+                  <Icon name="close" size={18} />
                 </button>
               )}
             </div>
@@ -730,14 +731,15 @@ export function ProtocoloPage() {
                           {c.frequencia && ` · ${c.frequencia}`}
                           {c.semana_inicio != null && c.semana_fim != null && ` · Sem. ${c.semana_inicio}–${c.semana_fim}`}
                         </p>
-                        {c.notas && <p className="mt-1 text-xs text-aco-texto/70 italic">{c.notas}</p>}
+                        {c.notas && <p className="mt-1 text-xs text-cinza2-texto italic">{c.notas}</p>}
                       </div>
                       <button
                         type="button"
                         onClick={() => deleteCompound.mutate(c.id)}
-                        className="text-aco-texto/40 hover:text-alerta-texto"
+                        aria-label={`Remover ${c.nome}`}
+                        className="-m-3 flex size-11 shrink-0 items-center justify-center rounded-full text-cinza2 hover:text-alerta-texto"
                       >
-                        <Icon name="close" size={14} />
+                        <Icon name="close" size={18} />
                       </button>
                     </div>
                   ))}
@@ -764,7 +766,7 @@ export function ProtocoloPage() {
                         <div className="flex-1 min-w-0">
                           <span className="text-sm text-foreground">{s.nome}</span>
                           {s.dose && <span className="ml-1.5 text-xs text-aco-texto">{s.dose}</span>}
-                          {s.momento && <span className="ml-1.5 text-xs text-aco-texto/70">{s.momento}</span>}
+                          {s.momento && <span className="ml-1.5 text-xs text-cinza2-texto">{s.momento}</span>}
                         </div>
                       </div>
                     ))}
@@ -804,7 +806,7 @@ export function ProtocoloPage() {
                         {c.via && <span className="rounded-full bg-border/40 px-2 py-0.5 text-xs text-aco-texto">{c.via}</span>}
                       </div>
                     </div>
-                    <button type="button" onClick={() => deleteCompound.mutate(c.id)} className="text-aco-texto/40 hover:text-alerta-texto">
+                    <button type="button" onClick={() => deleteCompound.mutate(c.id)} aria-label={`Remover ${c.nome}`} className="-m-3 flex size-11 shrink-0 items-center justify-center rounded-full text-cinza2 hover:text-alerta-texto">
                       <Icon name="close" size={16} />
                     </button>
                   </div>
@@ -813,7 +815,7 @@ export function ProtocoloPage() {
                     {c.frequencia && <div><span className="text-aco-texto">Freq:</span> <span className="text-foreground">{c.frequencia}</span></div>}
                     {c.semana_inicio != null && <div><span className="text-aco-texto">Semanas:</span> <span className="text-foreground">{c.semana_inicio}–{c.semana_fim}</span></div>}
                   </div>
-                  {c.notas && <p className="text-xs text-aco-texto/70 italic">{c.notas}</p>}
+                  {c.notas && <p className="text-xs text-cinza2-texto italic">{c.notas}</p>}
                 </CardContent>
               </Card>
             ))}
@@ -960,7 +962,7 @@ export function ProtocoloPage() {
                           </p>
                         )}
                         {start != null && (
-                          <p className="text-xs text-aco-texto/60 mt-0.5">início: {typeof start === 'number' ? start.toFixed(1) : start}{unit}</p>
+                          <p className="text-xs text-cinza2-texto mt-0.5">início: {typeof start === 'number' ? start.toFixed(1) : start}{unit}</p>
                         )}
                       </div>
                     )
@@ -1012,7 +1014,7 @@ export function ProtocoloPage() {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-                <p className="text-xs text-aco-texto/70">Escala 1–5 baseada nos registros de aplicação</p>
+                <p className="text-xs text-cinza2-texto">Escala 1–5 baseada nos registros de aplicação</p>
               </CardContent>
             </Card>
           )}
@@ -1116,7 +1118,7 @@ export function ProtocoloPage() {
               {EXAM_MARKERS.map(({ key, label, unit }) => (
                 <FieldInput
                   key={key}
-                  label={<>{label} <span className="text-aco-texto/50">({unit})</span></>}
+                  label={<>{label} <span className="text-cinza2-texto">({unit})</span></>}
                   type="number"
                   step="0.1"
                   value={examResultValues[key] ?? ''}
@@ -1170,7 +1172,7 @@ export function ProtocoloPage() {
 
       {/* ── AVISO LEGAL ── */}
       <div className="rounded-lg border border-border/30 bg-card/20 p-3 mt-2">
-        <p className="text-xs text-aco-texto/60 text-center">
+        <p className="text-xs text-cinza2-texto text-center">
           Este módulo registra protocolos prescritos por médico. O FORJA não recomenda compostos, doses ou protocolos.
           Sempre siga as orientações do seu médico responsável.
         </p>

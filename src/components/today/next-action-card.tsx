@@ -69,7 +69,7 @@ export function NextActionCard() {
         <p className="line-clamp-3 text-[12px] leading-snug text-cinza">{action.subtitle}</p>
       </div>
       {action.ctaLabel && action.to && (
-        <Link to={action.to} className="ds-btn-primary w-full gap-1 px-2 text-[13px] outline-none">
+        <Link to={action.to} className="ds-btn-primary w-full gap-1 px-2 text-[13px]">
           {action.ctaLabel}
           <Icon name="arrow_forward" size={16} />
         </Link>

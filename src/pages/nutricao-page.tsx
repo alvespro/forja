@@ -128,7 +128,7 @@ export function NutricaoPage() {
               <button
                 type="button"
                 onClick={() => setBuscando(true)}
-                className="ds-btn-primary shrink-0 px-4 text-[13px] outline-none"
+                className="ds-btn-primary shrink-0 px-4 text-[13px]"
               >
                 <Icon name="add" size={16} />
                 Registrar alimento

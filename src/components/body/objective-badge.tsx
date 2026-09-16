@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
+import { Icon } from '@/components/Icon'
 import { useActiveBodyGoal } from '@/hooks/use-body-goals'
 import { cycleDaysRemaining, DIAS_ALERTA_FIM_CICLO, OBJETIVO_BADGE_CLASS, OBJETIVO_ICONS, OBJETIVO_LABELS } from '@/lib/body-goals'
 import { cn } from '@/lib/utils'
@@ -27,7 +28,10 @@ export function ObjectiveBadge() {
       )}
     >
       {fimProximo ? (
-        <>⏰ {diasRestantes} dia{diasRestantes === 1 ? '' : 's'} para o fim do ciclo</>
+        <>
+          <Icon name="schedule" size={14} />
+          {diasRestantes} dia{diasRestantes === 1 ? '' : 's'} para o fim do ciclo
+        </>
       ) : (
         <>
           {OBJETIVO_ICONS[objetivo]} {OBJETIVO_LABELS[objetivo]}

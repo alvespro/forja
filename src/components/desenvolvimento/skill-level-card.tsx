@@ -82,19 +82,21 @@ export function SkillLevelCard({ area }: SkillLevelCardProps) {
                         type="button"
                         size="xs"
                         variant="outline"
-                        className="h-6 text-xs px-2"
+                        className="size-11 p-0"
+                        aria-label="Salvar nível"
                         onClick={() => {
                           updateSkill.mutate({ id: skill.id, values: { nivel_atual: editValue } })
                           setEditingId(null)
                         }}
                       >
-                        ✓
+                        <Icon name="check" size={18} />
                       </Button>
                       <Button
                         type="button"
                         size="xs"
                         variant="ghost"
-                        className="h-6 text-xs px-1"
+                        className="size-11 p-0"
+                        aria-label="Cancelar edição"
                         onClick={() => setEditingId(null)}
                       >
                         <Icon name="close" size={16} />
@@ -106,9 +108,10 @@ export function SkillLevelCard({ area }: SkillLevelCardProps) {
                       <button
                         type="button"
                         onClick={() => { setEditingId(skill.id); setEditValue(skill.nivel_atual ?? 5) }}
-                        className="text-aco-texto hover:text-foreground outline-none"
+                        aria-label={`Editar nível de ${skill.nome}`}
+                        className="-my-3 flex size-11 shrink-0 items-center justify-center rounded-full text-aco-texto hover:text-foreground"
                       >
-                        <Icon name="edit" size={12} />
+                        <Icon name="edit" size={16} />
                       </button>
                     </div>
                   )}

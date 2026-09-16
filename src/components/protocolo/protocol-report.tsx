@@ -61,7 +61,7 @@ export function ProtocolReport({ protocol, compounds, logs, exams, healthMetrics
             {protocol.status ?? '—'}
             {protocol.medico_responsavel ? ` · Dr. ${protocol.medico_responsavel}` : ''}
           </p>
-          <p className="mt-1 text-[10px] text-aco-texto/70">
+          <p className="mt-1 text-[10px] text-cinza2-texto">
             Registro do paciente via FORJA. Este documento não contém recomendações — decisões são do médico responsável.
           </p>
         </div>

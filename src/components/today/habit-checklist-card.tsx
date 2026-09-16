@@ -121,14 +121,14 @@ export function HabitChecklistCard() {
                 <Icon name="fitness_center" size={18} className="text-brasa" />
                 Treino de hoje: {treinoDeHoje ?? 'descanso'}
               </p>
-              <button type="button" onClick={() => navigate('/workout')} className="ds-btn-ghost w-full outline-none">
+              <button type="button" onClick={() => navigate('/workout')} className="ds-btn-ghost w-full">
                 <Icon name="fitness_center" size={18} />
                 Ir para o treino de hoje
               </button>
               <button
                 type="button"
                 onClick={() => navigate(`/mobilidade?rotina=manha&iniciar=1&habito=${movimento.id}`)}
-                className="ds-btn-primary w-full outline-none"
+                className="ds-btn-primary w-full"
               >
                 <Icon name="self_improvement" size={18} />
                 Fazer ativação de 5 min primeiro

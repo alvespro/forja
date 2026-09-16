@@ -77,7 +77,7 @@ export function ActivityCalendar() {
       ) : (
         <div className="flex flex-col gap-3">
           {/* Coluna = semana (mais antiga à esquerda), linha = dia da semana */}
-          <div className="ds-scroll flex gap-[3px] overflow-x-auto">
+          <div className="ds-scroll flex gap-[3px] overflow-x-auto rounded-sm" tabIndex={0} role="region" aria-label="Calendário dos últimos 90 dias (role para os lados)">
             <div className="flex flex-col gap-[3px] pr-1" aria-hidden="true">
               {WEEKDAY_LABELS.map((label, i) => (
                 <span key={i} className="flex h-2 items-center text-[8px] leading-none text-cinza2-texto [font-family:var(--font-display)]">

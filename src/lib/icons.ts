@@ -112,6 +112,8 @@ export const ICONS = {
   menos: 'remove',
   caixa: 'inbox',
   ciencia: 'science',
+  inNatura: 'eco',
+  embalado: 'inventory_2',
   trabalho: 'work',
   video: 'videocam',
   expandir_tela: 'open_in_full',

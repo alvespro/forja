@@ -73,7 +73,7 @@ export function CrmActionsCard() {
             )
           })}
           {pendentes.length > 4 && (
-            <p className="text-center text-xs text-aco-texto/70">+{pendentes.length - 4} na fila</p>
+            <p className="text-center text-xs text-cinza2-texto">+{pendentes.length - 4} na fila</p>
           )}
         </div>
       </CardContent>

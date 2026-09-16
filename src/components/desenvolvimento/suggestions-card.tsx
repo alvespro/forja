@@ -90,10 +90,11 @@ export function SuggestionsCard({ tipo, semana }: SuggestionsCardProps) {
                   type="button"
                   size="xs"
                   variant="ghost"
-                  className="h-7 w-7 p-0 text-aco-texto"
+                  className="-my-2 size-11 p-0 text-aco-texto"
+                  aria-label="Ignorar sugestão"
                   onClick={() => updateStatus.mutate({ id: s.id, status: 'ignorado' })}
                 >
-                  <Icon name="close" size={12} />
+                  <Icon name="close" size={18} />
                 </Button>
               </div>
             </div>

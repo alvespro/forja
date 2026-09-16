@@ -123,7 +123,7 @@ export function SupplementsPage() {
                     {[s.dose, s.momento, s.categoria].filter(Boolean).join(' · ')}
                   </p>
                   {s.motivo && (
-                    <p className="mt-0.5 text-xs text-aco-texto/60 italic">{s.motivo}</p>
+                    <p className="mt-0.5 text-xs text-cinza2-texto italic">{s.motivo}</p>
                   )}
                 </div>
               </div>

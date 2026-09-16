@@ -74,11 +74,11 @@ export function FoodBodyChart({ plan }: FoodBodyChartProps) {
           <div className="flex gap-3 text-xs text-aco-texto">
             <span>
               kcal/dia: <span className="font-mono font-semibold text-foreground">{mediaKcal}</span>
-              {metaKcal && <span className="text-aco-texto/70"> / {metaKcal}</span>}
+              {metaKcal && <span className="text-cinza2-texto"> / {metaKcal}</span>}
             </span>
             <span>
               prot: <span className="font-mono font-semibold text-foreground">{mediaProteina}g</span>
-              {metaProteina && <span className="text-aco-texto/70"> / {metaProteina}g</span>}
+              {metaProteina && <span className="text-cinza2-texto"> / {metaProteina}g</span>}
             </span>
             <span>
               registro: <span className="font-mono font-semibold text-foreground">{diasComRegistro}/{DIAS}d</span>
@@ -142,7 +142,7 @@ export function FoodBodyChart({ plan }: FoodBodyChartProps) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-xs text-aco-texto/70">
+        <p className="text-xs text-cinza2-texto">
           Verde: kcal consumidas (esq.) · Azul: peso (dir.) · Tracejado: meta do plano
         </p>
       </CardContent>

@@ -153,7 +153,7 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
                   </p>
                 ))}
                 {abertasDaMeta.length === 0 && (
-                  <p className="text-xs text-aco-texto/70">Nenhuma aberta — crie a próxima em Tarefas 🎯</p>
+                  <p className="text-xs text-cinza2-texto">Nenhuma aberta — crie a próxima em Tarefas 🎯</p>
                 )}
               </div>
             )}

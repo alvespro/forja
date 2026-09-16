@@ -138,7 +138,7 @@ export function TarefasPage() {
                   </div>
                   <span className="flex-1 text-sm font-medium text-foreground">{a.label}</span>
                   <span className="text-sm text-aco-texto">{counts.porArea[a.key] ?? 0}</span>
-                  <Icon name="chevron_right" size={16} className="text-aco-texto/50" />
+                  <Icon name="chevron_right" size={16} className="text-cinza2-texto" />
                 </button>
               )
             })}
@@ -294,7 +294,7 @@ function ListView({ titulo, cor, tarefas, feitasCount, isLoading, onBack, onTogg
                 value={goalId ?? ''}
                 onChange={(e) => setGoalId(e.target.value || null)}
                 aria-label="Vincular a uma meta"
-                className="w-full bg-transparent text-xs text-aco-texto outline-none"
+                className="w-full bg-transparent text-xs text-aco-texto"
               >
                 <option value="">🎯 Vincular a uma meta (opcional)</option>
                 {metasAtivas.map((g) => (
@@ -366,7 +366,7 @@ function TaskRow({ task, cor, divider, onToggle }: TaskRowProps) {
         <p
           className={cn(
             'text-sm transition-all duration-200',
-            done ? 'text-aco-texto/50 line-through' : 'text-foreground',
+            done ? 'text-cinza2-texto line-through' : 'text-foreground',
           )}
         >
           {task.e_frog && <span className="mr-1">🐸</span>}

@@ -195,7 +195,7 @@ export function BodyPage() {
               <button
                 type="button"
                 onClick={() => setIsAdding(true)}
-                className="ds-btn-primary w-full outline-none"
+                className="ds-btn-primary w-full"
               >
                 <Icon name="add" size={16} />
                 Nova medição

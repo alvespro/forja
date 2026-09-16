@@ -1,3 +1,5 @@
+import { WORKOUT_VERSAO_ATUAL } from '@/hooks/use-workouts'
+import { parseRepsRange } from '@/lib/workout-phases'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { FunctionsHttpError } from '@supabase/supabase-js'
@@ -130,7 +132,7 @@ async function aplicarExame(userId: string, dados: DadosExame) {
 async function aplicarTreino(userId: string, dados: DadosTreino) {
   const { data: workout, error: workoutError } = await supabase
     .from('workouts')
-    .insert({ user_id: userId, nome: dados.nome_treino, foco: dados.foco })
+    .insert({ user_id: userId, nome: dados.nome_treino, foco: dados.foco, versao: WORKOUT_VERSAO_ATUAL, arquivado: false })
     .select('id')
     .single()
   if (workoutError) throw workoutError
@@ -144,6 +146,9 @@ async function aplicarTreino(userId: string, dados: DadosTreino) {
       ordem: index + 1,
       series_alvo: exercicio.series_alvo,
       reps_alvo: exercicio.reps_alvo,
+      reps_min: parseRepsRange(exercicio.reps_alvo).min,
+      reps_max: parseRepsRange(exercicio.reps_alvo).max,
+      fase: 'treino',
       pausa_alvo_seg: exercicio.pausa_seg,
       cadencia_alvo: exercicio.cadencia,
       notas: exercicio.notas,

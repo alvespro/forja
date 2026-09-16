@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
 
 import { ExerciseMedia } from '@/components/workout/exercise-media'
+import { ObservacaoDestaque } from '@/components/workout/session/phase-views'
 import { ExerciseFocus } from '@/components/workout/session/session-views'
 import { SetRow } from '@/components/workout/set-row'
 import { useExerciseHistory } from '@/hooks/use-exercise-history'
 import { computeOverloadSuggestion } from '@/lib/workout-metrics'
+import { metaReps } from '@/lib/workout-phases'
 import type { Exercise, SetLog, WorkoutExercise } from '@/types/database'
 
 type SessionExerciseBlockProps = {
@@ -53,7 +55,13 @@ export function SessionExerciseBlock({
         nome={exercise?.nome ?? 'Exercício'}
         grupo={exercise?.grupo_muscular ?? null}
         youtubeId={exercise?.youtube_video_id}
-        prescricao={{ series: prescription.series_alvo, reps: prescription.reps_alvo, pausaSeg: prescription.pausa_alvo_seg }}
+        prescricao={{
+          series: prescription.series_alvo,
+          // Isometria (ex.: prancha) não tem reps: a meta é o tempo.
+          reps: metaReps(prescription) ?? (prescription.tempo_seg ? `${prescription.tempo_seg}s` : null),
+          pausaSeg: prescription.pausa_alvo_seg,
+        }}
+        destaque={<ObservacaoDestaque texto={prescription.observacao} />}
         ultima={lastLog ? { cargaKg: lastLog.carga_kg, reps: lastLog.reps } : null}
         sugestao={sugestao}
       />

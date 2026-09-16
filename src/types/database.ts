@@ -312,7 +312,15 @@ export type Workout = {
   foco: string | null
   ordem: number
   ativo: boolean
+  /** Treinos ativos são versao = 2 e arquivado = false. */
+  versao: number | null
+  arquivado: boolean | null
+  arquivado_em: string | null
+  descricao: string | null
+  dia_semana: string | null
 }
+
+export type WorkoutFase = 'aquecimento' | 'mobilidade' | 'treino' | 'cardio' | 'cooldown'
 
 export type WorkoutExercise = {
   id: string
@@ -321,10 +329,18 @@ export type WorkoutExercise = {
   exercise_id: string
   ordem: number
   series_alvo: number | null
+  /** Legado (v1): texto livre. Treinos v2 usam reps_min/reps_max. */
   reps_alvo: string | null
+  reps_min: number | null
+  reps_max: number | null
   pausa_alvo_seg: number | null
   cadencia_alvo: string | null
   notas: string | null
+  fase: WorkoutFase | null
+  /** Destaque da prescrição: TRIO ATIVADOR, PAR 2, DROP SET, SUPERSET… */
+  observacao: string | null
+  /** Duração alvo (mobilidade, aquecimento, cardio, isometria). */
+  tempo_seg: number | null
 }
 
 export type WorkoutSession = {

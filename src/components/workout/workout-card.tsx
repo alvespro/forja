@@ -10,12 +10,15 @@ import { WorkoutForm } from '@/components/workout/workout-form'
 import { useActiveSession } from '@/hooks/use-active-session'
 import { useConfirm } from '@/hooks/use-confirm'
 import {
+  inputDaPrescricao,
   useCreateWorkoutExercise,
   useUpdateWorkoutExercise,
   useWorkoutExercises,
 } from '@/hooks/use-workout-exercises'
 import { useCreateWorkoutSession, useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { useDeleteWorkout, useUpdateWorkout } from '@/hooks/use-workouts'
+import { MobilidadeBadge } from '@/components/workout/session/phase-views'
+import { minutosMobilidade } from '@/lib/workout-phases'
 import { cn } from '@/lib/utils'
 import { toSaoPauloDateString } from '@/lib/date'
 import { daysSince } from '@/lib/nutrition'
@@ -60,29 +63,11 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
     const b = list[toIndex]
     updatePrescriptionOrder.mutate({
       id: a.id,
-      values: {
-        workout_id: a.workout_id,
-        exercise_id: a.exercise_id,
-        ordem: b.ordem,
-        series_alvo: a.series_alvo,
-        reps_alvo: a.reps_alvo,
-        pausa_alvo_seg: a.pausa_alvo_seg,
-        cadencia_alvo: a.cadencia_alvo,
-        notas: a.notas,
-      },
+      values: { ...inputDaPrescricao(a), ordem: b.ordem },
     })
     updatePrescriptionOrder.mutate({
       id: b.id,
-      values: {
-        workout_id: b.workout_id,
-        exercise_id: b.exercise_id,
-        ordem: a.ordem,
-        series_alvo: b.series_alvo,
-        reps_alvo: b.reps_alvo,
-        pausa_alvo_seg: b.pausa_alvo_seg,
-        cadencia_alvo: b.cadencia_alvo,
-        notas: b.notas,
-      },
+      values: { ...inputDaPrescricao(b), ordem: a.ordem },
     })
   }
 
@@ -164,6 +149,7 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
                 <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">
                   {prescriptions.data?.length ?? 0} exercício{(prescriptions.data?.length ?? 0) === 1 ? '' : 's'}
                 </span>
+                <MobilidadeBadge minutos={minutosMobilidade(prescriptions.data ?? [])} />
                 {alerta && <StatusDot color="alerta" pulse label="Atrasado" colorLabel />}
               </div>
             </div>

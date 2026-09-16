@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { FreeTimer } from '@/components/workout/free-timer'
 import { RestTimer } from '@/components/workout/rest-timer'
 import { SessionExerciseBlock } from '@/components/workout/session-exercise-block'
+import { CardioBlock, TimedPhaseBlock } from '@/components/workout/session/phase-blocks'
 import { formatClock, ImmersiveHeader, PostWorkoutSummary, type PostWorkoutSummaryProps } from '@/components/workout/session/session-views'
 import { useActiveSession } from '@/hooks/use-active-session'
 import { useElapsedSince } from '@/hooks/use-elapsed-since'
@@ -25,6 +26,7 @@ import { useCreateWorkoutSession, useFinishWorkoutSession, useWorkoutSession } f
 import { useWorkouts } from '@/hooks/use-workouts'
 import { launchForjaChat } from '@/lib/forja-chat-store'
 import { haptic } from '@/lib/haptics'
+import { faseCronometrada, faseDe, ordenarPorFase } from '@/lib/workout-phases'
 import type { Exercise, SetLog } from '@/types/database'
 
 const PAUSA_PADRAO_STORAGE_KEY = 'forja:pausa-padrao-seg'
@@ -235,12 +237,19 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
     )
   }
 
-  const lista = prescriptions.data ?? []
+  // aquecimento → mobilidade → treino → cardio (→ volta à calma), cada fase na sua ordem.
+  const lista = useMemo(() => ordenarPorFase(prescriptions.data ?? []), [prescriptions.data])
   const total = lista.length
   const indice = Math.min(currentIndex, Math.max(0, total - 1))
   const currentPrescription = lista[indice]
   const currentExercise = currentPrescription ? exercisesById.get(currentPrescription.exercise_id) : undefined
   const treinoNome = workouts.data?.find((w) => w.id === session.data?.workout_id)?.nome ?? null
+  const faseAtual = currentPrescription ? faseDe(currentPrescription.fase) : 'treino'
+  const daFase = lista.filter((p) => faseDe(p.fase) === faseAtual)
+  const posicaoNaFase = currentPrescription ? daFase.findIndex((p) => p.id === currentPrescription.id) + 1 : 0
+  const proximo = lista[indice + 1]
+  const proximoNome = proximo ? (exercisesById.get(proximo.exercise_id)?.nome ?? null) : null
+  const avancar = () => setCurrentIndex((i) => Math.min(total - 1, i + 1))
 
   function handleAskCoach() {
     const contexto = currentExercise ? ` Estou no exercício "${currentExercise.nome}".` : ''
@@ -262,7 +271,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
           elapsedSeconds={elapsedSeconds}
           treinoNome={treinoNome}
           onPrev={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-          onNext={() => setCurrentIndex((i) => Math.min(total - 1, i + 1))}
+          onNext={avancar}
           onMinimize={onMinimize}
           onAskCoach={handleAskCoach}
           onFinish={() => setIsFinishing(true)}
@@ -285,6 +294,24 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
           />
         ) : !currentPrescription ? (
           <EmptyState message="Treino sem exercícios" description="Prescreva exercícios na aba Treinos." />
+        ) : faseCronometrada(faseAtual) ? (
+          <TimedPhaseBlock
+            key={currentPrescription.id}
+            exercise={currentExercise}
+            prescription={currentPrescription}
+            posicao={posicaoNaFase}
+            totalFase={daFase.length}
+            proximoNome={proximoNome}
+            // No último exercício do treino não há para onde avançar: abre o fechamento.
+            onNext={() => (indice < total - 1 ? avancar() : setIsFinishing(true))}
+          />
+        ) : faseAtual === 'cardio' ? (
+          <CardioBlock
+            key={currentPrescription.id}
+            exercise={currentExercise}
+            prescription={currentPrescription}
+            onFinish={() => (indice < total - 1 ? avancar() : setIsFinishing(true))}
+          />
         ) : (
           <SessionExerciseBlock
             key={currentPrescription.id}
@@ -297,6 +324,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
           />
         )}
 
+        {faseAtual === 'treino' && (
         <label className="flex min-h-11 items-center justify-center gap-2 ds-body-sm text-aco-texto">
           Pausa padrão
           <Input
@@ -309,6 +337,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
           />
           s
         </label>
+        )}
       </div>
 
       {activeRest && (

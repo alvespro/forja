@@ -20,6 +20,8 @@ type CrudConfig = {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filter?: (query: any) => any
+  /** Valores fixos gravados em todo insert (ex: versao do registro). */
+  insertDefaults?: Record<string, unknown>
 }
 
 /**
@@ -32,7 +34,7 @@ type CrudConfig = {
 export function createCrudHooks<Row, Insert extends Record<string, unknown>, Update = Partial<Insert>>(
   config: CrudConfig,
 ) {
-  const { table, queryKey, orderBy, limit, filter } = config
+  const { table, queryKey, orderBy, limit, filter, insertDefaults } = config
   const orderSpecs = orderBy ? (Array.isArray(orderBy) ? orderBy : [orderBy]) : []
 
   function useList() {
@@ -62,7 +64,7 @@ export function createCrudHooks<Row, Insert extends Record<string, unknown>, Upd
     return useMutation({
       mutationFn: async (values: Insert) => {
         if (!user) throw new Error('Usuário não autenticado')
-        const { error } = await supabase.from(table).insert({ ...values, user_id: user.id })
+        const { error } = await supabase.from(table).insert({ ...insertDefaults, ...values, user_id: user.id })
         if (error) throw error
       },
       onSuccess: () => queryClient.invalidateQueries({ queryKey: [queryKey] }),

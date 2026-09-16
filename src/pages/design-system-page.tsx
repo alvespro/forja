@@ -2,6 +2,7 @@ import { toast } from 'sonner'
 
 import { BodyMap } from '@/components/BodyMap'
 import { NovoCursoForm } from '@/components/desenvolvimento/novo-curso-form'
+import { CardioTimerView, MobilidadeBadge, ObservacaoDestaque, PhaseTimerView } from '@/components/workout/session/phase-views'
 import { GlassCard } from '@/components/GlassCard'
 import { Icon } from '@/components/Icon'
 import { HabitChecklistCard } from '@/components/today/habit-checklist-card'
@@ -63,6 +64,37 @@ export function DesignSystemPage() {
               <Icon name={n} size={28} filled className="text-brasa" />
             </span>
           ))}
+        </div>
+      </Section>
+
+      <Section title="Treino v2 (fases)">
+        <div className="flex flex-col gap-4">
+          <MobilidadeBadge minutos={4} />
+          <PhaseTimerView
+            fase="mobilidade"
+            nome="Abertura torácica book opener"
+            cues="Deitado de lado, braço superior abre para o teto. Acompanhe com o olhar."
+            restanteSeg={37}
+            totalSeg={60}
+            rodando
+            posicao={2}
+            totalFase={4}
+            proximoNome="Mobilidade de punho círculos"
+            onToggle={() => {}}
+            onNext={() => toast.info('Próximo')}
+          />
+          <ObservacaoDestaque texto="TRIO ATIVADOR — 80 reps. Alterne entre os 3 exercícios" />
+          <CardioTimerView
+            nome="Esteira ritmo intenso"
+            observacao="Escolher: esteira ou bike. 18 minutos."
+            cues="Trote contínuo ou intervalos curtos forte/leve"
+            restanteSeg={1080}
+            totalSeg={1080}
+            rodando={false}
+            iniciado={false}
+            onToggle={() => {}}
+            onReset={() => {}}
+          />
         </div>
       </Section>
 

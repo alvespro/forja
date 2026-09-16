@@ -2,11 +2,14 @@ import { GlassCard } from '@/components/GlassCard'
 import { Icon } from '@/components/Icon'
 import { StatusDot } from '@/components/ds/status-dot'
 import { Skeleton } from '@/components/ui/skeleton'
+import { MobilidadeBadge } from '@/components/workout/session/phase-views'
 import { useActiveSession } from '@/hooks/use-active-session'
+import { useWorkoutExercises } from '@/hooks/use-workout-exercises'
 import { useCreateWorkoutSession, useWorkoutSessions } from '@/hooks/use-workout-sessions'
 import { useWorkouts } from '@/hooks/use-workouts'
 import { todayInSaoPaulo, toSaoPauloDateString } from '@/lib/date'
 import { diasDesde } from '@/lib/today-grid'
+import { minutosMobilidade } from '@/lib/workout-phases'
 import { pickTodaysWorkout } from '@/lib/workout-rotation'
 
 const DIAS_ALERTA = 7
@@ -18,10 +21,11 @@ export function TodayWorkoutHero({ onStart }: { onStart: () => void }) {
   const { sessionId, setSessionId } = useActiveSession()
   const criar = useCreateWorkoutSession()
 
-  if (workouts.isLoading || sessions.isLoading) return <Skeleton className="h-44 w-full rounded-[var(--r-lg)]" />
-
   const ativos = (workouts.data ?? []).filter((w) => w.ativo)
   const proximo = pickTodaysWorkout(ativos, sessions.data?.[0]?.workout_id ?? null)
+  const prescricoes = useWorkoutExercises(proximo?.id ?? '')
+
+  if (workouts.isLoading || sessions.isLoading) return <Skeleton className="h-44 w-full rounded-[var(--r-lg)]" />
   if (!proximo) return null
 
   const ultima = (sessions.data ?? []).find((s) => s.workout_id === proximo.id && s.performed_at)
@@ -54,6 +58,7 @@ export function TodayWorkoutHero({ onStart }: { onStart: () => void }) {
           <span className="text-[12px] tabular-nums text-cinza2-texto [font-family:var(--font-display)]">
             {sessionId ? 'em andamento' : dias == null ? 'nunca feito' : dias === 0 ? 'feito hoje' : `há ${dias} ${dias === 1 ? 'dia' : 'dias'}`}
           </span>
+          <MobilidadeBadge minutos={minutosMobilidade(prescricoes.data ?? [])} />
           {atrasado && !sessionId && <StatusDot color="alerta" pulse label="Atrasado" colorLabel />}
         </div>
       </div>

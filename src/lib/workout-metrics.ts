@@ -1,3 +1,4 @@
+import { metaReps, repsAlvoMax } from '@/lib/workout-phases'
 import type { SetLog, WorkoutExercise } from '@/types/database'
 
 /** Seção 6.5: 1RM estimado pela fórmula de Epley. */
@@ -167,7 +168,7 @@ export function suggestOverload(
   if (!prescription || lastSessionLogs.length === 0) return null
 
   const targetSeries = prescription.series_alvo ?? lastSessionLogs.length
-  const targetReps = parseRepsTarget(prescription.reps_alvo)
+  const targetReps = repsAlvoMax(prescription)
   const completed = lastSessionLogs.filter((log) => log.concluida)
 
   if (completed.length < targetSeries) return null
@@ -212,14 +213,14 @@ export function computeOverloadSuggestion(
     return { tipo: 'sobe', texto: positivo, cargaKg: minCarga + OVERLOAD_INCREMENT_KG }
   }
 
-  const targetReps = parseRepsTarget(prescription.reps_alvo)
+  const targetReps = repsAlvoMax(prescription)
   const targetSeries = prescription.series_alvo ?? daUltima.length
   if (targetReps !== null && daUltima.length >= targetSeries) {
     const faltantes = daUltima.filter((l) => (l.reps ?? 0) < targetReps).length
     const melhor = daUltima.reduce((a, b) => ((b.carga_kg ?? 0) > (a.carga_kg ?? 0) ? b : a))
     return {
       tipo: 'mantem',
-      texto: `Na última faltou rep em ${faltantes} série${faltantes > 1 ? 's' : ''} — repete ${melhor.carga_kg ?? '—'}kg e busca o topo (${prescription.reps_alvo}).`,
+      texto: `Na última faltou rep em ${faltantes} série${faltantes > 1 ? 's' : ''} — repete ${melhor.carga_kg ?? '—'}kg e busca o topo (${metaReps(prescription) ?? `${targetReps} reps`}).`,
       cargaKg: melhor.carga_kg,
     }
   }

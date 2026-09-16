@@ -1,3 +1,4 @@
+import { resumoPrescricao } from '@/lib/workout-phases'
 import { useState } from 'react'
 import { Icon } from '@/components/Icon'
 
@@ -68,9 +69,7 @@ export function WorkoutExerciseRow({
         <div className="flex min-w-0 flex-col">
           <span className="truncate text-sm font-medium text-foreground">{exercise?.nome ?? 'Exercício removido'}</span>
           <span className="font-mono text-xs text-aco-texto">
-            {prescription.series_alvo ?? '—'}x{prescription.reps_alvo ?? '—'} · pausa{' '}
-            {prescription.pausa_alvo_seg ?? '—'}s
-            {prescription.cadencia_alvo ? ` · cadência ${prescription.cadencia_alvo}` : ''}
+            {resumoPrescricao(prescription)}
           </span>
         </div>
         <div className="flex shrink-0 gap-1">

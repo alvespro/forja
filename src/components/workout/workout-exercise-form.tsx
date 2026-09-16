@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import type { WorkoutExerciseInput } from '@/hooks/use-workout-exercises'
-import type { Exercise, WorkoutExercise } from '@/types/database'
+import { FASE_LABEL, FASES_EM_ORDEM, faseCronometrada, faseDe } from '@/lib/workout-phases'
+import type { Exercise, WorkoutExercise, WorkoutFase } from '@/types/database'
 
 type WorkoutExerciseFormProps = {
   workoutId: string
@@ -32,7 +33,11 @@ export function WorkoutExerciseForm({
 }: WorkoutExerciseFormProps) {
   const [exerciseId, setExerciseId] = useState(prescription?.exercise_id ?? exercises[0]?.id ?? '')
   const [seriesAlvo, setSeriesAlvo] = useState(String(prescription?.series_alvo ?? 3))
-  const [repsAlvo, setRepsAlvo] = useState(prescription?.reps_alvo ?? '')
+  const [fase, setFase] = useState<WorkoutFase>(faseDe(prescription?.fase))
+  const [repsMin, setRepsMin] = useState(prescription?.reps_min != null ? String(prescription.reps_min) : '')
+  const [repsMax, setRepsMax] = useState(prescription?.reps_max != null ? String(prescription.reps_max) : '')
+  const [tempoSeg, setTempoSeg] = useState(prescription?.tempo_seg != null ? String(prescription.tempo_seg) : '')
+  const [observacao, setObservacao] = useState(prescription?.observacao ?? '')
   const [pausaAlvoSeg, setPausaAlvoSeg] = useState(String(prescription?.pausa_alvo_seg ?? 60))
   const [cadenciaAlvo, setCadenciaAlvo] = useState(prescription?.cadencia_alvo ?? '')
   const [notas, setNotas] = useState(prescription?.notas ?? '')
@@ -47,7 +52,13 @@ export function WorkoutExerciseForm({
       exercise_id: exerciseId,
       ordem: prescription?.ordem ?? defaultOrdem,
       series_alvo: seriesAlvo ? Number(seriesAlvo) : null,
-      reps_alvo: repsAlvo.trim() || null,
+      // reps_alvo é legado: mantém o valor antigo, a meta vem de reps_min/reps_max.
+      reps_alvo: prescription?.reps_alvo ?? null,
+      reps_min: repsMin ? Number(repsMin) : null,
+      reps_max: repsMax ? Number(repsMax) : repsMin ? Number(repsMin) : null,
+      fase,
+      tempo_seg: tempoSeg ? Number(tempoSeg) : null,
+      observacao: observacao.trim() || null,
       pausa_alvo_seg: pausaAlvoSeg ? Number(pausaAlvoSeg) : null,
       cadencia_alvo: cadenciaAlvo.trim() || null,
       notas: notas.trim() || null,
@@ -89,7 +100,22 @@ export function WorkoutExerciseForm({
         />
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="we-fase">Fase</Label>
+        <Select id="we-fase" value={fase} onChange={(event) => setFase(event.target.value as WorkoutFase)}>
+          {FASES_EM_ORDEM.map((f) => (
+            <option key={f} value={f}>
+              {FASE_LABEL[f]}
+            </option>
+          ))}
+        </Select>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="we-tempo">{faseCronometrada(fase) || fase === 'cardio' ? 'Tempo (seg)' : 'Tempo (seg, opcional)'}</Label>
+          <Input id="we-tempo" type="number" min={0} inputMode="numeric" value={tempoSeg} onChange={(event) => setTempoSeg(event.target.value)} placeholder={fase === 'cardio' ? '1080' : '60'} />
+        </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="we-series">Séries</Label>
           <Input
@@ -101,13 +127,12 @@ export function WorkoutExerciseForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="we-reps">Reps</Label>
-          <Input
-            id="we-reps"
-            placeholder="6-12"
-            value={repsAlvo}
-            onChange={(event) => setRepsAlvo(event.target.value)}
-          />
+          <Label htmlFor="we-reps-min">Reps mín.</Label>
+          <Input id="we-reps-min" type="number" min={1} inputMode="numeric" placeholder="8" value={repsMin} onChange={(event) => setRepsMin(event.target.value)} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="we-reps-max">Reps máx.</Label>
+          <Input id="we-reps-max" type="number" min={1} inputMode="numeric" placeholder="12" value={repsMax} onChange={(event) => setRepsMax(event.target.value)} />
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="we-pausa">Pausa (seg)</Label>
@@ -128,6 +153,11 @@ export function WorkoutExerciseForm({
             onChange={(event) => setCadenciaAlvo(event.target.value)}
           />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="we-observacao">Observação em destaque</Label>
+        <Input id="we-observacao" value={observacao} onChange={(event) => setObservacao(event.target.value)} placeholder="SUPERSET — sem descanso entre os 2" />
       </div>
 
       <div className="flex flex-col gap-1.5">

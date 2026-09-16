@@ -130,13 +130,16 @@ export type ExerciseFocusProps = {
   nome: string
   grupo: string | null
   youtubeId?: string | null
+  /** reps já formatado como meta ("8-12 reps", "45s"). */
   prescricao?: { series: number | null; reps: string | null; pausaSeg: number | null }
+  /** Destaque da prescrição (TRIO ATIVADOR, SUPERSET…), renderizado logo abaixo do nome. */
+  destaque?: React.ReactNode
   ultima?: { cargaKg: number | null; reps: number | null } | null
   sugestao?: { tipo: 'sobe' | 'mantem'; cargaKg: number | null; texto: string } | null
 }
 
 /** Exercício atual: nome em destaque, vídeo (ou BodyMap), última carga e sugestão de progressão. */
-export function ExerciseFocus({ media, nome, grupo, youtubeId, prescricao, ultima, sugestao }: ExerciseFocusProps) {
+export function ExerciseFocus({ media, nome, grupo, youtubeId, prescricao, destaque, ultima, sugestao }: ExerciseFocusProps) {
   const midia = media ?? (youtubeId ? <YoutubeEmbed videoId={youtubeId} title={nome} /> : null)
   return (
     <section className="flex flex-col gap-4">
@@ -153,12 +156,15 @@ export function ExerciseFocus({ media, nome, grupo, youtubeId, prescricao, ultim
             </span>
           )}
           {prescricao && (
-            <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">
-              {prescricao.series ?? '—'}×{prescricao.reps ?? '—'} · pausa {prescricao.pausaSeg ?? '—'}s
+            <span className="text-[13px] font-semibold tabular-nums text-nevoa [font-family:var(--font-display)]">
+              {prescricao.series ?? '—'} {prescricao.series === 1 ? 'série' : 'séries'} × {prescricao.reps ?? '—'}
+              {prescricao.pausaSeg ? <span className="font-normal text-cinza"> · pausa {prescricao.pausaSeg}s</span> : null}
             </span>
           )}
         </div>
       </div>
+
+      {destaque}
 
       {midia ? (
         <div className="glass-card !rounded-[var(--r-md)] p-0">

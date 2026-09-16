@@ -1,4 +1,5 @@
 import { Input } from '@/components/ui/input'
+import { Icon } from '@/components/Icon'
 import { Label } from '@/components/ui/label'
 import { useFrogTask } from '@/hooks/use-frog-task'
 import { useTasks } from '@/hooks/use-tasks'
@@ -59,7 +60,7 @@ export function FocusTaskPicker({ value, taskId, onChange }: FocusTaskPickerProp
           onClick={() => onChange(frog.titulo, frog.id)}
           className="self-start rounded text-xs text-aco-texto outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          🐸 Usar sapo do dia: {frog.titulo}
+          <Icon name="flag" size={18} className="mr-1.5 inline-block align-middle" />Usar sapo do dia: {frog.titulo}
         </button>
       )}
     </div>

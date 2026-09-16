@@ -50,7 +50,7 @@ export function ProgressRing({
     <div className={cn('flex flex-col items-center gap-1', className)}>
       <div className="relative" style={{ width: box, height: box }}>
         <svg width={box} height={box} className="-rotate-90" role="img" aria-label={label ?? `${Math.round(value)}%`}>
-          <circle cx={box / 2} cy={box / 2} r={radius} fill="none" stroke="var(--aco2)" strokeWidth={stroke} />
+          <circle cx={box / 2} cy={box / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
           <circle
             cx={box / 2}
             cy={box / 2}

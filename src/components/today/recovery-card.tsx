@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Moon } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { useHeartZones } from '@/hooks/use-heart-zones'
 import { useRecoveryGate } from '@/hooks/use-recovery-gate'
@@ -137,7 +137,7 @@ export function RecoveryCard() {
   if (scoreHoje && !editando && !calculando) {
     if (!sugestao) return null
     return (
-      <section className="flex flex-col gap-1.5 rounded-[var(--r-md)] border-l-[3px] border-brasa bg-aco p-4" aria-label="Ajuste sugerido para o treino">
+      <section className="glass-card flex flex-col gap-1.5 !border-l-[3px] !border-l-brasa p-4" aria-label="Ajuste sugerido para o treino">
         <span className="ds-label text-brasa">Ajuste sugerido · recuperação {score}%</span>
         <p className="ds-body-md text-nevoa">{sugestao}</p>
         <Link
@@ -145,7 +145,7 @@ export function RecoveryCard() {
           className="flex min-h-11 items-center gap-1 self-start ds-body-sm font-semibold text-brasa outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Ver treino
-          <ArrowRight className="size-3.5" aria-hidden="true" />
+          <Icon name="arrow_forward" size={14} />
         </Link>
       </section>
     )
@@ -154,7 +154,7 @@ export function RecoveryCard() {
   return (
     <section
       ref={cardRef}
-      className="flex scroll-mt-20 flex-col gap-4 rounded-[var(--r-md)] border border-linha bg-aco p-4"
+      className="glass-card flex scroll-mt-20 flex-col gap-4 p-4"
       aria-labelledby="recovery-title"
     >
       <div className="flex items-start justify-between gap-3">
@@ -210,10 +210,10 @@ export function RecoveryCard() {
       </div>
 
       {pedirSono ? (
-        <div className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-linha p-3">
+        <div className="flex flex-col gap-2 rounded-[var(--r-md)] border border-[var(--glass-border)] bg-[var(--glass-bg)] p-3">
           <div className="flex items-baseline justify-between gap-2">
             <label htmlFor="sono-horas" className="flex items-center gap-1.5 ds-body-md font-semibold text-foreground">
-              <Moon className="size-4 text-brasa" aria-hidden="true" />
+              <Icon name="bedtime" size={16} className="text-brasa" />
               Quanto dormiu ontem?
             </label>
             <span className="ds-data-md text-foreground tabular-nums">{formatHoras(horasAtuais ?? SONO_PADRAO)}</span>
@@ -281,7 +281,7 @@ export function RecoveryCard() {
                 className="flex min-h-11 items-center gap-1 self-start ds-body-sm font-semibold text-brasa outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Ver treino
-                <ArrowRight className="size-3.5" aria-hidden="true" />
+                <Icon name="arrow_forward" size={14} />
               </Link>
             </div>
           )}

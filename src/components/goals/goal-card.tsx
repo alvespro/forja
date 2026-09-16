@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -85,10 +85,7 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
             className="flex min-w-0 flex-1 items-start gap-2 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-expanded={expanded}
           >
-            <ChevronDown
-              className={cn('mt-0.5 size-4 shrink-0 text-aco-texto transition-transform', expanded && 'rotate-180')}
-              aria-hidden="true"
-            />
+            <Icon name="expand_more" size={16} className={cn('mt-0.5 size-4 shrink-0 text-aco-texto transition-transform', expanded && 'rotate-180')} />
             <span className="truncate font-medium text-foreground">{goal.titulo}</span>
           </button>
 
@@ -100,7 +97,7 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
               aria-label={`Editar meta ${goal.titulo}`}
               onClick={() => setIsEditing(true)}
             >
-              <Pencil className="size-3.5" aria-hidden="true" />
+              <Icon name="edit" size={14} />
             </Button>
             <Button
               type="button"
@@ -109,7 +106,7 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
               aria-label={`Excluir meta ${goal.titulo}`}
               onClick={handleDeleteGoal}
             >
-              <Trash2 className="size-3.5" aria-hidden="true" />
+              <Icon name="delete" size={14} />
             </Button>
           </div>
         </div>
@@ -195,7 +192,7 @@ export function GoalCard({ goal, keyResults, cycles }: GoalCardProps) {
                   className="self-start"
                   onClick={() => setIsAddingKeyResult(true)}
                 >
-                  <Plus className="size-3.5" aria-hidden="true" />
+                  <Icon name="add" size={14} />
                   Resultado-chave
                 </Button>
               )}

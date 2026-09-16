@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Play, RefreshCw } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { toast } from 'sonner'
 
 import { ErrorState } from '@/components/feedback/error-state'
@@ -80,7 +80,7 @@ export function MobilityRoutines({ iniciarContexto, habitId, onIniciado }: Mobil
             disabled={preparando || status.data?.configurado === false}
             className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <RefreshCw className={preparando ? 'size-4 animate-spin' : 'size-4'} aria-hidden="true" />
+            <Icon name="sync" size={16} className={preparando ? 'size-4 animate-spin' : 'size-4'} />
             {preparando ? 'Importando e traduzindo… (até 1 min)' : 'Preparar rotinas'}
           </button>
         </section>
@@ -110,7 +110,7 @@ export function MobilityRoutines({ iniciarContexto, habitId, onIniciado }: Mobil
                   onClick={() => setExecutando({ rotina, habitId: null })}
                   className="ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <Play className="size-4 fill-current" aria-hidden="true" />
+                  <Icon name="play_arrow" size={16} filled />
                   {vazia ? 'Sem exercícios' : 'Iniciar'}
                 </button>
               </li>

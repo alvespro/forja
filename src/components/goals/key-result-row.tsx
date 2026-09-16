@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -44,7 +44,7 @@ export function KeyResultRow({ keyResult, onUpdate, onDelete }: KeyResultRowProp
         aria-label={`Excluir resultado-chave ${keyResult.descricao}`}
         onClick={onDelete}
       >
-        <Trash2 className="size-3.5" aria-hidden="true" />
+        <Icon name="delete" size={14} />
       </Button>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { TriangleAlert } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { BodyMap, type MuscleState } from '@/components/BodyMap'
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -90,7 +90,7 @@ export function FrequencyPanel() {
                   group.alerta ? 'text-alerta-texto' : 'text-aco-texto',
                 )}
               >
-                {group.alerta && <TriangleAlert className="size-3.5" aria-hidden="true" />}
+                {group.alerta && <Icon name="warning" size={14} />}
                 {group.diasSemEstimulo === null
                   ? 'sem registro'
                   : group.diasSemEstimulo === 0

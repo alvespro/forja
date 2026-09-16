@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -7,6 +7,7 @@ import { Sidebar } from './sidebar'
 import { TabBar } from './tab-bar'
 
 export function AppShell() {
+  const { pathname } = useLocation()
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
@@ -18,7 +19,10 @@ export function AppShell() {
             rola) prendia todo position: sticky ao próprio main, e headers fixos não fixavam. */}
         <main className="flex-1 px-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px)+32px)] md:px-8 md:pb-8 md:pt-8">
           <Suspense fallback={<PageSkeleton />}>
-            <Outlet />
+            {/* Entrada de tela: fade + 8px com spring a cada troca de rota. */}
+            <div key={pathname} className="ds-page-enter">
+              <Outlet />
+            </div>
           </Suspense>
         </main>
       </div>

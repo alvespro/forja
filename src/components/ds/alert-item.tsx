@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { X, type LucideIcon } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
+import type { IconName } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
 export type AlertTone = 'critico' | 'atencao' | 'info'
@@ -13,7 +14,7 @@ const TONE: Record<AlertTone, { borda: string; icon: string; label: string; text
 
 export type AlertItemProps = {
   tone?: AlertTone
-  icon: LucideIcon
+  icon: IconName
   title: string
   /** Texto de apoio. Longo? Fica recolhido em 3 linhas com "Ler tudo". */
   body?: string | null
@@ -24,7 +25,7 @@ export type AlertItemProps = {
 const CLAMP_THRESHOLD = 140
 
 /** Alerta do cockpit: fundo aço, borda esquerda de 3px pelo tom, label dot-matrix, título e ação. */
-export function AlertItem({ tone = 'atencao', icon: Icon, title, body, action, onDismiss }: AlertItemProps) {
+export function AlertItem({ tone = 'atencao', icon, title, body, action, onDismiss }: AlertItemProps) {
   const [aberto, setAberto] = useState(false)
   const t = TONE[tone]
   const longo = (body?.length ?? 0) > CLAMP_THRESHOLD
@@ -32,9 +33,9 @@ export function AlertItem({ tone = 'atencao', icon: Icon, title, body, action, o
   return (
     <div
       role={tone === 'critico' ? 'alert' : undefined}
-      className={cn('flex gap-3 rounded-r-[var(--r-md)] border-l-[3px] bg-aco p-4', t.borda)}
+      className={cn('flex gap-3 rounded-r-[var(--r-md)] border-l-[3px] border-y border-r border-y-[var(--glass-border)] border-r-[var(--glass-border)] bg-[var(--glass-bg)] p-4', t.borda)}
     >
-      <Icon className={cn('mt-0.5 size-5 shrink-0', t.icon)} aria-hidden="true" />
+      <Icon name={icon} size={20} className={cn('mt-0.5', t.icon)} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-start justify-between gap-2">
@@ -49,7 +50,7 @@ export function AlertItem({ tone = 'atencao', icon: Icon, title, body, action, o
               aria-label="Dispensar alerta"
               className="-m-2 flex size-11 shrink-0 items-center justify-center rounded-full text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <X className="size-4" aria-hidden="true" />
+              <Icon name="close" size={16} />
             </button>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { Printer } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { groupHealthMetricsByKey } from '@/hooks/use-health-metrics'
@@ -138,7 +138,7 @@ export function ProtocolReport({ protocol, compounds, logs, exams, healthMetrics
       </div>
 
       <Button type="button" onClick={() => window.print()} className="w-full gap-1.5">
-        <Printer className="size-4" />
+        <Icon name="print" size={16} />
         Imprimir / salvar PDF
       </Button>
     </div>

@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
+import { GlassCard } from '@/components/GlassCard'
+import { Icon } from '@/components/Icon'
 import { Skeleton } from '@/components/ui/skeleton'
 import { groupLogsByHabit, useHabitLogs, useHabits, useToggleHabitLog } from '@/hooks/use-habits'
 import { useRecoveryGate } from '@/hooks/use-recovery-gate'
@@ -14,8 +15,8 @@ import { calculateStreak } from '@/lib/streak'
 import { cn } from '@/lib/utils'
 
 /**
- * SECTION 4 do cockpit: hábitos em linha horizontal (círculos de 52px),
- * toque alterna com feedback háptico; todos feitos → celebração. "Mover o corpo"
+ * SECTION 3 do cockpit (lista de tarefas do Aaru): um hábito por linha, ícone que
+ * se preenche ao marcar (com vibração leve) e streak em chip. "Mover o corpo"
  * abre a ativação matinal (treino de hoje + 5 min de mobilidade) em vez de só marcar.
  */
 export function HabitChecklistCard() {
@@ -36,28 +37,26 @@ export function HabitChecklistCard() {
   const todosFeitos = lista.length > 0 && feitos === lista.length
 
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between">
-        <span className="ds-label whitespace-pre">
-          <span className="text-cinza2-texto">03</span>  Hábitos
+    <GlassCard className="flex flex-col gap-2" padding="var(--s4) var(--s4) var(--s2)" aria-label="Hábitos de hoje">
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-2">
+          <Icon name="check_circle" size={18} className="text-cinza2" />
+          <span className="ds-label">Hábitos de hoje</span>
         </span>
         {lista.length > 0 && (
           <span
             key={todosFeitos ? 'completo' : 'parcial'}
-            className={cn('ds-data-md', todosFeitos ? 'ds-celebrate font-bold text-brasa' : 'text-cinza')}
+            className={cn('text-[12px] tabular-nums [font-family:var(--font-display)]', todosFeitos ? 'ds-celebrate font-bold text-brasa' : 'text-cinza')}
           >
-            {feitos}/{lista.length} hoje{todosFeitos && ' 🔥'}
+            {feitos}/{lista.length}
           </span>
         )}
       </div>
 
       {isLoading ? (
-        <div className="flex gap-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-2">
-              <Skeleton className="size-[52px] rounded-full" />
-              <Skeleton className="h-2.5 w-12" />
-            </div>
+        <div className="flex flex-col gap-2 pb-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-11 w-full rounded-[var(--r-sm)]" />
           ))}
         </div>
       ) : isError ? (
@@ -69,42 +68,40 @@ export function HabitChecklistCard() {
           }}
         />
       ) : lista.length === 0 ? (
-        <EmptyState message="Nenhum hábito ainda" description="Hábitos diários somam pontos no FORJA Score." />
+        <div className="pb-2">
+          <EmptyState message="Nenhum hábito ainda" description="Hábitos diários somam pontos no FORJA Score." />
+        </div>
       ) : (
-        <ul className="ds-scroll -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
+        <ul className="flex flex-col divide-y divide-linha">
           {lista.map((habit) => {
             const completedDates = logsByHabit.get(habit.id) ?? new Set<string>()
             const isDone = completedDates.has(today)
             const streak = calculateStreak(completedDates, today)
+            const movimento = ehHabitoDeMovimento(habit.nome)
 
             return (
-              <li key={habit.id} className="w-[68px] shrink-0">
+              <li key={habit.id}>
                 <button
                   type="button"
                   aria-pressed={isDone}
-                  aria-label={`${habit.nome}${isDone ? ', feito' : ''}`}
-                  aria-expanded={ehHabitoDeMovimento(habit.nome) ? movimentoAberto : undefined}
+                  aria-expanded={movimento ? movimentoAberto : undefined}
                   onClick={() => {
                     haptic('light')
-                    if (ehHabitoDeMovimento(habit.nome)) setMovimentoAberto((v) => !v)
+                    if (movimento) setMovimentoAberto((v) => !v)
                     else toggle.mutate({ habitId: habit.id, date: today, completed: !isDone })
                   }}
-                  className="flex w-full flex-col items-center gap-1.5 outline-none focus-visible:[&>span:nth-child(2)]:ring-2 focus-visible:[&>span:nth-child(2)]:ring-ring"
+                  className="flex min-h-[52px] w-full items-center gap-3 rounded-[var(--r-sm)] text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                 >
-                  <span className={cn('ds-terminal-xs h-4', streak > 0 ? 'text-brasa' : 'invisible')} aria-hidden={streak === 0}>
-                    {streak}d
-                  </span>
-                  <span
-                    className={cn(
-                      'ds-pressable flex size-[52px] items-center justify-center rounded-full border',
-                      isDone ? 'border-brasa bg-brasa text-nevoa shadow-[var(--shadow-brasa)]' : 'border-linha bg-aco text-transparent',
-                    )}
-                    style={{ transition: 'background-color var(--dur-normal) var(--spring-bounce), transform var(--dur-fast) var(--spring-bounce)' }}
-                  >
-                    <Check className="size-6" strokeWidth={3} aria-hidden="true" />
-                  </span>
-                  <span className={cn('w-full truncate text-center text-[11px] leading-tight', isDone ? 'text-nevoa' : 'text-cinza')}>
-                    {habit.nome}
+                  <Icon name="check_circle" size={24} filled={isDone} className={isDone ? 'text-brasa' : 'text-cinza2'} />
+                  <span className={cn('min-w-0 flex-1 truncate text-[14px]', isDone ? 'text-nevoa' : 'text-cinza')}>{habit.nome}</span>
+                  {streak > 0 && (
+                    <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-brasa/10 px-2 py-0.5 text-[11px] font-bold tabular-nums text-brasa [font-family:var(--font-display)]">
+                      <Icon name="local_fire_department" size={14} filled />
+                      {streak}
+                    </span>
+                  )}
+                  <span className={cn('w-10 shrink-0 text-right text-[12px]', isDone ? 'text-cinza2-texto' : 'text-transparent')} aria-hidden={!isDone}>
+                    Feito
                   </span>
                 </button>
               </li>
@@ -119,34 +116,36 @@ export function HabitChecklistCard() {
           if (!movimento) return null
           const feito = logsByHabit.get(movimento.id)?.has(today) ?? false
           return (
-            <div className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-linha bg-card p-4">
-              <p className="ds-body-md text-foreground">💪 Treino de hoje: {treinoDeHoje ?? 'descanso'}</p>
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => navigate('/workout')}
-                  className="ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full border border-linha px-5 ds-body-md font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  🏋️ Ir para o treino de hoje
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate(`/mobilidade?rotina=manha&iniciar=1&habito=${movimento.id}`)}
-                  className="ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  🧘 Fazer ativação de 5 min primeiro
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggle.mutate({ habitId: movimento.id, date: today, completed: !feito })}
-                  className="min-h-11 rounded-full px-3 ds-body-sm text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {feito ? 'Desmarcar hábito' : 'Já me movi — só marcar feito'}
-                </button>
-              </div>
+            <div className="mb-2 flex flex-col gap-2 rounded-[var(--r-md)] border border-[var(--glass-border)] bg-[var(--glass-bg)] p-3">
+              <p className="flex items-center gap-2 text-[13px] text-nevoa">
+                <Icon name="fitness_center" size={18} className="text-brasa" />
+                Treino de hoje: {treinoDeHoje ?? 'descanso'}
+              </p>
+              <button type="button" onClick={() => navigate('/workout')} className="ds-btn-ghost w-full outline-none">
+                <Icon name="fitness_center" size={18} />
+                Ir para o treino de hoje
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/mobilidade?rotina=manha&iniciar=1&habito=${movimento.id}`)}
+                className="ds-btn-primary w-full outline-none"
+              >
+                <Icon name="self_improvement" size={18} />
+                Fazer ativação de 5 min primeiro
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  haptic('light')
+                  toggle.mutate({ habitId: movimento.id, date: today, completed: !feito })
+                }}
+                className="min-h-11 rounded-full px-3 text-[13px] text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {feito ? 'Desmarcar hábito' : 'Já me movi — só marcar feito'}
+              </button>
             </div>
           )
         })()}
-    </section>
+    </GlassCard>
   )
 }

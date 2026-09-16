@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
-import { FileText, Loader2, Paperclip, X } from 'lucide-react'
+import { Icon } from '@/components/Icon'
+import { useHideOnScroll } from '@/hooks/use-hide-on-scroll'
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -18,6 +20,7 @@ const TIPOS: { value: DocumentImportTipo; label: string; emoji: string }[] = [
 export function DocumentUpload() {
   const { user } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const escondido = useHideOnScroll()
   const [tipoSelecionado, setTipoSelecionado] = useState<DocumentImportTipo | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const fotoInputRef = useRef<HTMLInputElement>(null)
@@ -87,7 +90,7 @@ export function DocumentUpload() {
               {tipoSelecionado ? 'Escolha o arquivo' : 'O que você vai importar?'}
             </span>
             <button type="button" onClick={closeMenu} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
-              <X className="size-3.5" aria-hidden="true" />
+              <Icon name="close" size={14} />
             </button>
           </div>
 
@@ -108,10 +111,10 @@ export function DocumentUpload() {
           ) : (
             <div className="flex gap-2">
               <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => fotoInputRef.current?.click()}>
-                📷 Foto
+                <Icon name="photo_camera" size={18} className="mr-1.5 inline-block align-middle" />Foto
               </Button>
               <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => pdfInputRef.current?.click()}>
-                <FileText className="size-3.5" aria-hidden="true" />
+                <Icon name="description" size={14} />
                 PDF
               </Button>
               <input
@@ -137,15 +140,18 @@ export function DocumentUpload() {
         type="button"
         onClick={() => setIsMenuOpen((v) => !v)}
         aria-label={isMenuOpen ? 'Fechar importação de documento' : 'Importar documento'}
-        className="fixed bottom-[var(--float-bottom)] right-[76px] z-50 flex size-12 md:bottom-6 [html[data-immersive]_&]:hidden items-center justify-center rounded-full border border-brasa bg-aco-claro text-foreground shadow-lg outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+        className={cn(
+          'fixed bottom-[calc(var(--float-bottom)+4px)] right-[84px] z-50 flex size-12 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[rgba(16,16,16,0.7)] text-cinza shadow-[var(--glass-shadow)] backdrop-blur-[20px] outline-none transition-[transform,opacity,color] duration-[var(--dur-normal)] ease-[var(--spring-bounce)] hover:text-brasa active:scale-95 focus-visible:ring-2 focus-visible:ring-ring md:bottom-7 [html[data-immersive]_&]:hidden',
+          escondido && !isMenuOpen && 'pointer-events-none translate-y-24 opacity-0',
+        )}
       >
-        {isMenuOpen ? <X className="size-5" aria-hidden="true" /> : <Paperclip className="size-5" aria-hidden="true" />}
+        {isMenuOpen ? <Icon name="close" size={20} /> : <Icon name="attach_file" size={20} />}
       </button>
 
       {processando && (
         <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-3 bg-black/70 text-center">
-          <Loader2 className="size-8 animate-spin text-brasa" aria-hidden="true" />
-          <p className="text-base font-medium text-foreground">🔍 Analisando documento...</p>
+          <Icon name="progress_activity" size={32} className="animate-spin text-brasa" />
+          <p className="text-base font-medium text-foreground">Analisando documento...</p>
           <p className="text-sm text-aco-texto">A IA está lendo e extraindo os dados</p>
         </div>
       )}
@@ -169,11 +175,11 @@ export function DocumentUpload() {
 
           <DialogFooter>
             <Button type="button" variant="outline" size="sm" onClick={handleRejeitar}>
-              ❌ Descartar
+              <Icon name="close" size={18} className="mr-1.5 inline-block align-middle" />Descartar
             </Button>
             {!erro && (
               <Button type="button" size="sm" onClick={handleConfirmar}>
-                ✅ Confirmar e salvar
+                <Icon name="check_circle" size={18} className="mr-1.5 inline-block align-middle" />Confirmar e salvar
               </Button>
             )}
           </DialogFooter>

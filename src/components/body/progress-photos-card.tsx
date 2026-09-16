@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Camera, Loader2, Sparkles, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -85,7 +85,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
             className="h-7 gap-1.5 text-xs"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Camera className="size-3.5" />
+            <Icon name="photo_camera" size={14} />
             Adicionar
           </Button>
           <input
@@ -163,7 +163,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                 </div>
                 {foto.relatorio_ia && (
                   <span className="absolute right-1 top-1 rounded-full bg-brasa/90 p-0.5">
-                    <Sparkles className="size-2.5 text-white" />
+                    <Icon name="auto_awesome" size={10} className="text-white" />
                   </span>
                 )}
               </button>
@@ -211,7 +211,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                 </p>
               )}
               <Button type="button" onClick={handleUpload} disabled={upload.isPending} className="w-full">
-                {upload.isPending ? 'Enviando…' : '📤 Salvar e analisar com IA'}
+                {upload.isPending ? 'Enviando…' : (<><Icon name="upload" size={18} className="mr-1.5 inline-block align-middle" />Salvar e analisar com IA</>)}
               </Button>
             </>
           )}
@@ -237,7 +237,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                   title="Excluir foto"
                   aria-label="Excluir foto"
                 >
-                  <Trash2 className="size-4" />
+                  <Icon name="delete" size={16} />
                 </button>
               </div>
 
@@ -257,7 +257,7 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
               {selecionada.relatorio_ia ? (
                 <div className="rounded-xl border border-brasa/30 bg-brasa/5 p-3">
                   <div className="mb-1.5 flex items-center gap-1.5">
-                    <Sparkles className="size-3.5 text-brasa" />
+                    <Icon name="auto_awesome" size={14} className="text-brasa" />
                     <span className="text-xs font-semibold text-foreground">Análise do Monitor</span>
                   </div>
                   <p className="whitespace-pre-wrap text-sm text-foreground">{selecionada.relatorio_ia}</p>
@@ -275,9 +275,9 @@ export function ProgressPhotosCard({ pesoAtual }: ProgressPhotosCardProps) {
                   className="gap-1.5"
                 >
                   {analyze.isPending ? (
-                    <Loader2 className="size-3.5 animate-spin" />
+                    <Icon name="progress_activity" size={14} className="animate-spin" />
                   ) : (
-                    <Sparkles className="size-3.5 text-brasa" />
+                    <Icon name="auto_awesome" size={14} className="text-brasa" />
                   )}
                   {analyze.isPending ? 'Analisando evolução…' : 'Gerar análise da evolução'}
                 </Button>

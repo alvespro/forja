@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -81,7 +81,7 @@ export function CourseCard({ course }: CourseCardProps) {
               aria-label={`Editar curso ${course.titulo}`}
               onClick={() => setIsEditing(true)}
             >
-              <Pencil className="size-3.5" aria-hidden="true" />
+              <Icon name="edit" size={14} />
             </Button>
             <Button
               type="button"
@@ -90,7 +90,7 @@ export function CourseCard({ course }: CourseCardProps) {
               aria-label={`Excluir curso ${course.titulo}`}
               onClick={handleDelete}
             >
-              <Trash2 className="size-3.5" aria-hidden="true" />
+              <Icon name="delete" size={14} />
             </Button>
           </div>
         </div>

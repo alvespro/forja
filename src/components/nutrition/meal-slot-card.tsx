@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PencilLine, Sparkles, TriangleAlert } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { NutritionCard } from '@/components/ds/nutrition-card'
 import { Modal } from '@/components/ui/modal'
@@ -73,7 +73,7 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
                 carboAcimaDoLimite ? 'border-alerta bg-alerta/15' : 'border-brasa/50 bg-brasa/5',
               )}
             >
-              <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
+              <Icon name="warning" size={16} />
               {carboAcimaDoLimite ? 'Limite carbo — glicemia 103' : `Limite carbo ${CARBO_LIMITE_JANTAR}g`}
             </div>
           )
@@ -83,11 +83,11 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
           // caminho para comida caseira sem código de barras, inclusive em refeição já passada.
           <>
               <button type="button" className={acaoCls} onClick={() => setIsLogging(true)}>
-                <PencilLine className="size-3.5" aria-hidden="true" />
+                <Icon name="edit_note" size={14} />
                 Manual
               </button>
               <button type="button" className={acaoCls} onClick={() => setIsSuggesting(true)}>
-                <Sparkles className="size-3.5" aria-hidden="true" />
+                <Icon name="auto_awesome" size={14} />
                 Sugestões
               </button>
           </>

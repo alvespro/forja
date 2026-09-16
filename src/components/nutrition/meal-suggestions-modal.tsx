@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, Repeat, Sparkles } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -107,9 +107,9 @@ export function MealSuggestionsModal({ slot, open, onOpenChange }: MealSuggestio
             onClick={handleGenerate}
           >
             {generateAI.isPending || createSuggestion.isPending ? (
-              <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              <Icon name="progress_activity" size={14} className="animate-spin" />
             ) : (
-              <Sparkles className="size-3.5" aria-hidden="true" />
+              <Icon name="auto_awesome" size={14} />
             )}
             Gerar nova sugestão
           </Button>
@@ -213,7 +213,7 @@ function IngredientRow({
           {ingrediente.nome} <span className="text-aco-texto">— {ingrediente.quantidade}</span>
         </span>
         <Button type="button" variant="ghost" size="icon-xs" aria-label="Substituir ingrediente" onClick={handleSubstituirClick}>
-          <Repeat className="size-3" aria-hidden="true" />
+          <Icon name="repeat" size={12} />
         </Button>
       </div>
 
@@ -221,7 +221,7 @@ function IngredientRow({
         <div className="flex flex-col gap-1.5 rounded-md border border-border bg-aco-claro/40 p-2">
           {generateAI.isPending ? (
             <span className="flex items-center gap-1.5 text-xs text-aco-texto">
-              <Loader2 className="size-3 animate-spin" aria-hidden="true" /> Buscando alternativas…
+              <Icon name="progress_activity" size={12} className="animate-spin" /> Buscando alternativas…
             </span>
           ) : error ? (
             <span className="text-xs text-alerta-texto">{error}</span>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -45,7 +45,7 @@ export function CrmPage() {
         </div>
         {!isAdding && (
           <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-            <Plus className="size-3.5" aria-hidden="true" />
+            <Icon name="add" size={14} />
             Novo cliente
           </Button>
         )}

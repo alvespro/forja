@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Maximize2, Play } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -93,7 +93,7 @@ export function SessionRunner() {
             disabled={!selectedWorkoutId || createSession.isPending}
             onClick={() => createSession.mutate(selectedWorkoutId, { onSuccess: (session) => setSessionId(session.id) })}
           >
-            <Play className="size-4 fill-current" aria-hidden="true" />
+            <Icon name="play_arrow" size={16} filled />
             {createSession.isPending ? 'Iniciando…' : 'Iniciar sessão'}
           </Button>
         </section>
@@ -130,7 +130,7 @@ function MinimizedSession({ sessionId, onResume }: { sessionId: string; onResume
       </div>
       <span className="flex items-center gap-2 ds-body-md font-semibold text-foreground">
         Retomar
-        <Maximize2 className="size-4" aria-hidden="true" />
+        <Icon name="open_in_full" size={16} />
       </span>
     </button>
   )

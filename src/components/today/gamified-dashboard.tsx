@@ -6,6 +6,11 @@ import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 
 import { ObjectiveBadge } from '@/components/body/objective-badge'
+import { GlassCard } from '@/components/GlassCard'
+import { Icon } from '@/components/Icon'
+import { useClock } from '@/hooks/use-system-status'
+import type { IconName } from '@/lib/icons'
+import { Line, LineChart, ResponsiveContainer, YAxis } from 'recharts'
 import { useAchievements, usePersistAchievements } from '@/hooks/use-achievements'
 import { useProfile } from '@/hooks/use-profile'
 import { useActiveProtocol } from '@/hooks/use-protocols'
@@ -38,6 +43,17 @@ const RANKS: Rank[] = [
   { nome: 'Dia parado', emoji: '💤', min: 0 },
 ]
 
+const ICONE_ATIVIDADE: Record<string, IconName> = {
+  sapo: 'flag',
+  treino: 'fitness_center',
+  habitos: 'task_alt',
+  refeicoes: 'restaurant',
+  suplementos: 'medication_liquid',
+  diario: 'edit_note',
+  protocolo: 'medication',
+  tarefas: 'checklist',
+}
+
 function rankOf(pct: number): Rank {
   return RANKS.find((r) => pct >= r.min) ?? RANKS[RANKS.length - 1]
 }
@@ -65,6 +81,7 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
   const frase = useDailyQuote(today)
   const hora = new Date().getHours()
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
+  const relogio = useClock()
 
   // ── Dados ──
   const habits = useHabits()
@@ -308,91 +325,107 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
 
   const primeiroNome = (profile.data?.nome?.trim() || 'Welber').split(' ')[0]
 
+  // Sparkline da semana: o ponto de hoje usa o score ao vivo (o salvo pode estar atrasado).
+  const serieSemana = semana.map((d) => ({ data: d.data, pct: d.isToday ? pct : d.pct }))
+  const ontem = semana.length >= 2 ? semana[semana.length - 2].pct : null
+  const delta = ontem != null ? pct - ontem : null
+
   return (
     <div className="flex flex-col gap-6">
-      {/* ── SECTION 1 — HERO: preto com brilho vermilion no topo, score como herói ── */}
-      <section
-        className="-mx-4 flex flex-col px-5 pb-7 pt-7 md:mx-0 md:rounded-[var(--r-xl)] md:border md:border-linha md:px-8"
-        style={{ background: 'radial-gradient(90% 70% at 50% 0%, rgba(252,76,19,0.16) 0%, transparent 70%), var(--fundo)' }}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <span className="ds-terminal-sm whitespace-pre text-cinza">
-            <span className="text-cinza2-texto">01</span>  FORJA Score
-          </span>
-          <span className="ds-terminal-xs text-cinza first-letter:uppercase">{dataFormatada}</span>
+      {/* ── SECTION 1 — HERO (Aaru): saudação, frase, sparkline da semana e o score ── */}
+      <GlassCard gradient glow className="flex flex-col gap-4" padding="var(--s5)" aria-label="Resumo do dia">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col">
+            <span className="text-[13px] text-cinza">{saudacao},</span>
+            <h1 className="truncate text-[32px] font-bold leading-[1.1] tracking-[-0.02em] text-nevoa">{primeiroNome}.</h1>
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-0.5 pt-0.5">
+            <time className="text-[13px] tabular-nums text-cinza [font-family:var(--font-display)]">{relogio}</time>
+            <span className="text-[11px] text-cinza2-texto first-letter:uppercase">{dataFormatada}</span>
+          </div>
         </div>
 
-        <div className="mt-3 flex items-baseline gap-2">
-          <span
-            className="text-[80px] font-bold leading-[0.9] tracking-[-0.04em] text-brasa tabular-nums [font-family:var(--font-display)]"
-            style={{ textShadow: 'var(--shadow-glow)' }}
-            aria-label={`FORJA Score ${pct} de 100`}
-          >
-            {pct}
-          </span>
-          <span className="text-[20px] text-cinza2-texto [font-family:var(--font-display)]" aria-hidden="true">
-            /100
-          </span>
-        </div>
-
-        <p className="ds-terminal-md mt-3 text-nevoa">
-          <span aria-hidden="true">{rank.emoji} </span>
-          {rank.nome}
-          <span className="ml-3 text-cinza">
-            {pontos - bonus}/{total} pts
-            {bonus > 0 && <span className="text-ok"> · +{bonus} bônus</span>}
-          </span>
-        </p>
-
-        <span className="ds-brand-line mt-4" aria-hidden="true" />
-
-        <h1 className="ds-terminal-lg ds-cursor mt-4 text-nevoa">
-          {saudacao}
-          {primeiroNome && `, ${primeiroNome}`}
-        </h1>
-        <p className="ds-body-sm mt-1.5 line-clamp-2 italic text-cinza">
+        <p className="-mt-2 line-clamp-2 text-[14px] italic leading-snug text-cinza">
           “{frase.texto}”{frase.fonte ? ` — ${frase.fonte}` : ''}
         </p>
-        <div className="mt-3 flex">
+
+        <div className="h-14 w-full" role="img" aria-label={`FORJA Score dos últimos 7 dias: ${serieSemana.map((d) => d.pct).join(', ')}`}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={serieSemana} margin={{ top: 6, right: 6, bottom: 6, left: 6 }}>
+              <YAxis hide domain={[0, 100]} />
+              <Line
+                type="monotone"
+                dataKey="pct"
+                stroke="var(--brasa)"
+                strokeWidth={2}
+                isAnimationActive={false}
+                dot={(p: { cx?: number; cy?: number; index?: number }) =>
+                  p.index === serieSemana.length - 1 && p.cx != null && p.cy != null ? (
+                    <circle key="hoje" cx={p.cx} cy={p.cy} r={4} fill="var(--brasa)" stroke="var(--fundo)" strokeWidth={1.5} />
+                  ) : (
+                    <g key={`d${p.index}`} />
+                  )
+                }
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex flex-col gap-1.5">
+            <span className="ds-label">FORJA Score</span>
+            <span
+              className="text-[48px] font-bold leading-none tracking-[-0.03em] text-brasa tabular-nums [font-family:var(--font-display)]"
+              style={{ textShadow: 'var(--glow-brasa)' }}
+            >
+              {pct}
+            </span>
+          </div>
+          <div className="flex min-w-0 flex-col items-end gap-1 pb-1">
+            {delta != null && (
+              <span
+                className={cn(
+                  'flex items-center gap-1 text-[14px] font-bold tabular-nums [font-family:var(--font-display)]',
+                  delta > 0 ? 'text-ok' : delta < 0 ? 'text-alerta-texto' : 'text-cinza',
+                )}
+                aria-label={`${delta > 0 ? 'mais' : delta < 0 ? 'menos' : 'igual a'} ${Math.abs(delta)} pontos que ontem`}
+              >
+                {delta > 0 ? '+' : delta < 0 ? '−' : ''}
+                {Math.abs(delta)}
+                <Icon name={delta > 0 ? 'trending_up' : delta < 0 ? 'trending_down' : 'trending_flat'} size={18} />
+              </span>
+            )}
+            <span className="truncate text-[12px] text-cinza2-texto">
+              {rank.nome} · {pontos - bonus}/{total} pts
+              {bonus > 0 && <span className="text-ok"> · +{bonus}</span>}
+            </span>
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* Pilares do dia (navegáveis) e descanso planejado */}
+      <div className="-mt-3 flex flex-col gap-2">
+        <div className="flex">
           <ObjectiveBadge />
         </div>
-
-        {/* Pilares do dia: uma barra fina por atividade pontuável */}
-        <div className="mt-5 flex gap-1" aria-hidden="true">
-          {activities
-            .filter((a) => !a.bonus)
-            .map((a) => (
-              <div key={a.key} className="h-1 flex-1 overflow-hidden rounded-full bg-aco2">
-                <div
-                  className="h-full rounded-full bg-brasa"
-                  style={{
-                    width: `${a.pts > 0 ? Math.min(100, (a.earned / a.pts) * 100) : 0}%`,
-                    transition: 'width var(--dur-slow) var(--spring-smooth)',
-                  }}
-                />
-              </div>
-            ))}
-        </div>
-
-        {/* Chips navegáveis — rolagem horizontal em vez de quebrar em várias linhas */}
-        <div className="ds-scroll -mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:px-0">
+        <div className="ds-scroll -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
           {activities.map((a) => (
             <button
               key={a.key}
               type="button"
               onClick={() => navigate(a.to)}
               className={cn(
-                'ds-pressable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 ds-body-sm font-medium',
+                'ds-pressable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium',
                 a.bonus
                   ? 'border-ok/40 bg-ok/10 text-ok'
                   : a.done
-                    ? 'border-brasa/60 bg-brasa/15 text-brasa'
-                    : 'border-linha bg-aco text-cinza',
+                    ? 'border-brasa/50 bg-brasa/10 text-brasa'
+                    : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-cinza',
               )}
             >
-              <span aria-hidden="true">{a.emoji}</span>
+              <Icon name={ICONE_ATIVIDADE[a.key] ?? 'check_circle'} size={16} filled={a.done} />
               {a.label}
-              <span className="ds-data-sm opacity-80">
+              <span className="text-[10px] tabular-nums opacity-80 [font-family:var(--font-display)]">
                 {a.bonus || a.done ? `+${a.earned}` : `${a.earned}/${a.pts}`}
               </span>
             </button>
@@ -400,9 +433,10 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
           <button
             type="button"
             onClick={() => upsertScore.mutate({ data: today, pontos, total, bonus, rest_day: !restDay })}
+            aria-pressed={restDay}
             className={cn(
-              'ds-pressable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 ds-body-sm font-medium',
-              restDay ? 'border-nevoa/40 bg-nevoa/10 text-nevoa' : 'border-linha bg-aco text-cinza',
+              'ds-pressable flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium',
+              restDay ? 'border-nevoa/40 bg-nevoa/10 text-nevoa' : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-cinza',
             )}
             title={
               restDay
@@ -410,15 +444,16 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
                 : 'Marcar hoje como dia de descanso planejado (treino sai do total)'
             }
           >
-            🛌 {restDay ? 'Descanso planejado' : 'Descanso?'}
+            <Icon name="bedtime" size={16} filled={restDay} />
+            {restDay ? 'Descanso planejado' : 'Descanso?'}
           </button>
         </div>
-      </section>
+      </div>
 
       {afterHero}
 
       {/* ── Nível + semana (compacto) ── */}
-      <section className="flex flex-col gap-4 rounded-[var(--r-md)] border border-linha bg-aco p-4">
+      <GlassCard className="flex flex-col gap-4" padding="var(--s4)" aria-label="Nível e semana">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <span className="ds-label">Nível {nivel.nivel}</span>
@@ -432,7 +467,7 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
           </span>
         </div>
         <div className="flex flex-col gap-1">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-aco2">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
             <div
               className="h-full rounded-full bg-brasa"
               style={{
@@ -449,7 +484,7 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
         <div className="flex items-end justify-between gap-1.5" role="img" aria-label="Score dos últimos 7 dias">
           {semana.map((d) => (
             <div key={d.data} className="flex flex-1 flex-col items-center gap-1.5">
-              <div className="flex h-12 w-full items-end overflow-hidden rounded-[4px] bg-aco2">
+              <div className="flex h-12 w-full items-end overflow-hidden rounded-[4px] bg-white/[0.04]">
                 <div
                   className="w-full rounded-[4px]"
                   style={{
@@ -459,13 +494,13 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
                   }}
                 />
               </div>
-              <span className={cn('ds-terminal-xs', d.isToday ? 'text-brasa' : 'text-cinza')}>
+              <span className={cn('text-[11px] font-medium', d.isToday ? 'text-brasa' : 'text-cinza2-texto')}>
                 {format(parseDateOnly(d.data), 'EEEEEE', { locale: ptBR })}
               </span>
             </div>
           ))}
         </div>
-      </section>
+      </GlassCard>
 
       {/* ── Conquistas ── */}
       {conquistadas.length > 0 && (
@@ -483,7 +518,7 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
                 title={c.descricao}
                 className={cn(
                   'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 ds-body-sm',
-                  c.earned ? 'border-brasa/50 bg-brasa/10 text-foreground' : 'border-linha text-aco-texto/50 grayscale',
+                  c.earned ? 'border-brasa/50 bg-brasa/10 text-nevoa' : 'border-[var(--glass-border)] text-cinza2-texto grayscale',
                 )}
               >
                 <span aria-hidden="true">{c.emoji}</span>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Save, Sparkles, Upload, Zap } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -127,7 +127,7 @@ export function CursoDetalhePage() {
   return (
     <div className="flex flex-col gap-4">
       <button type="button" onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-aco-texto hover:text-foreground w-fit">
-        <ArrowLeft className="size-4" />
+        <Icon name="arrow_back" size={16} />
         Voltar
       </button>
 
@@ -216,7 +216,7 @@ export function CursoDetalhePage() {
                 disabled={uploadingCert}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Upload className="size-3.5" />
+                <Icon name="upload" size={14} />
                 {uploadingCert ? 'Enviando…' : 'Upload certificado'}
               </Button>
               {certificadoUrl && (
@@ -316,7 +316,7 @@ export function CursoDetalhePage() {
                   disabled={createTask.isPending}
                   onClick={() => createTask.mutate({ titulo: acao1, area: 'mental' })}
                 >
-                  <Zap className="size-3.5 text-brasa" />
+                  <Icon name="bolt" size={14} className="text-brasa" />
                   {createTask.isPending ? 'Criando…' : 'Criar tarefa a partir desta ação'}
                   {createTask.isSuccess && ' ✓'}
                 </Button>
@@ -351,26 +351,26 @@ export function CursoDetalhePage() {
       {/* Ações */}
       <div className="flex flex-wrap gap-2">
         <Button type="button" onClick={handleSalvar} disabled={updateCourse.isPending} className="gap-1.5">
-          <Save className="size-4" />
+          <Icon name="save" size={16} />
           {updateCourse.isPending ? 'Salvando…' : 'Salvar'}
-          {updateCourse.isSuccess && ' ✓'}
+          {updateCourse.isSuccess && <Icon name="check" size={16} className="ml-1 inline-block align-middle" />}
         </Button>
 
         {status === 'lido' && (aprendizado1 || aprendizado2 || aprendizado3) && (
           <Button type="button" variant="outline" onClick={handleGerarInsights} disabled={gerarInsights.isPending} className="gap-1.5">
-            {gerarInsights.isPending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-brasa" />}
+            {gerarInsights.isPending ? <Icon name="progress_activity" size={16} className="animate-spin" /> : <Icon name="auto_awesome" size={16} className="text-brasa" />}
             {gerarInsights.isPending ? 'Gerando…' : 'Gerar insights com IA'}
           </Button>
         )}
 
         {status === 'quero_ler' && (
           <Button type="button" variant="outline" onClick={() => { setStatus('lendo') }}>
-            ▶ Iniciar curso
+            <Icon name="play_arrow" size={18} className="mr-1.5 inline-block align-middle" />Iniciar curso
           </Button>
         )}
         {status === 'lendo' && (
           <Button type="button" variant="outline" onClick={() => { setStatus('lido'); setProgresso(100) }}>
-            🎓 Marcar como concluído
+            <Icon name="school" size={18} className="mr-1.5 inline-block align-middle" />Marcar como concluído
           </Button>
         )}
       </div>
@@ -380,7 +380,7 @@ export function CursoDetalhePage() {
         <Card className="border-brasa/30 bg-brasa/5">
           <CardContent className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-brasa" />
+              <Icon name="auto_awesome" size={16} className="text-brasa" />
               <span className="text-sm font-semibold text-foreground">Insights do Mentor</span>
             </div>
             <p className="whitespace-pre-wrap text-sm text-foreground">{insights}</p>

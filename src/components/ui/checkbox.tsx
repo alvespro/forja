@@ -3,7 +3,7 @@ import { Checkbox as CheckboxPrimitive } from "radix-ui"
 
 import { haptic } from "@/lib/haptics"
 import { cn } from "@/lib/utils"
-import { CheckIcon } from "lucide-react"
+import { Icon } from "@/components/Icon"
 
 /** Checkbox do design system: aço desmarcado, vermilion marcado, vibração leve (10ms) ao alternar. */
 function Checkbox({
@@ -26,10 +26,9 @@ function Checkbox({
     >
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
-        className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
+        className="grid place-content-center text-current transition-none "
       >
-        <CheckIcon
-        />
+        <Icon name="check" size={14} filled />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )

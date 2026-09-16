@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, Pencil, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -62,10 +62,7 @@ export function ReadingCard({ reading }: ReadingCardProps) {
             className="flex min-w-0 flex-1 items-start gap-2 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-expanded={expanded}
           >
-            <ChevronDown
-              className={cn('mt-0.5 size-4 shrink-0 text-aco-texto transition-transform', expanded && 'rotate-180')}
-              aria-hidden="true"
-            />
+            <Icon name="expand_more" size={16} className={cn('mt-0.5 size-4 shrink-0 text-aco-texto transition-transform', expanded && 'rotate-180')} />
             <div className="flex min-w-0 flex-col">
               <span className="truncate font-medium text-foreground">{reading.titulo}</span>
               {reading.autor && <span className="truncate text-xs text-aco-texto">{reading.autor}</span>}
@@ -93,7 +90,7 @@ export function ReadingCard({ reading }: ReadingCardProps) {
               aria-label={`Editar leitura ${reading.titulo}`}
               onClick={() => setIsEditing(true)}
             >
-              <Pencil className="size-3.5" aria-hidden="true" />
+              <Icon name="edit" size={14} />
             </Button>
             <Button
               type="button"
@@ -102,7 +99,7 @@ export function ReadingCard({ reading }: ReadingCardProps) {
               aria-label={`Excluir leitura ${reading.titulo}`}
               onClick={handleDelete}
             >
-              <Trash2 className="size-3.5" aria-hidden="true" />
+              <Icon name="delete" size={14} />
             </Button>
           </div>
         </div>

@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { StatusDot } from '@/components/ds/status-dot'
+import { GlassCard } from '@/components/GlassCard'
+import { Icon } from '@/components/Icon'
 import { useRecoveryDecision } from '@/hooks/use-mobility-routines'
 import type { RecoveryGate } from '@/hooks/use-recovery-gate'
 import { cn } from '@/lib/utils'
@@ -29,44 +30,41 @@ export function RecoveryGateCard({ gate, score }: Pick<RecoveryGate, 'gate' | 's
   }
 
   return (
-    <section
-      className={cn(
-        'flex flex-col gap-4 rounded-[var(--r-lg)] border bg-aco p-5',
-        critico ? 'border-alerta' : 'border-brasa shadow-[var(--shadow-brasa)]',
-      )}
+    <GlassCard
+      active
+      className={cn('flex h-full flex-col gap-3', critico && '!border-alerta')}
+      padding="var(--s4)"
       aria-labelledby="gate-titulo"
     >
-      <div className="flex flex-col gap-1">
-        <StatusDot color={critico ? 'alerta' : 'brasa'} pulse label={critico ? 'Recuperação crítica' : 'Agora'} colorLabel />
-        <h2 id="gate-titulo" className="ds-h3 text-foreground">
-          {critico ? `🔴 Recuperação crítica (${score}%) — Descanso ativo recomendado` : `🟡 Recuperação: ${score}% — Treino adaptado`}
+      <div className="flex items-center gap-2 text-cinza2-texto">
+        <Icon name="self_improvement" size={28} className={critico ? 'text-alerta-texto' : 'text-brasa'} />
+        <span className="text-[12px] font-medium">{critico ? 'Recuperação crítica' : 'Recuperação baixa'}</span>
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <h2 id="gate-titulo" className="text-[16px] font-bold leading-snug text-nevoa">
+          {critico ? `Descanso ativo (${score}%)` : `Treino adaptado (${score}%)`}
         </h2>
-        <p className="ds-body-md text-aco-texto">
-          {critico
-            ? 'Hoje o corpo pede descanso. Faça só mobilidade suave e deixe a força para amanhã.'
-            : 'Hoje recomendamos mobilidade em vez de força pesada para proteger a recuperação.'}
+        <p className="line-clamp-3 text-[12px] leading-snug text-cinza">
+          {critico ? 'Só mobilidade suave hoje; força fica para amanhã.' : 'Mobilidade em vez de força pesada protege a recuperação.'}
         </p>
       </div>
-
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <button
-          type="button"
-          onClick={fazerMobilidade}
-          className="ds-pressable flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brasa px-5 ds-body-md font-semibold text-meia-noite outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          🧘 {critico ? 'Mobilidade suave' : 'Fazer mobilidade'}
+      <div className="flex flex-col gap-2">
+        <button type="button" onClick={fazerMobilidade} className="ds-btn-primary w-full gap-1 px-2 text-[13px] outline-none">
+          <Icon name="self_improvement" size={16} />
+          {critico ? 'Mobilidade suave' : 'Mobilidade'}
         </button>
         {!critico && (
           <button
             type="button"
             onClick={treinarMesmo}
             disabled={decidir.isPending}
-            className="ds-pressable flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-linha px-5 ds-body-md font-semibold text-foreground outline-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
+            className="ds-btn-ghost w-full gap-1 px-2 text-[13px] outline-none"
           >
-            💪 Treinar mesmo
+            <Icon name="fitness_center" size={16} />
+            Treinar mesmo
           </button>
         )}
       </div>
-    </section>
+    </GlassCard>
   )
 }

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Pause } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { BodyMap } from '@/components/BodyMap'
 import { YoutubeEmbed } from '@/components/workout/youtube-embed'
@@ -49,7 +49,7 @@ export function ExerciseMedia({ exercise, className }: ExerciseMediaProps) {
         />
         {pausado && (
           <span className="absolute inset-0 flex items-center justify-center bg-meia-noite/40" aria-hidden="true">
-            <Pause className="size-10 text-white" />
+            <Icon name="pause" size={40} className="text-white" />
           </span>
         )}
       </button>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { cn } from '@/lib/utils'
 
@@ -53,7 +53,7 @@ export function AlertsSection({ children }: { children: ReactNode }) {
           className="flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-linha ds-body-sm font-semibold text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
           {expandido ? 'Mostrar menos' : `Ver todos (+${ocultos})`}
-          <ChevronDown className={cn('size-4 transition-transform', expandido && 'rotate-180')} aria-hidden="true" />
+          <Icon name="expand_more" size={16} className={cn('size-4 transition-transform', expandido && 'rotate-180')} />
         </button>
       )}
     </section>

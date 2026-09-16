@@ -3,12 +3,10 @@
 @import "shadcn/tailwind.css";
 
 /*
- * Tipografia: 3 famílias, todas self-hosted (o PWA funciona offline e não
- * depende do Google Fonts). Bricolage Grotesque (títulos, texto, navegação),
- * Space Mono (números e métricas) e VT323 (labels dot-matrix estilo DeerFlow).
- * As duas primeiras são importadas em design-system.css.
+ * Tipografia (Google Fonts, index.html): Bricolage Grotesque para títulos, texto
+ * e navegação; Space Mono para números e métricas; Material Symbols Outlined
+ * (fonte variável) para ícones. O service worker guarda as fontes para o offline.
  */
-@import "@fontsource/vt323/latin-400.css";
 
 /* Design system (tokens, escalas e movimento). */
 @import "./styles/design-system.css";
@@ -16,16 +14,19 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-heading: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-sans: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
   --font-mono: 'Space Mono', ui-monospace, monospace;
   --font-display: 'Space Mono', ui-monospace, monospace;
-  --font-terminal: 'VT323', ui-monospace, monospace;
 
   --color-fundo: var(--fundo);
   --color-meia-noite: var(--meia-noite);
   --color-aco: var(--aco);
   --color-aco2: var(--aco2);
+  --color-aco3: var(--aco3);
+  --color-glass: var(--glass-bg);
+  --color-glass-hover: var(--glass-bg-hover);
+  --color-glass-border: var(--glass-border);
   --color-aco-claro: var(--aco-claro);
   --color-linha: var(--linha);
   --color-brasa: var(--brasa);
@@ -45,6 +46,13 @@
   --animate-pulse-brasa: statusPulse 2s ease-in-out infinite;
   --animate-shimmer: shimmer 1.8s ease infinite;
   --animate-blink: blink 1s step-end infinite;
+
+  --blur-glass: 20px;
+  --blur-heavy: 30px;
+  --shadow-glass: var(--glass-shadow);
+  --shadow-brasa: 0 4px 24px rgba(252, 76, 19, 0.3);
+  --shadow-glow-brasa: var(--glow-brasa);
+  --shadow-glow-ok: var(--glow-ok);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -87,13 +95,14 @@
 }
 
 :root {
-  /* Paleta Vermilion + Cod Gray (tema escuro único) */
+  /* Paleta Vermilion + Liquid Glass (tema escuro único) */
 
   /* fundação */
   --fundo: #000000;
-  --aco: #1d1d1d;
-  --aco2: #333333;
-  --linha: #3d3d3d;
+  --aco: #0d0d0d;
+  --aco2: #1a1a1a;
+  --aco3: #262626;
+  --linha: #2e2e2e;
 
   /* acento */
   --brasa: #fc4c13;
@@ -103,13 +112,27 @@
   /* gradientes de marca */
   --gradient-brand: linear-gradient(135deg, #000000 0%, #c10801 35%, #f16001 70%, #fc4c13 100%);
   --gradient-subtle: linear-gradient(135deg, rgba(192, 8, 1, 0.15) 0%, #000000 60%);
+  --gradient-hero: radial-gradient(ellipse at 20% 50%, rgba(252, 76, 19, 0.15) 0%, transparent 60%);
+  --gradient-card: linear-gradient(135deg, rgba(252, 76, 19, 0.08) 0%, transparent 60%);
+
+  /* liquid glass */
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-bg-hover: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-hover: rgba(255, 255, 255, 0.18);
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* glow */
+  --glow-brasa: 0 0 40px rgba(252, 76, 19, 0.35);
+  --glow-ok: 0 0 30px rgba(76, 175, 125, 0.3);
 
   /* texto */
   --nevoa: #f9f9f9;
   --cinza: #a7a7a7;
   /* #646464 tem 3,5:1 sobre o preto — só para ícones, bordas e texto grande, nunca texto pequeno. */
   --cinza2: #646464;
-  /* Cinza discreto para TEXTO (ordinais "01", placeholders "—"): 4,9:1 sobre #1D1D1D. */
+  /* Cinza discreto para TEXTO pequeno (labels, "há X dias"): 5,4:1 sobre o vidro. */
   --cinza2-texto: #8a8a8a;
 
   /* status */
@@ -134,7 +157,7 @@
   --popover-foreground: var(--nevoa);
   --primary: var(--brasa);
   --primary-foreground: var(--meia-noite);
-  --secondary: var(--aco-claro);
+  --secondary: var(--aco2);
   --secondary-foreground: var(--nevoa);
   --muted: var(--aco-claro);
   --muted-foreground: var(--aco-texto);
@@ -150,7 +173,7 @@
   --chart-3: var(--ok);
   --chart-4: var(--atencao);
   --chart-5: var(--alerta);
-  --radius: 0.625rem;
+  --radius: 1rem;
   --sidebar: var(--aco);
   --sidebar-foreground: var(--nevoa);
   --sidebar-primary: var(--brasa);
@@ -260,8 +283,7 @@
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
+      animation: none !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }

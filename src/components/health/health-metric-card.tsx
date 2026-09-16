@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { MetricCard } from '@/components/ds/metric-card'
 import { Sparkline } from '@/components/ds/sparkline'
@@ -81,7 +81,7 @@ export function HealthMetricDetail({ def, metrics, onClose }: DetailProps) {
           aria-label="Fechar histórico"
           className="-m-2 flex size-11 items-center justify-center rounded-full text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <X className="size-4" aria-hidden="true" />
+          <Icon name="close" size={16} />
         </button>
       </div>
 
@@ -98,7 +98,7 @@ export function HealthMetricDetail({ def, metrics, onClose }: DetailProps) {
         />
       ) : (
         <Button type="button" variant="outline" size="sm" className="self-start" onClick={() => setIsRegistering(true)}>
-          <Plus className="size-3.5" aria-hidden="true" />
+          <Icon name="add" size={14} />
           Registrar medição
         </Button>
       )}

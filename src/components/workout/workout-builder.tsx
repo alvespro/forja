@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -29,7 +29,7 @@ export function WorkoutBuilder({ onStartSession }: WorkoutBuilderProps) {
         <p className="text-sm text-aco-texto">Monte seus treinos e prescreva os exercícios de cada um.</p>
         {!isAdding && (
           <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-            <Plus className="size-3.5" aria-hidden="true" />
+            <Icon name="add" size={14} />
             Treino
           </Button>
         )}

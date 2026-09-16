@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Search } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { toast } from 'sonner'
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -64,7 +64,7 @@ export function YoutubeVideoPicker({ exercise, trocar = false, onVinculado }: Yo
               : 'ds-pressable flex min-h-12 items-center justify-center gap-2 rounded-full border border-linha bg-card px-5 ds-body-md font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
           }
         >
-          {trocar ? <Search className="size-4" aria-hidden="true" /> : <span aria-hidden="true">🔍</span>}
+          <Icon name="search" size={trocar ? 16 : 20} />
           {trocar ? 'Trocar vídeo' : 'Buscar vídeo no YouTube'}
         </button>
         {erro && <p className="ds-body-sm text-alerta-texto">{erro}</p>}
@@ -110,7 +110,7 @@ export function YoutubeVideoPicker({ exercise, trocar = false, onVinculado }: Yo
                   onClick={() => usar(v)}
                   className="mx-2 mb-2 flex min-h-11 items-center justify-center gap-1 rounded-full bg-brasa px-2 text-xs font-semibold text-meia-noite outline-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <Check className="size-3.5" aria-hidden="true" />
+                  <Icon name="check" size={14} />
                   {atual ? 'Em uso' : salvando === v.id ? 'Salvando…' : 'Usar este vídeo'}
                 </button>
               </li>

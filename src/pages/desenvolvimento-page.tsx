@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -170,7 +170,7 @@ export function DesenvolvimentoPage() {
           <div className="flex justify-end">
             {!showAddReading && (
               <Button type="button" variant="outline" size="sm" onClick={() => setShowAddReading(true)}>
-                <Plus className="size-3.5" />
+                <Icon name="add" size={14} />
                 Nova leitura
               </Button>
             )}
@@ -224,7 +224,7 @@ export function DesenvolvimentoPage() {
           <div className="flex justify-end">
             {!showAddCourse && (
               <Button type="button" variant="outline" size="sm" onClick={() => setShowAddCourse(true)}>
-                <Plus className="size-3.5" />
+                <Icon name="add" size={14} />
                 Novo curso
               </Button>
             )}

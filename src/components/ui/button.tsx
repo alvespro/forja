@@ -10,12 +10,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         // Primário: vermilion com texto preto (6,2:1, AA) e brilho brasa.
-        default: "bg-brasa text-fundo shadow-[var(--shadow-brasa)] hover:bg-brasa2 hover:-translate-y-px",
+        default: "bg-brasa text-fundo hover:bg-brasa2 hover:-translate-y-px hover:shadow-[var(--shadow-brasa)]",
         // Neutro (ghost do design system): aço, borda linha, texto cinza.
         outline:
-          "border-linha bg-aco text-cinza hover:border-cinza hover:text-nevoa aria-expanded:border-cinza aria-expanded:text-nevoa",
+          "border-[var(--glass-border)] bg-[var(--glass-bg)] text-cinza hover:border-[var(--glass-border-hover)] hover:bg-[var(--glass-bg-hover)] hover:text-brasa aria-expanded:border-[var(--glass-border-hover)] aria-expanded:text-nevoa",
         // Secundário: contorno vermilion.
-        secondary: "border-brasa bg-transparent text-brasa hover:bg-brasa/10 aria-expanded:bg-brasa/10",
+        secondary: "border-brasa bg-transparent text-brasa hover:bg-brasa/[0.08] aria-expanded:bg-brasa/[0.08]",
         ghost: "text-cinza hover:bg-aco hover:text-nevoa aria-expanded:bg-aco aria-expanded:text-nevoa",
         destructive:
           "bg-alerta/15 text-alerta-texto hover:bg-alerta/25 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",

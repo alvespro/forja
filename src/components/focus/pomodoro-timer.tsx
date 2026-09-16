@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Pause, Play, RotateCcw, SkipForward } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -70,17 +70,17 @@ function PomodoroPhaseRunner({
       <div className="flex flex-wrap justify-center gap-2">
         {timer.isRunning ? (
           <Button type="button" variant="outline" onClick={timer.pause}>
-            <Pause className="size-4" aria-hidden="true" />
+            <Icon name="pause" size={16} />
             Pausar
           </Button>
         ) : (
           <Button type="button" onClick={timer.start}>
-            <Play className="size-4" aria-hidden="true" />
+            <Icon name="play_arrow" size={16} />
             {timer.elapsedMs > 0 ? 'Retomar' : 'Começar'}
           </Button>
         )}
         <Button type="button" variant="ghost" onClick={timer.reset}>
-          <RotateCcw className="size-4" aria-hidden="true" />
+          <Icon name="restart_alt" size={16} />
           Zerar
         </Button>
         {phase === 'foco' && (
@@ -90,7 +90,7 @@ function PomodoroPhaseRunner({
             onClick={handleEncerrarAgora}
             disabled={timer.elapsedMs < 1000}
           >
-            <SkipForward className="size-4" aria-hidden="true" />
+            <Icon name="skip_next" size={16} />
             Encerrar agora
           </Button>
         )}
@@ -160,7 +160,7 @@ export function PomodoroTimer({ tarefa, taskId, onExit }: PomodoroTimerProps) {
                 onClick={handleConcluirTarefa}
                 disabled={updateTask.isPending}
               >
-                ✓ Concluir
+                <Icon name="check" size={18} className="mr-1.5 inline-block align-middle" />Concluir
               </Button>
               <Button
                 type="button"

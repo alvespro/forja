@@ -3,7 +3,7 @@
 // banco, e a galeria /design renderiza exatamente o mesmo visual com dados de exemplo.
 
 import { useState } from 'react'
-import { Brain, Check, ChevronLeft, ChevronRight, Minimize2, SlidersHorizontal } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { BodyMap } from '@/components/BodyMap'
 import { YoutubeEmbed } from '@/components/workout/youtube-embed'
@@ -37,7 +37,7 @@ export type ImmersiveHeaderProps = {
   onFinish?: () => void
 }
 
-/** Topo do modo imersivo: progresso "Exercício 2 / 5" com barra fina e tempo decorrido. */
+/** Topo do modo imersivo: barra de progresso com o gradiente da marca, "← Voltar", "Exercício X / Y" e o tempo decorrido. */
 export function ImmersiveHeader({
   atual,
   total,
@@ -52,28 +52,37 @@ export function ImmersiveHeader({
   const pct = total > 0 ? (atual / total) * 100 : 0
   return (
     <header className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
+      <div className="-mx-4 h-[2px] overflow-hidden bg-white/[0.06] md:mx-0 md:rounded-full" aria-hidden="true">
+        <div
+          className="h-full"
+          style={{ width: `${pct}%`, background: 'var(--gradient-brand)', transition: 'width var(--dur-normal) var(--spring-smooth)' }}
+        />
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <button
           type="button"
           onClick={onMinimize}
-          aria-label="Minimizar treino"
-          className="flex size-11 items-center justify-center rounded-full text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-11 items-center gap-1 justify-self-start rounded-full pr-3 text-[14px] text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Minimize2 className="size-5" aria-hidden="true" />
+          <Icon name="arrow_back" size={22} />
+          Voltar
         </button>
 
         <div className="flex min-w-0 flex-col items-center">
-          {treinoNome && <span className="ds-label truncate">{treinoNome}</span>}
-          <span className="text-[16px] tabular-nums text-nevoa [font-family:var(--font-display)]">{formatClock(elapsedSeconds)}</span>
+          <span className="text-[12px] tabular-nums text-cinza2-texto [font-family:var(--font-display)]">
+            Exercício <span className="text-nevoa">{atual}</span> / {total}
+          </span>
+          <span className="text-[15px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">{formatClock(elapsedSeconds)}</span>
         </div>
 
         <button
           type="button"
           onClick={onAskCoach}
           aria-label="Perguntar ao coach"
-          className="flex size-11 items-center justify-center rounded-full text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex size-11 items-center justify-center justify-self-end rounded-full text-cinza outline-none hover:text-brasa focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Brain className="size-5" aria-hidden="true" />
+          <Icon name="psychology" size={24} />
         </button>
       </div>
 
@@ -83,35 +92,19 @@ export function ImmersiveHeader({
           onClick={onPrev}
           disabled={atual <= 1}
           aria-label="Exercício anterior"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full border border-linha text-foreground outline-none disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-ring"
+          className="glass-card flex size-11 shrink-0 items-center justify-center !rounded-full text-nevoa outline-none disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <ChevronLeft className="size-5" aria-hidden="true" />
+          <Icon name="chevron_left" size={22} />
         </button>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="ds-terminal-sm text-center text-cinza">
-            Exercício <span className="text-nevoa">{atual}</span> / {total}
-          </span>
-          <div className="h-[2px] w-full overflow-hidden rounded-full bg-aco2">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${pct}%`,
-                background: 'var(--gradient-brand)',
-                transition: 'width var(--dur-normal) var(--spring-smooth)',
-              }}
-            />
-          </div>
-        </div>
-
+        <span className="min-w-0 flex-1 truncate text-center text-[13px] text-cinza">{treinoNome}</span>
         <button
           type="button"
           onClick={onNext}
           disabled={atual >= total}
           aria-label="Próximo exercício"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full border border-linha text-foreground outline-none disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-ring"
+          className="glass-card flex size-11 shrink-0 items-center justify-center !rounded-full text-nevoa outline-none disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <ChevronRight className="size-5" aria-hidden="true" />
+          <Icon name="chevron_right" size={22} />
         </button>
       </div>
 
@@ -119,8 +112,9 @@ export function ImmersiveHeader({
         <button
           type="button"
           onClick={onFinish}
-          className="flex min-h-11 items-center self-end px-2 ds-body-sm font-semibold text-brasa outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-11 items-center gap-1 self-end px-2 text-[13px] font-semibold text-brasa outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
+          <Icon name="flag" size={18} />
           Finalizar treino
         </button>
       )}
@@ -143,15 +137,18 @@ export type ExerciseFocusProps = {
 
 /** Exercício atual: nome em destaque, vídeo (ou BodyMap), última carga e sugestão de progressão. */
 export function ExerciseFocus({ media, nome, grupo, youtubeId, prescricao, ultima, sugestao }: ExerciseFocusProps) {
+  const midia = media ?? (youtubeId ? <YoutubeEmbed videoId={youtubeId} title={nome} /> : null)
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <h2 className="text-[28px] font-extrabold leading-tight tracking-[-0.015em] text-nevoa [font-family:var(--font-heading)]">
-          {nome}
-        </h2>
+        {!midia && (
+          <h2 className="text-[28px] font-extrabold leading-tight tracking-[-0.015em] text-nevoa [font-family:var(--font-heading)]">
+            {nome}
+          </h2>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           {grupo && (
-            <span className="rounded-full border border-linha bg-aco px-2.5 py-1 ds-body-sm font-medium text-nevoa first-letter:uppercase">
+            <span className="rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] px-2.5 py-1 ds-body-sm font-medium text-nevoa first-letter:uppercase">
               {grupo}
             </span>
           )}
@@ -163,21 +160,27 @@ export function ExerciseFocus({ media, nome, grupo, youtubeId, prescricao, ultim
         </div>
       </div>
 
-      {media ? (
-        <div className="overflow-hidden rounded-xl bg-aco">{media}</div>
-      ) : youtubeId ? (
-        <div className="overflow-hidden rounded-xl bg-aco">
-          <YoutubeEmbed videoId={youtubeId} title={nome} />
+      {midia ? (
+        <div className="glass-card !rounded-[var(--r-md)] p-0">
+          <div className="overflow-hidden rounded-[var(--r-md)] bg-aco2">{midia}</div>
+          {/* Nome sobre o gradiente da base (o vídeo do YouTube tem controles embaixo: nome fica acima dele). */}
+          {media ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-[var(--r-md)] bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pb-3 pt-10">
+              <h2 className="text-[24px] font-extrabold leading-tight tracking-[-0.015em] text-nevoa [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">{nome}</h2>
+            </div>
+          ) : (
+            <h2 className="px-4 py-3 text-[22px] font-extrabold leading-tight text-nevoa">{nome}</h2>
+          )}
         </div>
       ) : (
-        <div className="flex justify-center rounded-xl bg-aco py-4">
+        <div className="glass-card flex justify-center !rounded-[var(--r-md)] py-4">
           <BodyMap size="md" musculosAtivos={grupo ? [grupo] : []} />
         </div>
       )}
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <span className="ds-terminal-xs text-cinza">Última carga</span>
+          <span className="ds-label">Última carga</span>
           <span className="text-[24px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">
             {ultima ? `${kg(ultima.cargaKg)} kg × ${ultima.reps ?? '—'}` : 'primeira vez'}
           </span>
@@ -186,11 +189,12 @@ export function ExerciseFocus({ media, nome, grupo, youtubeId, prescricao, ultim
           <span
             title={sugestao.texto}
             className={cn(
-              'ds-terminal-sm rounded-full border px-3 py-1.5',
-              sugestao.tipo === 'sobe' ? 'border-brasa/60 bg-brasa/10 text-brasa' : 'border-linha bg-aco text-cinza',
+              'flex items-center gap-1 rounded-full border px-3 py-1.5 text-[12px] font-bold',
+              sugestao.tipo === 'sobe' ? 'border-brasa/60 bg-brasa/10 text-brasa' : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-cinza',
             )}
           >
-            {sugestao.tipo === 'sobe' ? `↑ Tente ${kg(sugestao.cargaKg)}kg` : `↺ Repita ${kg(sugestao.cargaKg)}kg`}
+            <Icon name={sugestao.tipo === 'sobe' ? 'trending_up' : 'repeat'} size={16} />
+            {sugestao.tipo === 'sobe' ? `Tente ${kg(sugestao.cargaKg)} kg` : `Repita ${kg(sugestao.cargaKg)} kg`}
           </span>
         )}
       </div>
@@ -238,25 +242,23 @@ export function SetRowView({
         type="button"
         onClick={onEdit}
         aria-label={`Série ${serieNum} concluída: ${carga || '—'} kg × ${reps || '—'}. Tocar para editar`}
-        className="ds-pressable-card flex min-h-14 w-full items-center gap-3 rounded-[var(--r-md)] border border-ok/30 bg-ok/10 px-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="glass-card interactive flex min-h-14 w-full items-center gap-3 !rounded-[var(--r-md)] !border-ok/30 px-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="ds-data-md w-6 text-aco-texto">{serieNum}</span>
         <span className="flex-1 text-[18px] font-bold text-foreground [font-family:var(--font-data)]">
           {carga || '—'} <span className="ds-data-md text-aco-texto">kg</span> × {reps || '—'}
           {rpe && <span className="ds-data-md text-aco-texto"> · RPE {rpe}</span>}
         </span>
-        <span className="flex size-9 items-center justify-center rounded-full bg-ok text-fundo ds-celebrate">
-          <Check className="size-5" strokeWidth={3} aria-hidden="true" />
-        </span>
+        <Icon name="check_circle" size={32} filled className="ds-celebrate text-ok" />
       </button>
     )
   }
 
   const inputCls =
-    'h-12 w-full min-w-0 rounded-[var(--r-sm)] border border-linha bg-aco px-2 text-center text-[20px] font-bold text-nevoa tabular-nums [font-family:var(--font-data)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-brasa focus:shadow-[0_0_0_3px_rgba(252,76,19,0.2)]'
+    'h-12 w-full min-w-0 rounded-[var(--r-sm)] border border-linha bg-aco2 px-2 text-center text-[20px] font-bold text-nevoa tabular-nums [font-family:var(--font-data)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-brasa focus:shadow-[0_0_0_3px_rgba(252,76,19,0.2)]'
 
   return (
-    <div className="flex flex-col gap-2 rounded-[var(--r-md)] border border-linha bg-fundo p-3">
+    <div className="glass-card flex flex-col gap-2 !rounded-[var(--r-md)] p-3">
       <div className="flex items-end gap-2">
         <span className="ds-terminal-md flex h-12 w-6 shrink-0 items-center text-cinza">{String(serieNum).padStart(2, '0')}</span>
         <label className="flex min-w-0 flex-1 flex-col gap-1">
@@ -290,9 +292,9 @@ export function SetRowView({
           onClick={onComplete}
           disabled={saving}
           aria-label={`Concluir série ${serieNum}`}
-          className="ds-pressable flex size-12 shrink-0 items-center justify-center rounded-full bg-brasa text-fundo shadow-[var(--shadow-brasa)] outline-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring"
+          className="ds-pressable flex size-12 shrink-0 items-center justify-center rounded-full text-brasa outline-none hover:bg-brasa/10 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Check className="size-6" strokeWidth={3} aria-hidden="true" />
+          <Icon name="check_circle" size={36} />
         </button>
       </div>
 
@@ -302,7 +304,7 @@ export function SetRowView({
         aria-expanded={maisAberto}
         className="flex min-h-11 items-center gap-1.5 self-start pr-2 ds-body-sm text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <SlidersHorizontal className="size-3.5" aria-hidden="true" />
+        <Icon name="tune" size={14} />
         {maisAberto ? 'Menos' : 'RPE e cadência'}
       </button>
 
@@ -354,22 +356,25 @@ export function RestTimerView({ remainingSeconds, targetSeconds, onFinish, posit
       aria-live={zerou ? 'assertive' : 'off'}
       className={cn(
         position,
-        'inset-x-0 bottom-0 z-40 flex flex-col border-t border-linha backdrop-blur-[20px] ds-safe-bottom',
+        'inset-x-0 bottom-0 z-40 flex flex-col overflow-hidden rounded-t-[var(--r-lg)] border-t border-[var(--glass-border)] shadow-[var(--glass-shadow)] backdrop-blur-[30px] backdrop-saturate-[180%] ds-safe-bottom',
       )}
-      style={{ backgroundColor: 'rgba(29,29,29,0.9)' }}
+      style={{ backgroundColor: 'rgba(16,16,16,0.72)' }}
     >
-      <div className="h-[3px] w-full bg-aco2">
+      <div className="h-[3px] w-full bg-white/[0.06]">
         <div
           className={cn('h-full', zerou ? 'bg-ok' : 'bg-brasa')}
           style={{ width: `${pct}%`, transition: 'width 1s linear' }}
         />
       </div>
       <div className="flex items-center justify-between gap-3 px-5 py-3">
-        <div className="flex flex-col">
-          <span className={cn('ds-terminal-sm', zerou ? 'text-ok' : 'text-cinza')}>{zerou ? 'Pode começar' : 'Pausa'}</span>
+        <div className="flex flex-col gap-1">
+          <span className={cn('flex items-center gap-1.5 ds-label', zerou ? '!text-ok' : '')}>
+            <Icon name="timer" size={20} className={zerou ? 'text-ok' : 'text-brasa'} filled={zerou} />
+            {zerou ? 'Pode começar' : 'Pausa'}
+          </span>
           <span
             className={cn(
-              'text-[56px] font-bold leading-none tracking-[-0.02em] tabular-nums [font-family:var(--font-display)]',
+              'text-[48px] font-bold leading-none tracking-[-0.02em] tabular-nums [font-family:var(--font-display)]',
               zerou ? 'text-ok' : 'text-brasa',
             )}
           >
@@ -381,9 +386,10 @@ export function RestTimerView({ remainingSeconds, targetSeconds, onFinish, posit
           onClick={onFinish}
           className={cn(
             'ds-pressable flex min-h-12 shrink-0 items-center rounded-full px-5 ds-body-md font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            zerou ? 'bg-ok text-fundo' : 'border border-linha bg-fundo/60 text-nevoa',
+            zerou ? 'bg-ok text-fundo' : 'border border-[var(--glass-border)] bg-[var(--glass-bg)] text-nevoa',
           )}
         >
+          <Icon name={zerou ? 'play_arrow' : 'skip_next'} size={20} filled={zerou} className="mr-1" />
           {zerou ? 'Próxima série' : 'Pular'}
         </button>
       </div>

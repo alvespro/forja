@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
-
+import { Icon } from '@/components/Icon'
 import { Modal } from '@/components/ui/modal'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -16,7 +15,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
           <section key={grupo.titulo} className="flex flex-col gap-2">
             <span className="ds-label">{grupo.titulo}</span>
             <div className="grid grid-cols-3 gap-2">
-              {grupo.itens.map(({ to, label, icon: Icon }) => (
+              {grupo.itens.map(({ to, label, icon }) => (
                 <NavLink
                   key={to}
                   to={to}
@@ -24,12 +23,16 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
                   className={({ isActive }) =>
                     cn(
                       'ds-pressable-card flex min-h-20 flex-col items-center justify-center gap-2 rounded-[var(--radius-md)] border px-1 text-center outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                      isActive ? 'border-brasa/60 bg-brasa/10 text-brasa' : 'border-linha bg-aco text-foreground',
+                      isActive ? 'border-brasa/60 bg-brasa/10 text-brasa' : 'border-[var(--glass-border)] bg-[var(--glass-bg)] text-nevoa',
                     )
                   }
                 >
-                  <Icon className="size-5" aria-hidden="true" />
-                  <span className="line-clamp-2 w-full break-words leading-tight ds-body-sm font-medium [hyphens:auto]">{label}</span>
+                  {({ isActive }) => (
+                    <>
+                      <Icon name={icon} size={24} filled={isActive} />
+                      <span className="line-clamp-2 w-full break-words leading-tight ds-body-sm font-medium [hyphens:auto]">{label}</span>
+                    </>
+                  )}
                 </NavLink>
               ))}
             </div>
@@ -44,7 +47,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
           }}
           className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-linha ds-body-md font-semibold text-aco-texto outline-none hover:text-alerta-texto focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <LogOut className="size-4" aria-hidden="true" />
+          <Icon name="logout" size={18} />
           Sair da conta
         </button>
       </div>

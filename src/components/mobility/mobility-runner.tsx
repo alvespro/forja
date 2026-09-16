@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, Pause, Play, SkipForward, X } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { toast } from 'sonner'
 
 import { ExerciseMedia } from '@/components/workout/exercise-media'
@@ -149,7 +149,7 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
             aria-label="Sair da rotina"
             className="flex size-11 shrink-0 items-center justify-center rounded-full text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <X className="size-5" aria-hidden="true" />
+            <Icon name="close" size={20} />
           </button>
         </div>
         <div className="h-1 overflow-hidden rounded-full bg-aco" aria-hidden="true">
@@ -220,7 +220,7 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
             disabled={concluir.isPending}
             className="flex min-h-14 flex-1 items-center justify-center gap-1.5 rounded-full border border-linha ds-body-sm font-semibold text-aco-texto outline-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <SkipForward className="size-4" aria-hidden="true" />
+            <Icon name="skip_next" size={16} />
             Pular
           </button>
           <button
@@ -228,7 +228,7 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
             onClick={() => (timer.isRunning ? timer.pause() : timer.start())}
             className="flex min-h-14 flex-1 items-center justify-center gap-1.5 rounded-full border border-linha ds-body-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {timer.isRunning ? <Pause className="size-4" aria-hidden="true" /> : <Play className="size-4" aria-hidden="true" />}
+            {timer.isRunning ? <Icon name="pause" size={16} /> : <Icon name="play_arrow" size={16} />}
             {timer.isRunning ? 'Pausar' : 'Continuar'}
           </button>
           <button
@@ -237,7 +237,7 @@ export function MobilityRunner({ rotina, habitId, onClose }: MobilityRunnerProps
             disabled={concluir.isPending}
             className="flex min-h-14 flex-[1.3] items-center justify-center gap-1.5 rounded-full bg-brasa ds-body-sm font-semibold text-meia-noite outline-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Check className="size-4" aria-hidden="true" />
+            <Icon name="check" size={16} />
             {concluir.isPending ? 'Salvando…' : 'Concluído'}
           </button>
         </div>

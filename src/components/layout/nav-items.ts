@@ -1,28 +1,10 @@
-import {
-  Brain,
-  CheckSquare,
-  Dumbbell,
-  FlaskConical,
-  HeartPulse,
-  ListChecks,
-  type LucideIcon,
-  NotebookPen,
-  Pill,
-  PersonStanding,
-  Salad,
-  Settings,
-  Sun,
-  Target,
-  Timer,
-  UtensilsCrossed,
-  Wallet,
-  Users,
-} from 'lucide-react'
+import type { IconName } from '@/lib/icons'
 
 export type NavItem = {
   to: string
   label: string
-  icon: LucideIcon
+  /** Material Symbol (ver lib/icons.ts). */
+  icon: IconName
   /** Sub-telas sem item próprio que acendem este destino (ex.: /sono dentro de Saúde). */
   ativoEm?: string[]
 }
@@ -34,10 +16,10 @@ export type NavGroup = {
 
 /** Os quatro destinos fixos da tab bar (o quinto botão é "Mais"). */
 export const primaryNavItems: NavItem[] = [
-  { to: '/', label: 'Hoje', icon: Sun },
-  { to: '/workout', label: 'Treino', icon: Dumbbell, ativoEm: ['/mobilidade'] },
-  { to: '/nutricao', label: 'Nutrição', icon: Salad },
-  { to: '/health', label: 'Saúde', icon: HeartPulse, ativoEm: ['/sono'] },
+  { to: '/', label: 'Hoje', icon: 'home' },
+  { to: '/workout', label: 'Treino', icon: 'fitness_center', ativoEm: ['/mobilidade'] },
+  { to: '/nutricao', label: 'Nutrição', icon: 'restaurant' },
+  { to: '/health', label: 'Saúde', icon: 'monitor_heart', ativoEm: ['/sono'] },
 ]
 
 /** Demais telas, agrupadas por contexto (folha "Mais" no mobile, seções na sidebar). */
@@ -45,33 +27,33 @@ export const secondaryNavGroups: NavGroup[] = [
   {
     titulo: 'Corpo',
     itens: [
-      { to: '/body', label: 'Corpo', icon: PersonStanding },
-      { to: '/protocolo', label: 'Protocolo', icon: FlaskConical },
-      { to: '/suplementos', label: 'Suplementos', icon: Pill },
-      { to: '/meals', label: 'Refeições', icon: UtensilsCrossed },
+      { to: '/body', label: 'Corpo', icon: 'accessibility_new' },
+      { to: '/protocolo', label: 'Protocolo', icon: 'medication' },
+      { to: '/suplementos', label: 'Suplementos', icon: 'medication_liquid' },
+      { to: '/meals', label: 'Refeições', icon: 'lunch_dining' },
     ],
   },
   {
     titulo: 'Rotina',
     itens: [
-      { to: '/tarefas', label: 'Tarefas', icon: CheckSquare },
-      { to: '/habits', label: 'Hábitos', icon: ListChecks },
-      { to: '/goals', label: 'Metas', icon: Target },
-      { to: '/focus', label: 'Foco', icon: Timer },
-      { to: '/journal', label: 'Diário', icon: NotebookPen },
+      { to: '/tarefas', label: 'Tarefas', icon: 'checklist' },
+      { to: '/habits', label: 'Hábitos', icon: 'task_alt' },
+      { to: '/goals', label: 'Metas', icon: 'flag' },
+      { to: '/focus', label: 'Foco', icon: 'center_focus_strong' },
+      { to: '/journal', label: 'Diário', icon: 'edit_note' },
     ],
   },
   {
     titulo: 'Crescimento',
     itens: [
-      { to: '/desenvolvimento', label: 'Desenvolvimento', icon: Brain },
-      { to: '/finances', label: 'Finanças', icon: Wallet },
-      { to: '/crm', label: 'CRM', icon: Users },
+      { to: '/desenvolvimento', label: 'Desenvolvimento', icon: 'psychology' },
+      { to: '/finances', label: 'Finanças', icon: 'account_balance_wallet' },
+      { to: '/crm', label: 'CRM', icon: 'group' },
     ],
   },
   {
     titulo: 'Conta',
-    itens: [{ to: '/configuracoes', label: 'Configurações', icon: Settings }],
+    itens: [{ to: '/configuracoes', label: 'Configurações', icon: 'settings' }],
   },
 ]
 

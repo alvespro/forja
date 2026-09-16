@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { Pill } from 'lucide-react'
 
 import { AlertItem } from '@/components/ds/alert-item'
 import { useSupplementLogs } from '@/hooks/use-supplement-logs'
@@ -32,7 +31,7 @@ export function PretreinoAlertCard() {
   return (
     <AlertItem
       tone="atencao"
-      icon={Pill}
+      icon="medication"
       title="Treinou hoje — tomou o pré-treino?"
       body="Marque o suplemento para manter o registro do protocolo completo."
       action={{ label: 'Marcar', onClick: () => navigate('/suplementos') }}

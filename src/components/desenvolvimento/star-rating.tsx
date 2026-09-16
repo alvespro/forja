@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { cn } from '@/lib/utils'
 
@@ -22,12 +22,10 @@ export function StarRating({ value, onChange, readonly, size = 'md' }: StarRatin
           onClick={() => onChange?.(n)}
           className={cn('outline-none', !readonly && 'cursor-pointer hover:scale-110 transition-transform')}
         >
-          <Star
-            className={cn(
+          <Icon name="star" size={24} className={cn(
               starSize,
               (value ?? 0) >= n ? 'fill-brasa stroke-brasa' : 'fill-transparent stroke-border',
-            )}
-          />
+            )} />
         </button>
       ))}
     </div>

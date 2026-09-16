@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Briefcase, Brain, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Dumbbell, HandHeart, Inbox, Plus, Wallet } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { Icon } from '@/components/Icon'
+import type { IconName } from '@/lib/icons'
 
 import { useActiveCycle } from '@/hooks/use-active-cycle'
 import { useGoals } from '@/hooks/use-goals'
@@ -14,18 +14,18 @@ import type { Task } from '@/types/database'
 type AreaDef = {
   key: string
   label: string
-  icon: LucideIcon
+  icon: IconName
   /** Cor do círculo do ícone e da lista */
   color: string
   bg: string
 }
 
 const AREAS: AreaDef[] = [
-  { key: 'fisico', label: 'Físico', icon: Dumbbell, color: '#0A84FF', bg: 'rgba(10,132,255,0.16)' },
-  { key: 'mental', label: 'Mental', icon: Brain, color: '#BF5AF2', bg: 'rgba(191,90,242,0.16)' },
-  { key: 'financeiro', label: 'Financeiro', icon: Wallet, color: '#FFD60A', bg: 'rgba(255,214,10,0.16)' },
-  { key: 'vinculos', label: 'Vínculos', icon: HandHeart, color: '#FF375F', bg: 'rgba(255,55,95,0.16)' },
-  { key: 'negocio', label: 'Negócio', icon: Briefcase, color: '#64D2FF', bg: 'rgba(100,210,255,0.16)' },
+  { key: 'fisico', label: 'Físico', icon: 'fitness_center', color: '#0A84FF', bg: 'rgba(10,132,255,0.16)' },
+  { key: 'mental', label: 'Mental', icon: 'psychology', color: '#BF5AF2', bg: 'rgba(191,90,242,0.16)' },
+  { key: 'financeiro', label: 'Financeiro', icon: 'account_balance_wallet', color: '#FFD60A', bg: 'rgba(255,214,10,0.16)' },
+  { key: 'vinculos', label: 'Vínculos', icon: 'volunteer_activism', color: '#FF375F', bg: 'rgba(255,55,95,0.16)' },
+  { key: 'negocio', label: 'Negócio', icon: 'work', color: '#64D2FF', bg: 'rgba(100,210,255,0.16)' },
 ]
 
 function areaDef(key: string | null): AreaDef | undefined {
@@ -39,16 +39,16 @@ type SmartKey = 'hoje' | 'sapo' | 'todas' | 'concluidas'
 type SmartDef = {
   key: SmartKey
   label: string
-  icon: LucideIcon
+  icon: IconName
   color: string
   emoji?: string
 }
 
 const SMART: SmartDef[] = [
-  { key: 'hoje', label: 'Hoje', icon: Calendar, color: '#0A84FF' },
-  { key: 'sapo', label: 'Sapo', icon: Calendar, color: '#30D158', emoji: '🐸' },
-  { key: 'todas', label: 'Todas', icon: Inbox, color: '#8E8E93' },
-  { key: 'concluidas', label: 'Concluídas', icon: CheckCircle2, color: '#98989D' },
+  { key: 'hoje', label: 'Hoje', icon: 'calendar_today', color: '#0A84FF' },
+  { key: 'sapo', label: 'Sapo', icon: 'calendar_today', color: '#30D158', emoji: '🐸' },
+  { key: 'todas', label: 'Todas', icon: 'inbox', color: '#8E8E93' },
+  { key: 'concluidas', label: 'Concluídas', icon: 'check_circle', color: '#98989D' },
 ]
 
 type View = { kind: 'home' } | { kind: 'smart'; smart: SmartKey } | { kind: 'area'; area: string }
@@ -89,7 +89,7 @@ export function TarefasPage() {
         {/* Grid de listas inteligentes */}
         <div className="grid grid-cols-2 gap-3">
           {SMART.map((s) => {
-            const Icon = s.icon
+            const icone = s.icon
             const count =
               s.key === 'hoje' ? counts.hoje : s.key === 'sapo' ? counts.sapo : s.key === 'todas' ? counts.todas : counts.concluidas
             return (
@@ -104,7 +104,7 @@ export function TarefasPage() {
                     className="flex size-8 items-center justify-center rounded-full text-white"
                     style={{ backgroundColor: s.color }}
                   >
-                    {s.emoji ? <span className="text-base leading-none">{s.emoji}</span> : <Icon className="size-4.5" />}
+                    {s.emoji ? <span className="text-base leading-none">{s.emoji}</span> : <Icon name={icone} size={18} />}
                   </div>
                   <span className="text-2xl font-bold text-foreground">{count}</span>
                 </div>
@@ -119,7 +119,7 @@ export function TarefasPage() {
           <p className="mb-2 px-1 text-sm font-semibold text-aco-texto">Minhas Listas</p>
           <div className="overflow-hidden rounded-2xl bg-card border border-border/40">
             {AREAS.map((a, i) => {
-              const Icon = a.icon
+              const icone = a.icon
               return (
                 <button
                   key={a.key}
@@ -134,11 +134,11 @@ export function TarefasPage() {
                     className="flex size-8 shrink-0 items-center justify-center rounded-full"
                     style={{ backgroundColor: a.color }}
                   >
-                    <Icon className="size-4.5 text-white" />
+                    <Icon name={icone} size={18} className="text-white" />
                   </div>
                   <span className="flex-1 text-sm font-medium text-foreground">{a.label}</span>
                   <span className="text-sm text-aco-texto">{counts.porArea[a.key] ?? 0}</span>
-                  <ChevronRight className="size-4 text-aco-texto/50" />
+                  <Icon name="chevron_right" size={16} className="text-aco-texto/50" />
                 </button>
               )
             })}
@@ -237,7 +237,7 @@ function ListView({ titulo, cor, tarefas, feitasCount, isLoading, onBack, onTogg
           className="flex items-center gap-0.5 text-sm font-medium mb-1"
           style={{ color: cor }}
         >
-          <ChevronLeft className="size-4.5" />
+          <Icon name="chevron_left" size={18} />
           Listas
         </button>
         <h1 className="font-heading text-3xl font-bold" style={{ color: cor }}>
@@ -320,7 +320,7 @@ function ListView({ titulo, cor, tarefas, feitasCount, isLoading, onBack, onTogg
             className="flex size-6 items-center justify-center rounded-full text-white"
             style={{ backgroundColor: cor }}
           >
-            <Plus className="size-4" />
+            <Icon name="add" size={16} />
           </span>
           Nova Tarefa
         </button>

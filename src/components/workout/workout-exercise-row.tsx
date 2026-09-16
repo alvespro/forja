@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowUp, Pencil, Trash2, Video } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { WorkoutExerciseForm } from '@/components/workout/workout-exercise-form'
@@ -83,7 +83,7 @@ export function WorkoutExerciseRow({
               disabled={isFirst}
               onClick={onMoveUp}
             >
-              <ArrowUp className="size-3.5" aria-hidden="true" />
+              <Icon name="arrow_upward" size={14} />
             </Button>
           )}
           {onMoveDown && (
@@ -95,7 +95,7 @@ export function WorkoutExerciseRow({
               disabled={isLast}
               onClick={onMoveDown}
             >
-              <ArrowDown className="size-3.5" aria-hidden="true" />
+              <Icon name="arrow_downward" size={14} />
             </Button>
           )}
           {exercise?.youtube_video_id && (
@@ -106,7 +106,7 @@ export function WorkoutExerciseRow({
               aria-label={showVideo ? 'Esconder vídeo do exercício' : 'Ver vídeo do exercício'}
               onClick={() => setShowVideo((v) => !v)}
             >
-              <Video className="size-3.5" aria-hidden="true" />
+              <Icon name="videocam" size={14} />
             </Button>
           )}
           <Button
@@ -116,7 +116,7 @@ export function WorkoutExerciseRow({
             aria-label="Editar prescrição"
             onClick={() => setIsEditing(true)}
           >
-            <Pencil className="size-3.5" aria-hidden="true" />
+            <Icon name="edit" size={14} />
           </Button>
           <Button
             type="button"
@@ -125,7 +125,7 @@ export function WorkoutExerciseRow({
             aria-label="Remover prescrição"
             onClick={handleDelete}
           >
-            <Trash2 className="size-3.5" aria-hidden="true" />
+            <Icon name="delete" size={14} />
           </Button>
         </div>
       </div>

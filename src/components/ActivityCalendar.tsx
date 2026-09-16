@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 
+import { GlassCard } from '@/components/GlassCard'
+import { Icon } from '@/components/Icon'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
 import { useActivityCalendar } from '@/hooks/use-activity-calendar'
@@ -56,10 +58,11 @@ export function ActivityCalendar() {
   const ativos = (calendar.data ? [...calendar.data.values()] : []).filter((d) => activityLevel(d) > 0).length
 
   return (
-    <section className="flex flex-col gap-3 rounded-[var(--r-md)] border border-linha bg-fundo p-4">
+    <GlassCard className="flex flex-col gap-3" padding="var(--s4)" aria-label="Atividade dos últimos 90 dias">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="ds-label whitespace-pre">
-          <span className="text-cinza2-texto">08</span>  Atividade · 90 dias
+        <span className="flex items-center gap-2">
+          <Icon name="bolt" size={18} className="text-cinza2" />
+          <span className="ds-label">Últimos 90 dias</span>
         </span>
         {!calendar.isLoading && (
           <span className="text-[13px] tabular-nums text-nevoa [font-family:var(--font-display)]">
@@ -77,7 +80,7 @@ export function ActivityCalendar() {
           <div className="ds-scroll flex gap-[3px] overflow-x-auto">
             <div className="flex flex-col gap-[3px] pr-1" aria-hidden="true">
               {WEEKDAY_LABELS.map((label, i) => (
-                <span key={i} className="flex h-[10px] items-center text-[9px] leading-none text-cinza2-texto [font-family:var(--font-display)]">
+                <span key={i} className="flex h-2 items-center text-[8px] leading-none text-cinza2-texto [font-family:var(--font-display)]">
                   {i % 2 === 0 ? label : ''}
                 </span>
               ))}
@@ -96,12 +99,12 @@ export function ActivityCalendar() {
           <Legend />
         </div>
       )}
-    </section>
+    </GlassCard>
   )
 }
 
 function Cell({ cell }: { cell: Cell }) {
-  if (!cell) return <span className="size-[10px]" />
+  if (!cell) return <span className="size-2" />
   const level: ActivityLevel = cell.day
     ? activityLevel(cell.day)
     : 0
@@ -111,7 +114,7 @@ function Cell({ cell }: { cell: Cell }) {
   const title = `${format(parseDateOnly(cell.date), 'dd/MM')} — Treino: ${treino} | Hábitos: ${habitos}% | Score: ${score}`
   return (
     <span
-      className="size-[10px] rounded-[2px]"
+      className="size-2 rounded-[2px]"
       style={{ backgroundColor: ACTIVITY_LEVEL_COLORS[level] }}
       title={title}
     />
@@ -121,12 +124,12 @@ function Cell({ cell }: { cell: Cell }) {
 function Legend() {
   const levels: ActivityLevel[] = [0, 1, 2, 3, 4]
   return (
-    <div className="ds-terminal-xs flex items-center gap-[3px] text-cinza">
+    <div className="flex items-center gap-[3px] text-[11px] text-cinza2-texto">
       <span className="mr-1">Menos</span>
       {levels.map((l) => (
         <span
           key={l}
-          className="size-[10px] rounded-[2px]"
+          className="size-2 rounded-[2px]"
           style={{ backgroundColor: ACTIVITY_LEVEL_COLORS[l] }}
         />
       ))}

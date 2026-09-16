@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { Camera, Keyboard, Plus, Search, Star } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { FoodSourceBadge } from '@/components/nutrition/food-source-badge'
@@ -114,7 +114,7 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
           {/* Busca + câmera */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-aco-texto" aria-hidden="true" />
+              <Icon name="search" size={16} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-aco-texto" />
               <Input
                 autoFocus
                 value={termo}
@@ -125,7 +125,7 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
               />
             </div>
             <Button type="button" variant="outline" size="icon" aria-label="Escanear código de barras" onClick={() => setScannerAberto(true)}>
-              <Camera className="size-4" aria-hidden="true" />
+              <Icon name="photo_camera" size={16} />
             </Button>
           </div>
 
@@ -241,7 +241,7 @@ function AtalhosSecao({
                   {produto.por_100g.calorias ?? '—'} kcal · P{produto.por_100g.proteina ?? '—'} /100g
                 </span>
               </span>
-              <Plus className="size-4 shrink-0 text-brasa" aria-hidden="true" />
+              <Icon name="add" size={16} className="text-brasa" />
             </button>
           </li>
         ))}
@@ -314,7 +314,7 @@ function ProdutoCard({ produto, onSelecionar }: { produto: ProdutoAlimento; onSe
           aria-label={favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
           className="rounded p-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Star className={cn('size-4', favorito ? 'fill-brasa text-brasa' : 'text-aco-texto')} aria-hidden="true" />
+          <Icon name="star" size={16} className={cn('size-4', favorito ? 'fill-brasa text-brasa' : 'text-aco-texto')} />
         </button>
         <Button type="button" size="sm" onClick={onSelecionar}>
           Adicionar
@@ -559,7 +559,7 @@ function BarcodeScanner({ onDetect, onCancel }: { onDetect: (code: string) => vo
           />
         </div>
         <Button type="button" size="sm" disabled={manual.trim().length < 8} onClick={() => onDetect(manual.trim())}>
-          <Keyboard className="size-3.5" aria-hidden="true" />
+          <Icon name="keyboard" size={14} />
           Buscar
         </Button>
       </div>

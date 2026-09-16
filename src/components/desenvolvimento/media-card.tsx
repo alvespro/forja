@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -94,7 +94,7 @@ export function AddMediaButton() {
   return (
     <>
       <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
-        <Plus className="size-3.5" />
+        <Icon name="add" size={14} />
         Adicionar mídia
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>

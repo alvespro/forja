@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -85,13 +85,13 @@ export function SupplementCard({ supplement, adesaoPct }: SupplementCardProps) {
               aria-label={supplement.ativo ? 'Desativar' : 'Ativar'}
               onClick={handleToggleAtivo}
             >
-              {supplement.ativo ? '⏸' : '▶'}
+              <Icon name={supplement.ativo ? 'pause' : 'play_arrow'} size={18} />
             </Button>
             <Button type="button" variant="ghost" size="icon-sm" aria-label="Editar" onClick={() => setIsEditing(true)}>
-              <Pencil className="size-3.5" aria-hidden="true" />
+              <Icon name="edit" size={14} />
             </Button>
             <Button type="button" variant="ghost" size="icon-sm" aria-label="Excluir" onClick={handleDelete}>
-              <Trash2 className="size-3.5" aria-hidden="true" />
+              <Icon name="delete" size={14} />
             </Button>
           </div>
         </CardContent>

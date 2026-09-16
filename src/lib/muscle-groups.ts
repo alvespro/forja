@@ -1,3 +1,5 @@
+import type { IconName } from '@/lib/icons'
+
 // Grupos musculares: reconhecimento a partir de texto livre, ícones, cores e ordenação.
 
 const norm = (s: string) =>
@@ -89,6 +91,27 @@ const ICONS: Record<MuscleKey, string> = {
   gluteo: '🍑',
   core: '🧱',
   panturrilha: '🐮',
+}
+
+// Material Symbols por grupo: não há ícone de músculo, então cada um usa o movimento que o representa.
+const MATERIAL_ICONS: Record<MuscleKey, IconName> = {
+  peito: 'fitness_center',
+  costas: 'rowing',
+  pernas: 'directions_walk',
+  biceps: 'sports_mma',
+  triceps: 'front_hand',
+  ombros: 'accessibility_new',
+  gluteo: 'airline_seat_recline_extra',
+  core: 'self_improvement',
+  panturrilha: 'directions_run',
+}
+
+/** Ícone Material do grupo (grupos fora do mapa, como antebraço e pescoço, usam o genérico). */
+export function materialIconForGroup(grupo: string | null | undefined): IconName {
+  const texto = (grupo ?? '').toLowerCase()
+  if (texto.includes('antebra')) return 'back_hand'
+  const key = primaryGroupKey(grupo)
+  return key ? MATERIAL_ICONS[key] : 'sports_gymnastics'
 }
 
 /** Rótulo usado quando o exercício não tem grupo muscular definido. */

@@ -14,7 +14,7 @@ describe('computeNextAction', () => {
   it('antes das 7h prioriza o ritual 5AM', () => {
     const action = computeNextAction({ ...base, nowMinutes: 6 * 60 })
     expect(action.to).toBe('/habits')
-    expect(action.icon).toBe('☀️')
+    expect(action.icon).toBe('wb_twilight')
   })
 
   it('dentro da janela de ±30min de uma refeição sugere registrar', () => {
@@ -41,7 +41,7 @@ describe('computeNextAction', () => {
   })
 
   it('manhã/tarde com treino feito foca nos hábitos', () => {
-    expect(computeNextAction(base).icon).toBe('🎯')
+    expect(computeNextAction(base).icon).toBe('flag')
   })
 
   it('16h–19h sem treino abre a janela do treino', () => {

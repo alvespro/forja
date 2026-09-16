@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { BookOpenCheck } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { useCourses } from '@/hooks/use-courses'
@@ -33,7 +33,7 @@ export function SpacedReviewCard() {
     <Card className="border-purple-700/30 bg-purple-950/10">
       <CardContent className="flex flex-col gap-2.5">
         <div className="flex items-center gap-2">
-          <BookOpenCheck className="size-4 text-purple-400" />
+          <Icon name="library_add_check" size={16} className="text-purple-400" />
           <span className="text-sm font-semibold text-foreground">🔁 Revisão de hoje</span>
         </div>
 

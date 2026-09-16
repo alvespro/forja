@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -83,7 +83,7 @@ export function SuggestionsCard({ tipo, semana }: SuggestionsCardProps) {
                   disabled={updateStatus.isPending || createReading.isPending || createCourse.isPending || createMedia.isPending}
                   onClick={() => handleAdicionar(s.id, s.titulo, s.tipo, s.autor_ou_diretor, s.plataforma)}
                 >
-                  <Check className="size-3" />
+                  <Icon name="check" size={12} />
                   Adicionar
                 </Button>
                 <Button
@@ -93,7 +93,7 @@ export function SuggestionsCard({ tipo, semana }: SuggestionsCardProps) {
                   className="h-7 w-7 p-0 text-aco-texto"
                   onClick={() => updateStatus.mutate({ id: s.id, status: 'ignorado' })}
                 >
-                  <X className="size-3" />
+                  <Icon name="close" size={12} />
                 </Button>
               </div>
             </div>

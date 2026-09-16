@@ -21,7 +21,7 @@ export function RestTimer({ targetSeconds, onFinish }: RestTimerProps) {
     if (remainingSeconds <= 0 && !alertedRef.current) {
       alertedRef.current = true
       playBeep()
-      haptic('strong')
+      haptic('pausa')
     }
   }, [remainingSeconds])
 

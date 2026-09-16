@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, Plus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
-import { BodyMap } from '@/components/BodyMap'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Button } from '@/components/ui/button'
@@ -11,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ExerciseForm } from '@/components/workout/exercise-form'
 import { useExerciseLoadSummary } from '@/hooks/use-exercise-load-summary'
 import { useCreateExercise, useExercises } from '@/hooks/use-exercises'
-import { groupSortIndex, SEM_GRUPO } from '@/lib/muscle-groups'
+import { groupSortIndex, materialIconForGroup, SEM_GRUPO } from '@/lib/muscle-groups'
 import type { Exercise } from '@/types/database'
 
 type GroupBucket = { grupo: string; exercises: Exercise[] }
@@ -75,12 +74,12 @@ export function ExerciseLibrary() {
             onClick={() => setSelectedGroup(null)}
             className="flex min-h-11 min-w-0 items-center gap-2 rounded-md pr-2 text-left ds-h3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ChevronLeft className="size-5 text-aco-texto" aria-hidden="true" />
+            <Icon name="chevron_left" size={20} className="text-aco-texto" />
             <span className="truncate first-letter:uppercase">{selectedGroup}</span>
             <span className="ds-data-md text-aco-texto">{selectedExercises.length}</span>
           </button>
           <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-            <Plus className="size-3.5" aria-hidden="true" />
+            <Icon name="add" size={14} />
             Exercício
           </Button>
         </div>
@@ -100,7 +99,7 @@ export function ExerciseLibrary() {
       <div className="flex items-center justify-between">
         <span className="ds-label whitespace-pre"><span className="text-cinza2-texto">01</span>  Grupos musculares</span>
         <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-          <Plus className="size-3.5" aria-hidden="true" />
+          <Icon name="add" size={14} />
           Exercício
         </Button>
       </div>
@@ -115,15 +114,17 @@ export function ExerciseLibrary() {
               type="button"
               onClick={() => setSelectedGroup(bucket.grupo)}
               aria-label={`${bucket.grupo}: ${bucket.exercises.length} exercício${bucket.exercises.length === 1 ? '' : 's'}`}
-              className="ds-pressable-card ds-stagger ds-dots group relative flex aspect-square flex-col items-center justify-between overflow-hidden rounded-[var(--r-md)] border border-linha bg-aco p-2.5 text-center outline-none transition-[border-color,box-shadow] duration-150 hover:border-brasa hover:shadow-[0_0_24px_rgba(252,76,19,0.2)] focus-visible:ring-2 focus-visible:ring-ring"
+              className="glass-card interactive ds-stagger group flex aspect-square flex-col items-center justify-center gap-1.5 !rounded-[var(--r-md)] p-2 text-center outline-none hover:!border-brasa hover:!shadow-[var(--glass-shadow),0_0_24px_rgba(252,76,19,0.2)] focus-visible:ring-2 focus-visible:ring-ring active:!border-brasa"
               style={{ animationDelay: `${i * 40}ms` }}
             >
-              <span className="ds-terminal-xs w-full truncate text-left text-cinza group-hover:text-nevoa">{bucket.grupo}</span>
-              <span className="flex w-full items-end justify-between">
-                <span className="text-[20px] font-bold leading-none tabular-nums text-nevoa [font-family:var(--font-display)]">
-                  {bucket.exercises.length}
-                </span>
-                <BodyMap size="tile" musculosAtivos={[bucket.grupo]} />
+              <Icon
+                name={materialIconForGroup(bucket.grupo)}
+                size={32}
+                className="text-cinza transition-colors group-hover:text-brasa group-active:text-brasa"
+              />
+              <span className="w-full truncate text-[13px] font-medium text-cinza first-letter:uppercase group-hover:text-nevoa">{bucket.grupo}</span>
+              <span className="text-[10px] tabular-nums text-cinza2-texto [font-family:var(--font-display)]">
+                {bucket.exercises.length} ex.
               </span>
             </button>
           ))}

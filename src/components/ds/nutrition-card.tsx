@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Check, Plus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { MacroBar } from '@/components/ds/macro-bar'
 import { StatusDot } from '@/components/ds/status-dot'
@@ -71,7 +71,7 @@ export function NutritionCard({
               <span className="ds-terminal-xs rounded-[4px] bg-brasa px-1.5 pb-px pt-0.5 text-fundo">Agora</span>
             )}
             <span className={cn('truncate font-semibold text-nevoa', agora ? 'ds-h4' : 'ds-body-lg')}>{nome}</span>
-            {registrado && <Check className="size-4 shrink-0 text-ok" aria-label="registrado" />}
+            {registrado && <Icon name="check" size={16} className="text-ok" label="registrado" />}
           </div>
           {horario && <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">{horario}</span>}
         </div>
@@ -99,7 +99,7 @@ export function NutritionCard({
               agora ? 'min-h-14 border-brasa/60 ds-body-md font-semibold text-brasa' : 'min-h-11 border-linha ds-body-sm text-cinza',
             )}
           >
-            <Plus className="size-4" aria-hidden="true" />
+            <Icon name="add" size={16} />
             {agora ? 'Registrar alimento' : 'Registrar'}
           </button>
         )
@@ -116,7 +116,7 @@ export function NutritionCard({
                 agora ? 'bg-brasa text-fundo shadow-[var(--shadow-brasa)]' : 'border border-linha bg-fundo text-nevoa',
               )}
             >
-              <Plus className="size-4" aria-hidden="true" />
+              <Icon name="add" size={16} />
               Registrar alimento
             </button>
           )}

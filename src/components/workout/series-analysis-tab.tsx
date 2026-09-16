@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { Card, CardContent } from '@/components/ui/card'
@@ -28,11 +28,11 @@ function cargaAnteriorPorSerie(older: SessionSets | undefined): Map<number, numb
 
 function TrendArrow({ atual, anterior }: { atual: number; anterior: number | undefined }) {
   if (anterior === undefined || atual === anterior)
-    return <Minus className="size-3 text-aco-texto" aria-label="igual" />
+    return <Icon name="remove" size={12} className="text-aco-texto" label="igual" />
   return atual > anterior ? (
-    <ArrowUp className="size-3 text-ok" aria-label="subiu" />
+    <Icon name="arrow_upward" size={12} className="text-ok" label="subiu" />
   ) : (
-    <ArrowDown className="size-3 text-alerta-texto" aria-label="caiu" />
+    <Icon name="arrow_downward" size={12} className="text-alerta-texto" label="caiu" />
   )
 }
 

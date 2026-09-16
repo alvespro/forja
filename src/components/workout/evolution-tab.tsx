@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Brain, TrendingUp } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -73,14 +73,14 @@ export function EvolutionTab() {
           </Select>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={handleAskCoach}>
-          <Brain className="size-3.5" aria-hidden="true" />
+          <Icon name="psychology" size={14} />
           Perguntar ao coach
         </Button>
       </div>
 
       {overloadMessage && (
         <div className="flex items-start gap-2 rounded-lg border border-brasa/40 bg-brasa/10 px-3 py-2">
-          <TrendingUp className="mt-0.5 size-4 shrink-0 text-brasa" aria-hidden="true" />
+          <Icon name="trending_up" size={16} className="mt-0.5 text-brasa" />
           <p className="text-sm text-foreground">{overloadMessage}</p>
         </div>
       )}

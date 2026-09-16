@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowRight, BarChart3, ChevronLeft, Play } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { Line, LineChart, ResponsiveContainer } from 'recharts'
 
 import { ExerciseSearch } from '@/components/ExerciseSearch'
@@ -220,7 +220,7 @@ export function ExercicioDetalhePage() {
                     <span className="text-aco-texto">Experimente também: </span>
                     {nomeDaVariacao(v)}
                   </span>
-                  <ArrowRight className="size-4 shrink-0 text-brasa" aria-hidden="true" />
+                  <Icon name="arrow_forward" size={16} className="text-brasa" />
                 </button>
               </li>
             ))}
@@ -245,7 +245,7 @@ export function ExercicioDetalhePage() {
                       <img src={ex.gif_url ?? ex.imagem_url ?? ''} alt="" loading="lazy" className="aspect-square w-full bg-white object-cover" />
                     ) : (
                       <span className="flex aspect-square w-full items-center justify-center bg-aco text-2xl" aria-hidden="true">
-                        🧘
+                        <Icon name="self_improvement" size={28} className="text-cinza" />
                       </span>
                     )}
                     <span className="line-clamp-2 px-2 text-xs font-medium text-foreground">{r.nome}</span>
@@ -324,12 +324,12 @@ export function ExercicioDetalhePage() {
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button type="button" variant="outline" className="min-h-11 flex-1" onClick={() => navigate(`/workout/evolucao/${exercise.id}`)}>
-          <BarChart3 className="size-4" aria-hidden="true" />
+          <Icon name="bar_chart" size={16} />
           Ver evolução completa
         </Button>
         {primeiroTreino && (
           <Button type="button" className="min-h-11 flex-1" onClick={() => navigate('/workout', { state: { initialTab: 'treinos' } })}>
-            <Play className="size-4" aria-hidden="true" />
+            <Icon name="play_arrow" size={16} />
             Iniciar treino com este exercício
           </Button>
         )}
@@ -355,7 +355,7 @@ function BackLink() {
       to="/workout"
       className="flex min-h-11 w-fit items-center gap-1 text-sm text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <ChevronLeft className="size-4" aria-hidden="true" />
+      <Icon name="chevron_left" size={16} />
       Treino
     </Link>
   )

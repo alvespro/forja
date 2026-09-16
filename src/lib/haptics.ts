@@ -8,6 +8,8 @@ const PATTERNS = {
   double: [30, 10, 30],
   /** Forte: cronômetro de pausa zerou. */
   strong: 200,
+  /** Fim da pausa entre séries: dois toques curtos. */
+  pausa: [50, 30, 50],
   /** Suave: fim de um exercício de mobilidade (menor que o fim de pausa). */
   soft: 60,
 } as const

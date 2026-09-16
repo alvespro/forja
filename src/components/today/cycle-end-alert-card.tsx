@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { AlarmClock } from 'lucide-react'
 
 import { AlertItem } from '@/components/ds/alert-item'
 import { useActiveCycle } from '@/hooks/use-active-cycle'
@@ -18,7 +17,7 @@ export function CycleEndAlertCard() {
   return (
     <AlertItem
       tone={diasRestantes <= 3 ? 'critico' : 'atencao'}
-      icon={AlarmClock}
+      icon="alarm"
       title={`Ciclo termina em ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}`}
       body="Registre a pesagem final e planeje o próximo ciclo."
       action={{ label: 'Ir para Corpo', onClick: () => navigate('/body') }}

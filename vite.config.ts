@@ -4,9 +4,16 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+import { iconNamesParam } from './src/lib/icons.ts'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    // Material Symbols: o index.html pede só os ícones do mapa (src/lib/icons.ts).
+    {
+      name: 'forja-icon-names',
+      transformIndexHtml: (html) => html.replace('__ICON_NAMES__', iconNamesParam()),
+    },
     react(),
     tailwindcss(),
     VitePWA({
@@ -47,6 +54,22 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,ico,woff,woff2}'],
         runtimeCaching: [
+          {
+            // CSS do Google Fonts (Bricolage, Space Mono, Material Symbols): atualiza em segundo plano.
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-css' },
+          },
+          {
+            // Arquivos das fontes: imutáveis por URL — cache de 1 ano deixa o PWA legível offline.
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-files',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             // Cache das chamadas ao Supabase (REST/Auth)
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,

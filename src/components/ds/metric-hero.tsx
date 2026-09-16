@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { cn } from '@/lib/utils'
 
@@ -45,7 +45,7 @@ export function MetricHero({
   tone = 'brasa',
   className,
 }: MetricHeroProps) {
-  const DeltaIcon = delta?.direction === 'up' ? ArrowUp : delta?.direction === 'down' ? ArrowDown : Minus
+  const deltaIcon = delta?.direction === 'up' ? 'arrow_upward' : delta?.direction === 'down' ? 'arrow_downward' : 'remove'
   // "Bom" é semântico, não direcional: perder peso é bom, perder carga não.
   const deltaTone =
     delta?.good === undefined
@@ -67,7 +67,7 @@ export function MetricHero({
 
       {delta && (
         <span className={cn('flex items-center gap-1', size === 'xl' ? 'text-[14px] [font-family:var(--font-display)]' : 'ds-data-md', deltaTone)}>
-          <DeltaIcon className={size === 'xl' ? 'size-4' : 'size-3'} aria-hidden="true" />
+          <Icon name={deltaIcon} size={size === 'xl' ? 16 : 12} />
           {delta.value}
         </span>
       )}

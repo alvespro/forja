@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Save, Sparkles, Zap } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -101,7 +101,7 @@ export function LivroDetalhePage() {
     <div className="flex flex-col gap-4">
       {/* Volta */}
       <button type="button" onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-aco-texto hover:text-foreground w-fit">
-        <ArrowLeft className="size-4" />
+        <Icon name="arrow_back" size={16} />
         Voltar
       </button>
 
@@ -237,7 +237,7 @@ export function LivroDetalhePage() {
                   disabled={createTask.isPending}
                   onClick={handleCriarTarefa}
                 >
-                  <Zap className="size-3.5 text-brasa" />
+                  <Icon name="bolt" size={14} className="text-brasa" />
                   {createTask.isPending ? 'Criando…' : 'Criar tarefa a partir desta ação'}
                   {createTask.isSuccess && ' ✓'}
                 </Button>
@@ -278,9 +278,9 @@ export function LivroDetalhePage() {
           disabled={updateReading.isPending}
           className="gap-1.5"
         >
-          <Save className="size-4" />
+          <Icon name="save" size={16} />
           {updateReading.isPending ? 'Salvando…' : 'Salvar'}
-          {updateReading.isSuccess && ' ✓'}
+          {updateReading.isSuccess && <Icon name="check" size={16} className="ml-1 inline-block align-middle" />}
         </Button>
 
         {status === 'lido' && (aprendizado1 || aprendizado2 || aprendizado3) && (
@@ -291,7 +291,7 @@ export function LivroDetalhePage() {
             disabled={gerarInsights.isPending}
             className="gap-1.5"
           >
-            {gerarInsights.isPending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-brasa" />}
+            {gerarInsights.isPending ? <Icon name="progress_activity" size={16} className="animate-spin" /> : <Icon name="auto_awesome" size={16} className="text-brasa" />}
             {gerarInsights.isPending ? 'Gerando…' : 'Gerar insights com IA'}
           </Button>
         )}
@@ -302,7 +302,7 @@ export function LivroDetalhePage() {
             variant="outline"
             onClick={() => { setStatus('lendo'); setProgresso(0) }}
           >
-            ▶ Iniciar leitura
+            <Icon name="play_arrow" size={18} className="mr-1.5 inline-block align-middle" />Iniciar leitura
           </Button>
         )}
 
@@ -312,7 +312,7 @@ export function LivroDetalhePage() {
             variant="outline"
             onClick={() => { setStatus('lido'); setProgresso(100) }}
           >
-            ✓ Marcar como lido
+            <Icon name="check" size={18} className="mr-1.5 inline-block align-middle" />Marcar como lido
           </Button>
         )}
       </div>
@@ -322,7 +322,7 @@ export function LivroDetalhePage() {
         <Card className="border-brasa/30 bg-brasa/5">
           <CardContent className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-brasa" />
+              <Icon name="auto_awesome" size={16} className="text-brasa" />
               <span className="text-sm font-semibold text-foreground">Insights do Mentor</span>
             </div>
             <p className="whitespace-pre-wrap text-sm text-foreground">{insights}</p>

@@ -1,5 +1,5 @@
-/** Distância (px) que dispara a atualização ao soltar. */
-export const PULL_THRESHOLD = 64
+/** Distância do indicador (px) que dispara a atualização ao soltar — com a resistência de 50%, o dedo puxa 80px. */
+export const PULL_THRESHOLD = 40
 /** Distância máxima que o indicador acompanha o dedo. */
 export const PULL_MAX = 110
 

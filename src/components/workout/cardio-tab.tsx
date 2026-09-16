@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Plus, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -43,7 +43,7 @@ export function CardioTab() {
         <p className="text-sm text-aco-texto">Registre corridas e sessões de cardio.</p>
         {!isAdding && (
           <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-            <Plus className="size-3.5" aria-hidden="true" />
+            <Icon name="add" size={14} />
             Cardio
           </Button>
         )}
@@ -110,7 +110,7 @@ export function CardioTab() {
                   aria-label="Excluir registro"
                   onClick={() => handleDelete(session.id)}
                 >
-                  <Trash2 className="size-3.5" aria-hidden="true" />
+                  <Icon name="delete" size={14} />
                 </Button>
               </CardContent>
             </Card>

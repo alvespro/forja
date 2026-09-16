@@ -432,34 +432,38 @@ A partir de `set_logs`, por exercício e ao longo do tempo:
 
 ## 7. Design system
 
-Vermilion + Cod Gray com elementos DeerFlow AIoT (15/09/2026). Tokens em
-`src/index.css` (paleta) e `src/styles/design-system.css` (escalas, sombras,
-movimento, botões, toast). Os nomes antigos continuam valendo como apelidos:
+Aaru Dashboard + Liquid Glass (iOS 26) + Vermilion (16/09/2026). Tokens em
+`src/index.css` (paleta, vidro, glow) e `src/styles/design-system.css` (escalas,
+`.glass-card`, botões, toast, Material Symbols). Apelidos antigos continuam valendo:
 `meia-noite` → fundo, `aco-claro` → aco2, `aco-texto` → cinza, `brasa-quente` → brasa2.
 
 ```
---fundo:#000000   --aco:#1D1D1D (cards)   --aco2:#333333   --linha:#3D3D3D
---brasa:#FC4C13   --brasa2:#E85002 (hover)   --brasa3:#C10801
---nevoa:#F9F9F9 (texto)   --cinza:#A7A7A7 (secundário)   --cinza2:#646464 (ícones/bordas)
---cinza2-texto:#8A8A8A (ordinais e placeholders em texto)
---ok:#4CAF7D   --atencao:#FC4C13   --alerta:#C10801 (borda/ponto)   --alerta-texto:#FF6B5B
---gradient-brand: 135° preto → #C10801 → #F16001 → #FC4C13
+--fundo:#000000  --aco:#0D0D0D  --aco2:#1A1A1A  --aco3:#262626  --linha:#2E2E2E
+--brasa:#FC4C13  --brasa2:#E85002  --brasa3:#C10801
+--glass-bg:rgba(255,255,255,.04)  --glass-border:rgba(255,255,255,.10)  --glass-blur:blur(20px) saturate(180%)
+--nevoa:#F9F9F9  --cinza:#A7A7A7  --cinza2:#646464 (ícones/bordas)  --cinza2-texto:#8A8A8A (texto pequeno)
+--ok:#4CAF7D  --atencao:#FC4C13  --alerta:#C10801 (borda/ponto)  --alerta-texto:#FF6B5B
+--r-sm:10  --r-md:16  --r-lg:22  --r-xl:32
 ```
 
-- **Fontes (self-hosted, funcionam offline):** Bricolage Grotesque (títulos, texto, navegação),
-  Space Mono (números, métricas, cronômetros) e VT323 (labels dot-matrix: "01  FORJA SCORE",
-  "• ATIVO"). A VT323 é pixelada e pequena: a escala `.ds-terminal-*` já compensa
-  (xs 15px ≈ 10px de fonte comum).
-- **Componentes base (`src/components/ds/`):** StatusDot, MetricCard (label numerado +
-  número dominante + status; sem dado, fundo de pontos), Sparkline, EcgLine, ProgressRing;
-  Skeleton com shimmer e EmptyState com padrão de pontos.
-- **Contraste (AA):** texto preto sobre vermilion nos botões primários (6,2:1 — branco daria
-  3,2:1). `--alerta` e `--cinza2` não passam como texto pequeno: use `alerta-texto` e
-  `cinza2-texto`.
+- **Fontes (Google Fonts, index.html):** Bricolage Grotesque (títulos, texto, labels em caixa
+  alta) e Space Mono (números). O service worker guarda CSS e arquivos das fontes (offline).
+- **Ícones:** Material Symbols Outlined, fonte variável (FILL/wght/GRAD/opsz), via
+  `<Icon name="…" filled />` (`src/components/Icon.tsx`). Só os nomes de
+  `src/lib/icons.ts` são baixados (`icon_names`, preenchido no build por um plugin do Vite):
+  ~90 KB em vez de vários MB. Ícone novo → adicionar no mapa. Botões não usam emoji.
+- **GlassCard** (`src/components/GlassCard.tsx`): base de todo card — `gradient`, `glow`,
+  `active` (borda brasa), `onClick` (vira botão acessível com ripple). O blur fica só no que
+  flutua sobre conteúdo (tab bar, sidebar, modais, cronômetro, FAB): sobre o preto liso ele
+  não aparece e custa GPU na rolagem.
+- **Navegação:** tab bar de vidro (ícone preenchido + linha indicadora com spring) e sidebar
+  de 64px que expande para 220px no hover/foco, por cima do conteúdo.
+- **Contraste (AA):** texto preto sobre o vermilion nos botões (6,2:1 — branco daria 3,2:1).
+  `--alerta` e `--cinza2` não passam como texto pequeno: use `alerta-texto` e `cinza2-texto`.
 - **Status:** verde = no alvo, vermilion = atenção, vermelho = fora/crítico.
 - **Obrigatório em toda tela:** estado **carregando** (skeleton), **vazio** (com chamada para ação, não tela morta) e **erro** (mensagem clara + retry).
 - Acessibilidade: foco de teclado visível (2px brasa), toques ≥ 44px, `prefers-reduced-motion`
-  respeitado, safe areas do iPhone na tab bar e nos elementos fixos.
+  desliga animações, safe areas do iPhone na tab bar e nos elementos fixos.
 
 ---
 

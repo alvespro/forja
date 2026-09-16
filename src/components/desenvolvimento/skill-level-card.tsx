@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -97,7 +97,7 @@ export function SkillLevelCard({ area }: SkillLevelCardProps) {
                         className="h-6 text-xs px-1"
                         onClick={() => setEditingId(null)}
                       >
-                        ✕
+                        <Icon name="close" size={16} />
                       </Button>
                     </div>
                   ) : (
@@ -108,7 +108,7 @@ export function SkillLevelCard({ area }: SkillLevelCardProps) {
                         onClick={() => { setEditingId(skill.id); setEditValue(skill.nivel_atual ?? 5) }}
                         className="text-aco-texto hover:text-foreground outline-none"
                       >
-                        <Pencil className="size-3" />
+                        <Icon name="edit" size={12} />
                       </button>
                     </div>
                   )}

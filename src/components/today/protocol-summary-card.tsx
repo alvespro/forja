@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { FlaskConical } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -60,7 +60,7 @@ export function ProtocolSummaryCard() {
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FlaskConical className="size-4 text-cinza" />
+            <Icon name="science" size={16} className="text-cinza" />
             <span className="text-sm font-semibold text-foreground">
               🔬 Protocolo — Semana {weekNum}
             </span>
@@ -91,7 +91,7 @@ export function ProtocolSummaryCard() {
               disabled={createLog.isPending || jaRegistradoHoje}
               onClick={handleRegistrarAplicacao}
             >
-              {createLog.isPending ? '…' : jaRegistradoHoje ? '✓ Registrado' : '✓ Registrar'}
+              {createLog.isPending ? '…' : (<><Icon name="check" size={16} className="mr-1.5 inline-block align-middle" />{jaRegistradoHoje ? 'Registrado' : 'Registrar'}</>)}
             </Button>
           </div>
         )}

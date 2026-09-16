@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, Loader2, RefreshCw } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -122,7 +122,7 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
         >
           <span className="font-heading text-sm font-bold text-foreground">Dieta × Objetivo</span>
           {collapsible && (
-            <ChevronDown className={cn('size-4 text-aco-texto transition-transform', expanded && 'rotate-180')} aria-hidden="true" />
+            <Icon name="expand_more" size={16} className={cn('size-4 text-aco-texto transition-transform', expanded && 'rotate-180')} />
           )}
         </button>
 
@@ -130,7 +130,7 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
           <>
             {analisar.isPending && !cache ? (
               <span className="flex items-center gap-1.5 text-xs text-aco-texto">
-                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> Analisando…
+                <Icon name="progress_activity" size={14} className="animate-spin" /> Analisando…
               </span>
             ) : veredito ? (
               <div className={cn('rounded-lg border px-3 py-2 text-sm font-medium', VEREDITO_CLASS[veredito])}>
@@ -167,9 +167,9 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
                 )}
                 <Button type="button" variant="outline" size="sm" className="min-h-11" disabled={analisar.isPending} onClick={handleReanalisar}>
                   {analisar.isPending ? (
-                    <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                    <Icon name="progress_activity" size={14} className="animate-spin" />
                   ) : (
-                    <RefreshCw className="size-3.5" aria-hidden="true" />
+                    <Icon name="sync" size={14} />
                   )}
                   Reanalisar
                 </Button>

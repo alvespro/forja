@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Plus, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -72,7 +72,7 @@ export function FinancesPage() {
           </select>
           {!isAdding && (
             <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-              <Plus className="size-3.5" aria-hidden="true" />
+              <Icon name="add" size={14} />
               Novo lançamento
             </Button>
           )}
@@ -152,7 +152,7 @@ export function FinancesPage() {
                     aria-label={`Excluir lançamento ${finance.descricao ?? finance.categoria ?? ''}`}
                     onClick={() => handleDelete(finance.id, finance.descricao)}
                   >
-                    <Trash2 className="size-3.5" aria-hidden="true" />
+                    <Icon name="delete" size={14} />
                   </Button>
                 </div>
               </CardContent>

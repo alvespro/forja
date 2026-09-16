@@ -1,4 +1,4 @@
-import { Play } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { gradientForGroup } from '@/lib/muscle-groups'
 import { cn } from '@/lib/utils'
@@ -70,7 +70,7 @@ export function WorkoutCard({
             aria-label={`Iniciar ${nome}`}
             className="ds-pressable flex size-12 shrink-0 items-center justify-center rounded-full bg-brasa text-meia-noite shadow-[var(--shadow-brasa)] outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Play className="size-5 fill-current" aria-hidden="true" />
+            <Icon name="play_arrow" size={20} filled />
           </button>
         )}
       </div>

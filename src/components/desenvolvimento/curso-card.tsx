@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { Award, BookOpen, CheckCircle2, Clock, ExternalLink } from 'lucide-react'
+import { Icon } from '@/components/Icon'
+import type { IconName } from '@/lib/icons'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,10 +14,10 @@ type CursoCardProps = {
   areas?: DevArea[]
 }
 
-const STATUS_ICON: Record<string, React.ElementType> = {
-  quero_ler: Clock,
-  lendo: BookOpen,
-  lido: CheckCircle2,
+const STATUS_ICON: Record<string, IconName> = {
+  quero_ler: 'schedule',
+  lendo: 'menu_book',
+  lido: 'check_circle',
 }
 
 const STATUS_CLASS: Record<string, string> = {
@@ -28,7 +29,7 @@ const STATUS_CLASS: Record<string, string> = {
 export function CursoCard({ course, areas }: CursoCardProps) {
   const navigate = useNavigate()
   const area = areas?.find((a) => a.id === course.dev_area_id)
-  const StatusIcon = STATUS_ICON[course.status ?? 'quero_ler'] ?? Clock
+  const statusIcon = STATUS_ICON[course.status ?? 'quero_ler'] ?? 'schedule'
 
   const initials = course.titulo
     .split(' ')
@@ -55,7 +56,7 @@ export function CursoCard({ course, areas }: CursoCardProps) {
               {course.carga_horaria && <p className="text-xs text-aco-texto/70">{course.carga_horaria}h</p>}
             </div>
             <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[course.status ?? 'quero_ler']}`}>
-              <StatusIcon className="size-3" />
+              <Icon name={statusIcon} size={12} />
               {STATUS_LABEL[course.status ?? 'quero_ler']}
             </span>
           </div>
@@ -93,9 +94,9 @@ export function CursoCard({ course, areas }: CursoCardProps) {
                   className="h-6 gap-1 text-xs text-ok"
                   onClick={(e) => { e.stopPropagation(); window.open(course.certificado_url!, '_blank') }}
                 >
-                  <Award className="size-3" />
+                  <Icon name="workspace_premium" size={12} />
                   Certificado
-                  <ExternalLink className="size-3" />
+                  <Icon name="open_in_new" size={12} />
                 </Button>
               )}
               <Button
@@ -105,7 +106,7 @@ export function CursoCard({ course, areas }: CursoCardProps) {
                 className="h-6 text-xs"
                 onClick={(e) => { e.stopPropagation(); navigate(`/desenvolvimento/curso/${course.id}`) }}
               >
-                {course.status === 'lido' ? '📝 Review' : course.status === 'lendo' ? '▶ Continuar' : '+ Iniciar'}
+                {course.status === 'lido' ? (<><Icon name="rate_review" size={16} className="mr-1.5 inline-block align-middle" />Review</>) : course.status === 'lendo' ? (<><Icon name="play_arrow" size={16} className="mr-1.5 inline-block align-middle" />Continuar</>) : (<><Icon name="add" size={16} className="mr-1.5 inline-block align-middle" />Iniciar</>)}
               </Button>
             </div>
           </div>

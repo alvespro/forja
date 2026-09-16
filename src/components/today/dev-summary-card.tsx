@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Brain } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -27,7 +27,7 @@ export function DevSummaryCard() {
     >
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
-          <Brain className="size-4 text-brasa" />
+          <Icon name="psychology" size={16} className="text-brasa" />
           <span className="font-heading text-sm font-semibold text-foreground">Desenvolvimento</span>
         </div>
 

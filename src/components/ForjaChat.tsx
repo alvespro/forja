@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Brain, X } from 'lucide-react'
+import { Icon } from '@/components/Icon'
+import { useHideOnScroll } from '@/hooks/use-hide-on-scroll'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,6 +15,7 @@ import { cn } from '@/lib/utils'
 export function ForjaChat() {
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const escondido = useHideOnScroll()
   const [agente, setAgente] = useState<ForjaAgente>('coach')
   const [pergunta, setPergunta] = useState('')
   const perguntar = useForjaAI()
@@ -56,7 +58,7 @@ export function ForjaChat() {
   const mensagens = historico.data ?? []
 
   return (
-    <div className="fixed bottom-[var(--float-bottom)] right-4 z-50 flex flex-col items-end gap-3 md:bottom-6 [html[data-immersive]_&]:hidden">
+    <div className="fixed bottom-[var(--float-bottom)] right-5 z-50 flex flex-col items-end gap-3 md:bottom-6 [html[data-immersive]_&]:hidden">
       {isOpen && (
         <Card className="w-[min(22rem,calc(100vw-2rem))]">
           <CardContent className="flex flex-col gap-3">
@@ -69,7 +71,7 @@ export function ForjaChat() {
                 aria-label="Fechar chat de agentes"
                 onClick={() => setIsOpen(false)}
               >
-                <X className="size-3.5" aria-hidden="true" />
+                <Icon name="close" size={14} />
               </Button>
             </div>
 
@@ -128,15 +130,18 @@ export function ForjaChat() {
         </Card>
       )}
 
-      <Button
+      {/* FAB: 56px vermilion com glow; some ao rolar para baixo (volta ao subir). */}
+      <button
         type="button"
-        size="icon-lg"
-        className="size-12 rounded-full shadow-lg"
         aria-label={isOpen ? 'Fechar agentes FORJA' : 'Abrir agentes FORJA'}
         onClick={() => setIsOpen((v) => !v)}
+        className={cn(
+          'flex size-14 items-center justify-center rounded-full bg-brasa text-fundo shadow-[var(--glow-brasa)] outline-none transition-[transform,opacity] duration-[var(--dur-normal)] ease-[var(--spring-bounce)] hover:bg-brasa2 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-fundo',
+          escondido && !isOpen && 'pointer-events-none translate-y-24 opacity-0',
+        )}
       >
-        {isOpen ? <X className="size-4" aria-hidden="true" /> : <Brain className="size-4" aria-hidden="true" />}
-      </Button>
+        <Icon name={isOpen ? 'close' : 'psychology'} size={24} />
+      </button>
     </div>
   )
 }

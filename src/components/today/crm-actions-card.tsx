@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Briefcase } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { useCrmClients } from '@/hooks/use-crm-clients'
@@ -32,7 +32,7 @@ export function CrmActionsCard() {
       <CardContent className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Briefcase className="size-4 text-cyan-400" />
+            <Icon name="work" size={16} className="text-cyan-400" />
             <span className="text-sm font-semibold text-foreground">Ações do CRM hoje</span>
             <span className="rounded-full bg-cyan-900/50 px-1.5 py-0.5 text-[10px] font-medium text-cyan-300">
               {pendentes.length}

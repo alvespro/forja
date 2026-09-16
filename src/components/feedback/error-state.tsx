@@ -1,4 +1,4 @@
-import { RefreshCw, TriangleAlert } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 
@@ -13,11 +13,11 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card/40 p-8 text-center">
-      <TriangleAlert className="size-6 text-alerta-texto" aria-hidden="true" />
+      <Icon name="warning" size={24} className="text-alerta-texto" />
       <p className="text-sm text-muted-foreground">{message}</p>
       {onRetry && (
         <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-          <RefreshCw className="size-4" aria-hidden="true" />
+          <Icon name="sync" size={16} />
           Tentar de novo
         </Button>
       )}

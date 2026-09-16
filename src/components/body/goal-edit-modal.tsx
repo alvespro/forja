@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, Sparkles } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -151,9 +151,9 @@ export function GoalEditModal({ open, onOpenChange, currentGoal }: GoalEditModal
             onClick={handleSugerirMetas}
           >
             {sugerirMetas.isPending ? (
-              <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              <Icon name="progress_activity" size={14} className="animate-spin" />
             ) : (
-              <Sparkles className="size-3.5" aria-hidden="true" />
+              <Icon name="auto_awesome" size={14} />
             )}
             Calcular metas sugeridas pela IA
           </Button>

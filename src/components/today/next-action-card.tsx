@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
 
-import { StatusDot } from '@/components/ds/status-dot'
+import { GlassCard } from '@/components/GlassCard'
+import { Icon } from '@/components/Icon'
 import { RecoveryGateCard } from '@/components/today/recovery-gate-card'
 import { useBodyMetrics } from '@/hooks/use-body-metrics'
 import { useRecoveryGate } from '@/hooks/use-recovery-gate'
@@ -20,7 +20,7 @@ import { classifyMeals, horarioToMinutes } from '@/lib/meal-schedule'
 import { computeNextAction } from '@/lib/next-action'
 import { pickTodaysWorkout } from '@/lib/workout-rotation'
 
-/** SECTION 2 do cockpit: a única ação mais relevante para agora. */
+/** SECTION 2 (col. 2) do cockpit: a única ação mais relevante para agora, em vidro com borda brasa. */
 export function NextActionCard() {
   const dietPlan = useActiveDietPlan()
   const mealSlots = useMealSlots(dietPlan.data?.id)
@@ -59,33 +59,21 @@ export function NextActionCard() {
   if (recuperacao.gate) return <RecoveryGateCard gate={recuperacao.gate} score={recuperacao.score} />
 
   return (
-    <section
-      className="relative flex flex-col gap-4 overflow-hidden rounded-[var(--r-lg)] border border-brasa p-5"
-      style={{ background: 'var(--gradient-subtle), var(--aco)', boxShadow: 'var(--shadow-brasa)' }}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <span className="ds-terminal-sm whitespace-pre text-cinza">
-          <span className="text-cinza2-texto">02</span>  Próxima ação
-        </span>
-        <StatusDot color="brasa" pulse label="Agora" colorLabel />
+    <GlassCard active className="flex h-full flex-col gap-3" padding="var(--s4)" aria-label="Próxima ação">
+      <div className="flex items-center gap-2 text-cinza2-texto">
+        <Icon name={action.icon} size={28} className="text-brasa" />
+        <span className="text-[12px] font-medium">Próxima ação</span>
       </div>
-
-      <div className="flex items-start gap-4">
-        <span className="text-[32px] leading-none" aria-hidden="true">
-          {action.icon}
-        </span>
-        <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="ds-h3 text-nevoa">{action.title}</h2>
-          <p className="ds-body-md text-cinza">{action.subtitle}</p>
-        </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <h2 className="text-[16px] font-bold leading-snug text-nevoa">{action.title}</h2>
+        <p className="line-clamp-3 text-[12px] leading-snug text-cinza">{action.subtitle}</p>
       </div>
-
       {action.ctaLabel && action.to && (
-        <Link to={action.to} className="ds-btn-primary w-full outline-none">
+        <Link to={action.to} className="ds-btn-primary w-full gap-1 px-2 text-[13px] outline-none">
           {action.ctaLabel}
-          <ArrowRight className="size-4" aria-hidden="true" />
+          <Icon name="arrow_forward" size={16} />
         </Link>
       )}
-    </section>
+    </GlassCard>
   )
 }

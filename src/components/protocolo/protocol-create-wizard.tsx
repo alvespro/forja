@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { FieldInput, FieldSelect, FieldTextarea } from '@/components/ui/field'
@@ -322,7 +323,7 @@ export function ProtocolCreateWizard({ onClose, latestMetric }: ProtocolCreateWi
                 ← Voltar
               </Button>
               <Button type="button" className="flex-1" onClick={handleSubmit} disabled={isSaving}>
-                {isSaving ? 'Salvando…' : '✓ Criar protocolo'}
+                {isSaving ? 'Salvando…' : (<><Icon name="check" size={18} className="mr-1.5 inline-block align-middle" />Criar protocolo</>)}
               </Button>
             </div>
           </>

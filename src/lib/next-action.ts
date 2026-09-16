@@ -1,7 +1,10 @@
 // Decide "o que fazer agora" no cockpit, pela hora e pelo estado do dia.
 
+import type { IconName } from '@/lib/icons'
+
 export type NextAction = {
-  icon: string
+  /** Material Symbol da ação. */
+  icon: IconName
   title: string
   /** Linha de apoio: por que esta é a ação agora. */
   subtitle: string
@@ -38,7 +41,7 @@ export function computeNextAction(input: NextActionInput): NextAction {
 
   if (nowMinutes < RITUAL_UNTIL_MINUTES) {
     return {
-      icon: '☀️',
+      icon: 'wb_twilight',
       title: 'Ritual 5AM',
       subtitle: 'Comece pelos hábitos inegociáveis antes do dia começar.',
       ctaLabel: 'Ver hábitos',
@@ -49,7 +52,7 @@ export function computeNextAction(input: NextActionInput): NextAction {
   const meal = input.currentMeal
   if (meal && meal.minutes !== null && Math.abs(nowMinutes - meal.minutes) <= MEAL_WINDOW_MINUTES) {
     return {
-      icon: '🥗',
+      icon: 'restaurant',
       title: `Hora do ${meal.nome}`,
       subtitle: 'Registre agora, enquanto a refeição ainda está fresca na memória.',
       ctaLabel: 'Registrar',
@@ -59,7 +62,7 @@ export function computeNextAction(input: NextActionInput): NextAction {
 
   if (input.isSunday && !input.weighedThisWeek) {
     return {
-      icon: '⚖️',
+      icon: 'scale',
       title: 'Pesagem semanal',
       subtitle: 'Mesma hora, mesmas condições — é o dado que calibra a projeção.',
       ctaLabel: 'Registrar peso',
@@ -69,7 +72,7 @@ export function computeNextAction(input: NextActionInput): NextAction {
 
   if (nowMinutes >= NOITE_START) {
     return {
-      icon: '🌙',
+      icon: 'dark_mode',
       title: 'Fechamento do dia',
       subtitle: 'Jantar leve, suplementos da noite e desligar as telas.',
       ctaLabel: 'Ver nutrição',
@@ -80,14 +83,14 @@ export function computeNextAction(input: NextActionInput): NextAction {
   if (nowMinutes >= TREINO_WINDOW_START) {
     return treinouHoje
       ? {
-          icon: '🥤',
+          icon: 'local_drink',
           title: 'Pós-treino',
           subtitle: 'Treino feito. Agora a proteína da recuperação.',
           ctaLabel: 'Registrar refeição',
           to: '/nutricao',
         }
       : {
-          icon: '🔥',
+          icon: 'local_fire_department',
           title: 'Janela do treino',
           subtitle: input.proximoTreino
             ? `${input.proximoTreino}: pré-treino, treino e pós.`
@@ -99,14 +102,14 @@ export function computeNextAction(input: NextActionInput): NextAction {
 
   return treinouHoje
     ? {
-        icon: '🎯',
+        icon: 'flag',
         title: 'Mantenha o ritmo',
         subtitle: 'Treino feito. Feche os hábitos que faltam.',
         ctaLabel: 'Ver hábitos',
         to: '/habits',
       }
     : {
-        icon: '🏋️',
+        icon: 'fitness_center',
         title: input.proximoTreino ? `Treino de hoje: ${input.proximoTreino}` : 'Treino do dia',
         subtitle: 'Ainda não há sessão registrada hoje.',
         ctaLabel: 'Ir para o treino',

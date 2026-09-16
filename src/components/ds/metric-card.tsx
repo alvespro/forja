@@ -63,7 +63,7 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-col gap-3 rounded-[var(--r-md)] border border-linha bg-aco p-3',
+        'glass-card flex min-w-0 flex-col gap-3 rounded-[var(--r-md)] p-3',
         semDado && 'ds-dots',
         className,
       )}

@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { MobilityRoutines } from '@/components/mobility/mobility-routines'
 import type { MobilityContexto } from '@/types/database'
@@ -22,7 +22,7 @@ export function MobilidadePage() {
         to="/workout"
         className="-ml-2 flex min-h-11 w-fit items-center gap-1 rounded-full px-2 ds-body-sm text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <ChevronLeft className="size-4" aria-hidden="true" />
+        <Icon name="chevron_left" size={16} />
         Treino
       </Link>
       <MobilityRoutines iniciarContexto={iniciar} habitId={params.get('habito')} onIniciado={limpar} />

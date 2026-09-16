@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -220,7 +220,7 @@ export function OnboardingPage() {
                           on ? 'border-brasa bg-brasa text-meia-noite' : 'border-border',
                         )}
                       >
-                        {on && <Check className="size-3.5" aria-hidden="true" />}
+                        {on && <Icon name="check" size={14} />}
                       </span>
                       <span className="text-sm font-medium text-foreground">{h.nome}</span>
                     </button>
@@ -249,7 +249,7 @@ export function OnboardingPage() {
           </Button>
         ) : (
           <Button type="button" onClick={finish} disabled={submitting}>
-            {submitting ? 'Salvando…' : 'Começar a Forjar 🔥'}
+            {submitting ? 'Salvando…' : (<>Começar a Forjar<Icon name="local_fire_department" size={18} filled className="ml-1.5 inline-block align-middle" /></>)}
           </Button>
         )}
       </div>

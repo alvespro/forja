@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChevronDown, Plus } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { FoodSearch } from '@/components/FoodSearch'
@@ -130,7 +130,7 @@ export function NutricaoPage() {
                 onClick={() => setBuscando(true)}
                 className="ds-btn-primary shrink-0 px-4 text-[13px] outline-none"
               >
-                <Plus className="size-4" aria-hidden="true" />
+                <Icon name="add" size={16} />
                 Registrar alimento
               </button>
             </div>
@@ -187,7 +187,7 @@ export function NutricaoPage() {
               <span className="h-1 w-10 rounded-full bg-aco-texto/40" aria-hidden="true" />
               <span className="flex min-h-9 w-full items-center justify-between">
                 <span className="ds-h4 text-foreground">Suplementos de hoje</span>
-                <ChevronDown className={cn('size-5 text-aco-texto transition-transform', showSupps && 'rotate-180')} aria-hidden="true" />
+                <Icon name="expand_more" size={20} className={cn('size-5 text-aco-texto transition-transform', showSupps && 'rotate-180')} />
               </span>
             </button>
             {showSupps && (

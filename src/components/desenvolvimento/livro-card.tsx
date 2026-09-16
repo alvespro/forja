@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, CheckCircle2, Clock } from 'lucide-react'
+import { Icon } from '@/components/Icon'
+import type { IconName } from '@/lib/icons'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,10 +14,10 @@ type LivroCardProps = {
   areas?: DevArea[]
 }
 
-const STATUS_ICON: Record<string, React.ElementType> = {
-  quero_ler: Clock,
-  lendo: BookOpen,
-  lido: CheckCircle2,
+const STATUS_ICON: Record<string, IconName> = {
+  quero_ler: 'schedule',
+  lendo: 'menu_book',
+  lido: 'check_circle',
 }
 
 const STATUS_CLASS: Record<string, string> = {
@@ -28,7 +29,7 @@ const STATUS_CLASS: Record<string, string> = {
 export function LivroCard({ reading, areas }: LivroCardProps) {
   const navigate = useNavigate()
   const area = areas?.find((a) => a.id === reading.dev_area_id)
-  const StatusIcon = STATUS_ICON[reading.status ?? 'quero_ler'] ?? Clock
+  const statusIcon = STATUS_ICON[reading.status ?? 'quero_ler'] ?? 'schedule'
 
   const initials = reading.titulo
     .split(' ')
@@ -55,7 +56,7 @@ export function LivroCard({ reading, areas }: LivroCardProps) {
               {reading.trilha && <p className="text-xs text-aco-texto/70">{reading.trilha}</p>}
             </div>
             <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[reading.status ?? 'quero_ler']}`}>
-              <StatusIcon className="size-3" />
+              <Icon name={statusIcon} size={12} />
               {STATUS_LABEL[reading.status ?? 'quero_ler']}
             </span>
           </div>
@@ -92,7 +93,7 @@ export function LivroCard({ reading, areas }: LivroCardProps) {
               className="h-6 text-xs"
               onClick={(e) => { e.stopPropagation(); navigate(`/biblioteca/livro/${reading.id}`) }}
             >
-              {reading.status === 'lido' ? '📝 Ver review' : reading.status === 'lendo' ? '▶ Continuar' : '+ Iniciar'}
+              {reading.status === 'lido' ? (<><Icon name="rate_review" size={16} className="mr-1.5 inline-block align-middle" />Ver review</>) : reading.status === 'lendo' ? (<><Icon name="play_arrow" size={16} className="mr-1.5 inline-block align-middle" />Continuar</>) : (<><Icon name="add" size={16} className="mr-1.5 inline-block align-middle" />Iniciar</>)}
             </Button>
           </div>
         </div>

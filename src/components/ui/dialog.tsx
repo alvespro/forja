@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
-import { XIcon } from "lucide-react"
+import { Icon } from "@/components/Icon"
 
 import { cn } from "@/lib/utils"
 
@@ -36,14 +36,14 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid max-h-[90vh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-xl border border-border bg-popover p-5 text-popover-foreground shadow-lg outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          "fixed top-1/2 left-1/2 z-50 grid max-h-[90vh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-[var(--r-lg)] border border-[var(--glass-border)] bg-[rgba(16,16,16,0.86)] backdrop-blur-[30px] backdrop-saturate-[180%] p-5 text-popover-foreground shadow-lg outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className,
         )}
         {...props}
       >
         {children}
         <DialogPrimitive.Close className="absolute top-4 right-4 flex size-7 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
-          <XIcon className="size-4" aria-hidden="true" />
+          <Icon name="close" size={18} />
           <span className="sr-only">Fechar</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>

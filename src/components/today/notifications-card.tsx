@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { Bell } from 'lucide-react'
 
 import { AlertItem } from '@/components/ds/alert-item'
 import { useMarkNotificationRead, useNotifications } from '@/hooks/use-notifications'
@@ -22,7 +21,7 @@ export function NotificationsCard() {
         <AlertItem
           key={n.id}
           tone="info"
-          icon={Bell}
+          icon="notifications"
           title={n.titulo}
           body={n.corpo}
           action={n.link ? { label: 'Abrir', onClick: () => navigate(n.link!) } : undefined}

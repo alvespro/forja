@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, CheckCircle2, Clock, FlaskConical, Loader2, Sparkles, X } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import {
   CartesianGrid,
   Legend,
@@ -105,7 +105,7 @@ function statusBadge(status: string | null) {
 function examStatusBadge(status: ProtocolExamStatus | string | null) {
   switch (status) {
     case 'realizado':
-      return <span className="rounded-full bg-ok/16 px-2 py-0.5 text-xs text-ok border border-ok/40">✓ Realizado</span>
+      return <span className="rounded-full bg-ok/16 px-2 py-0.5 text-xs text-ok border border-ok/40"><Icon name="check" size={18} className="mr-1.5 inline-block align-middle" />Realizado</span>
     case 'agendado':
       return <span className="rounded-full bg-brasa/16 px-2 py-0.5 text-xs text-brasa border border-brasa/40">📅 Agendado</span>
     case 'atrasado':
@@ -443,13 +443,13 @@ export function ProtocoloPage() {
   if (!p) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-        <FlaskConical className="size-12 text-aco-texto/40" />
+        <Icon name="science" size={48} className="text-aco-texto/40" />
         <div>
           <p className="font-heading text-lg font-semibold text-foreground">Nenhum protocolo ativo</p>
           <p className="mt-1 text-sm text-aco-texto">Nenhum protocolo planejado, ativo ou em TPC foi encontrado.</p>
         </div>
         <Button type="button" onClick={() => setShowCreateWizard(true)} className="gap-1.5">
-          ➕ Cadastrar protocolo prescrito
+          <Icon name="add_circle" size={18} className="mr-1.5 inline-block align-middle" />Cadastrar protocolo prescrito
         </Button>
         <p className="text-xs text-aco-texto/70 max-w-xs">
           Este módulo registra protocolos prescritos por médico. O FORJA não recomenda compostos ou doses.
@@ -508,7 +508,7 @@ export function ProtocoloPage() {
                   title="Editar protocolo"
                   className="text-aco-texto/60 hover:text-foreground text-sm"
                 >
-                  ✏️
+                  <Icon name="edit" size={18} />
                 </button>
               </div>
               {p.medico_responsavel && (
@@ -526,7 +526,7 @@ export function ProtocoloPage() {
                 disabled={updateProtocol.isPending}
                 className="gap-1.5"
               >
-                {p.status === 'planejado' && '▶ Iniciar ciclo'}
+                {p.status === 'planejado' && (<><Icon name="play_arrow" size={18} className="mr-1.5 inline-block align-middle" />Iniciar ciclo</>)}
                 {p.status === 'ativo' && '🔄 Iniciar TPC'}
                 {p.status === 'tpc' && '✅ Concluir ciclo'}
               </Button>
@@ -539,7 +539,7 @@ export function ProtocoloPage() {
               disabled={gerarInsights.isPending}
               className="gap-1.5"
             >
-              {gerarInsights.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5 text-brasa" />}
+              {gerarInsights.isPending ? <Icon name="progress_activity" size={14} className="animate-spin" /> : <Icon name="auto_awesome" size={14} className="text-brasa" />}
               Análise do ciclo
             </Button>
             <Button
@@ -549,7 +549,7 @@ export function ProtocoloPage() {
               onClick={() => setShowReport(true)}
               className="gap-1.5 text-xs text-aco-texto"
             >
-              🖨️ Pré-consulta
+              <Icon name="print" size={18} className="mr-1.5 inline-block align-middle" />Pré-consulta
             </Button>
           </div>
         </div>
@@ -583,7 +583,7 @@ export function ProtocoloPage() {
                   : 'border-brasa/60 bg-brasa/12'
               }`}
             >
-              <AlertTriangle className={`mt-0.5 size-4 shrink-0 ${alert.level === 'critico' ? 'text-alerta-texto' : 'text-brasa'}`} />
+              <Icon name="warning" size={16} className={`mt-0.5 size-4 shrink-0 ${alert.level === 'critico' ? 'text-alerta-texto' : 'text-brasa'}`} />
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold ${alert.level === 'critico' ? 'text-alerta-texto' : 'text-brasa'}`}>
                   {alert.message}
@@ -596,7 +596,7 @@ export function ProtocoloPage() {
                   onClick={() => handleDismissAlert(alert.id)}
                   className="text-aco-texto hover:text-foreground shrink-0"
                 >
-                  <X className="size-3.5" />
+                  <Icon name="close" size={14} />
                 </button>
               )}
             </div>
@@ -609,7 +609,7 @@ export function ProtocoloPage() {
         <Card style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.4)' }}>
           <CardContent className="flex flex-col gap-3">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 size-5 text-brasa shrink-0" />
+              <Icon name="warning" size={20} className="mt-0.5 text-brasa" />
               <div>
                 <p className="text-sm font-bold text-brasa">
                   ⚠️ Exames pré-ciclo pendentes ({preRealizados} de {preExams.length} realizados)
@@ -637,11 +637,11 @@ export function ProtocoloPage() {
           <CardContent className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="size-4 text-brasa" />
+                <Icon name="auto_awesome" size={16} className="text-brasa" />
                 <span className="text-sm font-semibold">Análise do Monitor</span>
               </div>
               <button type="button" onClick={() => setShowInsights(false)} aria-label="Fechar" className="text-aco-texto hover:text-foreground">
-                <X className="size-4" />
+                <Icon name="close" size={16} />
               </button>
             </div>
             <p className="whitespace-pre-wrap text-sm text-foreground">{insights}</p>
@@ -706,7 +706,7 @@ export function ProtocoloPage() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-foreground">💉 Compostos prescritos</p>
                 <Button type="button" variant="outline" size="sm" onClick={() => setShowAddCompound(true)} className="h-7 text-xs gap-1">
-                  ➕ Adicionar
+                  <Icon name="add_circle" size={18} className="mr-1.5 inline-block align-middle" />Adicionar
                 </Button>
               </div>
               {compounds.data?.length === 0 ? (
@@ -737,7 +737,7 @@ export function ProtocoloPage() {
                         onClick={() => deleteCompound.mutate(c.id)}
                         className="text-aco-texto/40 hover:text-alerta-texto"
                       >
-                        <X className="size-3.5" />
+                        <Icon name="close" size={14} />
                       </button>
                     </div>
                   ))}
@@ -752,7 +752,7 @@ export function ProtocoloPage() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-foreground">🛡️ Suplementos de suporte</p>
                 <Button type="button" variant="outline" size="sm" onClick={() => setShowAddSupport(true)} className="h-7 text-xs gap-1">
-                  ➕ Adicionar
+                  <Icon name="add_circle" size={18} className="mr-1.5 inline-block align-middle" />Adicionar
                 </Button>
               </div>
               {Object.entries(supportByCategoria).map(([cat, items]) => (
@@ -790,7 +790,7 @@ export function ProtocoloPage() {
             </CardContent>
           </Card>
           <Button type="button" variant="outline" onClick={() => setShowAddCompound(true)} className="gap-1.5 w-full">
-            ➕ Adicionar composto prescrito
+            <Icon name="add_circle" size={18} className="mr-1.5 inline-block align-middle" />Adicionar composto prescrito
           </Button>
           <div className="flex flex-col gap-2">
             {(compounds.data ?? []).map((c) => (
@@ -805,7 +805,7 @@ export function ProtocoloPage() {
                       </div>
                     </div>
                     <button type="button" onClick={() => deleteCompound.mutate(c.id)} className="text-aco-texto/40 hover:text-alerta-texto">
-                      <X className="size-4" />
+                      <Icon name="close" size={16} />
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
@@ -827,7 +827,7 @@ export function ProtocoloPage() {
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground">📅 Semana {weekNum}</p>
             <Button type="button" onClick={() => setShowLogModal(true)} className="gap-1.5">
-              💉 Registrar aplicação
+              <Icon name="vaccines" size={18} className="mr-1.5 inline-block align-middle" />Registrar aplicação
             </Button>
           </div>
 
@@ -851,7 +851,7 @@ export function ProtocoloPage() {
                         <p className={`text-sm ${isCurrent ? 'font-semibold text-foreground' : 'text-aco-texto'}`}>{fase.label}</p>
                         <p className="text-xs text-aco-texto">{done}/{total} exames realizados</p>
                       </div>
-                      {done === total && total > 0 && <CheckCircle2 className="size-4 text-ok" />}
+                      {done === total && total > 0 && <Icon name="check_circle" size={16} className="text-ok" />}
                       {isCurrent && done < total && <span className="text-xs text-brasa font-medium">Agora</span>}
                     </div>
                   )
@@ -1044,13 +1044,13 @@ export function ProtocoloPage() {
                           <div className="flex flex-wrap gap-3 mt-1 text-xs text-aco-texto">
                             {exam.data_prevista && (
                               <span className="flex items-center gap-1">
-                                <Clock className="size-3" />
+                                <Icon name="schedule" size={12} />
                                 Previsto: {new Date(exam.data_prevista + 'T12:00:00').toLocaleDateString('pt-BR')}
                               </span>
                             )}
                             {exam.data_realizada && (
                               <span className="flex items-center gap-1 text-ok">
-                                <CheckCircle2 className="size-3" />
+                                <Icon name="check_circle" size={12} />
                                 {new Date(exam.data_realizada + 'T12:00:00').toLocaleDateString('pt-BR')}
                               </span>
                             )}
@@ -1066,7 +1066,7 @@ export function ProtocoloPage() {
                                 className="h-6 text-xs px-2"
                                 onClick={() => { setShowExamResultModal(exam.id); setExamResultValues({}); setExamResultCritical([]) }}
                               >
-                                ✓ Realizado
+                                <Icon name="check" size={18} className="mr-1.5 inline-block align-middle" />Realizado
                               </Button>
                               <Button
                                 type="button"
@@ -1075,7 +1075,7 @@ export function ProtocoloPage() {
                                 className="h-6 text-xs px-2"
                                 onClick={() => setShowScheduleModal(exam.id)}
                               >
-                                📅 Agendar
+                                <Icon name="calendar_today" size={18} className="mr-1.5 inline-block align-middle" />Agendar
                               </Button>
                             </>
                           )}
@@ -1263,7 +1263,7 @@ export function ProtocoloPage() {
       </Modal>
 
       {/* ════ MODAL: Registrar Aplicação ════ */}
-      <Modal open={showLogModal} onClose={() => setShowLogModal(false)} title="💉 Registrar aplicação">
+      <Modal open={showLogModal} onClose={() => setShowLogModal(false)} title="Registrar aplicação">
         <FieldSelect
           label="Composto"
           value={logCompound}
@@ -1337,7 +1337,7 @@ export function ProtocoloPage() {
       <Modal
         open={!!showScheduleModal}
         onClose={() => setShowScheduleModal(null)}
-        title="📅 Agendar exame"
+        title="Agendar exame"
         maxWidth="sm"
       >
         <FieldInput

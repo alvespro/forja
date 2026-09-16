@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -101,7 +101,7 @@ export function CrmClientCard({ client }: CrmClientCardProps) {
               aria-label={`Editar cliente ${client.nome}`}
               onClick={() => setIsEditing(true)}
             >
-              <Pencil className="size-3.5" aria-hidden="true" />
+              <Icon name="edit" size={14} />
             </Button>
             <Button
               type="button"
@@ -110,7 +110,7 @@ export function CrmClientCard({ client }: CrmClientCardProps) {
               aria-label={`Excluir cliente ${client.nome}`}
               onClick={handleDelete}
             >
-              <Trash2 className="size-3.5" aria-hidden="true" />
+              <Icon name="delete" size={14} />
             </Button>
           </div>
         </CardContent>

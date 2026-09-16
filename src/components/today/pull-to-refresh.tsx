@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { RefreshCw } from 'lucide-react'
 
+import { Icon } from '@/components/Icon'
 import { haptic } from '@/lib/haptics'
 import { PULL_THRESHOLD, pullDistance } from '@/lib/pull-to-refresh'
 import { cn } from '@/lib/utils'
@@ -88,11 +88,7 @@ export function PullToRefresh() {
           progresso >= 1 || atualizando ? 'border-brasa text-brasa' : 'border-linha text-aco-texto',
         )}
       >
-        <RefreshCw
-          className={cn('size-5', atualizando && 'animate-spin')}
-          style={atualizando ? undefined : { transform: `rotate(${progresso * 270}deg)` }}
-          aria-hidden="true"
-        />
+        <Icon name="sync" size={20} className={cn(atualizando && 'animate-spin')} style={atualizando ? undefined : { transform: `rotate(${progresso * 270}deg)` }} />
         <span className="sr-only">{atualizando ? 'Atualizando' : ''}</span>
       </span>
     </div>

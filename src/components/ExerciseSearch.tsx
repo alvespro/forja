@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, Plus, Search } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -119,7 +119,7 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
       ) : (
         <div className="flex flex-col gap-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-aco-texto" aria-hidden="true" />
+            <Icon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-aco-texto" />
             <Input
               autoFocus
               value={termo}
@@ -197,12 +197,12 @@ export function ExerciseSearch({ open, onClose, exerciseId, termoInicial = '', a
                       'Importando…'
                     ) : r.exercise_id && !exerciseId ? (
                       <>
-                        <Check className="size-4" aria-hidden="true" />
+                        <Icon name="check" size={16} />
                         Usar
                       </>
                     ) : (
                       <>
-                        <Plus className="size-4" aria-hidden="true" />
+                        <Icon name="add" size={16} />
                         {acaoLabel ?? 'Adicionar'}
                       </>
                     )}

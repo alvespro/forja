@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactElement } from 'react'
-import { RotateCcw } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { GROUP_LABEL, resolveGroupKeys, type MuscleKey } from '@/lib/muscle-groups'
 import { cn } from '@/lib/utils'
@@ -162,7 +162,7 @@ export function BodyMap({
             aria-label={`Ver ${vistaAtual === 'frente' ? 'costas' : 'frente'}`}
             className="ds-pressable absolute -right-10 bottom-0 flex size-9 items-center justify-center rounded-full border border-linha bg-aco text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <RotateCcw className="size-4" aria-hidden="true" />
+            <Icon name="restart_alt" size={16} />
           </button>
         )}
       </div>

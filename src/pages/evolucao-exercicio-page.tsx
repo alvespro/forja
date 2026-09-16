@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
@@ -37,7 +37,7 @@ export function EvolucaoExercicioPage() {
         to={`/workout/exercicio/${id}`}
         className="flex min-h-11 w-fit items-center gap-1 text-sm text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <ChevronLeft className="size-4" aria-hidden="true" />
+        <Icon name="chevron_left" size={16} />
         {exercise?.nome ?? 'Exercício'}
       </Link>
 

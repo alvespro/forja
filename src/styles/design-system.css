@@ -8,31 +8,13 @@
  * como elemento de design.
  */
 
-/*
- * Fontes do redesign: Bricolage (títulos/texto) e Space Mono (dados/heróis).
- * Só o subset latin (U+0000-00FF): cobre todos os acentos do português e os
- * símbolos usados (↑ ↓ − — …). latin-ext e vietnamita eram ~95 KB que o PWA
- * pré-cacheava na instalação sem nunca usar.
- */
-@import '@fontsource/space-mono/latin-400.css';
-@import '@fontsource/space-mono/latin-700.css';
-
-@font-face {
-  font-family: 'Bricolage Grotesque Variable';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 200 800;
-  src: url('../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2')
-    format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
-    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
+/* Fontes: Bricolage Grotesque e Space Mono vêm do Google Fonts (index.html), com cache no service worker. */
 
 :root {
   /* ---------------------------------- fontes --------------------------------- */
   --font-display: 'Space Mono', ui-monospace, monospace;
-  --font-heading: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-heading: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --font-body: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
   --font-data: 'Space Mono', ui-monospace, monospace;
 
   /* --------------------------- espaçamento (base 4pt) ------------------------- */
@@ -48,25 +30,26 @@
   --space-16: 64px;
 
   /* ------------------------------- raios de borda ----------------------------- */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 32px;
   --radius-full: 9999px;
 
   /* Nomes curtos do design system (mesmos valores). */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px;
   --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px; --s16: 64px;
-  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px;
+  --r-sm: 10px; --r-md: 16px; --r-lg: 22px; --r-xl: 32px;
 
   /* ---------------------------------- sombras --------------------------------- */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.6);
   --shadow-brasa: 0 4px 24px rgba(252, 76, 19, 0.3);
   --shadow-glow: 0 0 40px rgba(252, 76, 19, 0.4);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   /* Padrão de pontos (fundo de card sem dado, grids). */
-  --dot-pattern: radial-gradient(#3d3d3d 1px, transparent 1px);
+  --dot-pattern: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
 
   /* ------------------------- movimento (spring, não linear) ------------------- */
   --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -78,9 +61,9 @@
 
   /* ------------------------------ navegação ------------------------------ */
   /* Altura útil da tab bar (sem a safe area, somada à parte). */
-  --tabbar-h: 52px;
-  /* Distância do rodapé para elementos flutuantes não cobrirem a tab bar. */
-  --float-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 12px);
+  --tabbar-h: 60px;
+  /* Distância do rodapé para elementos flutuantes (FAB 83px acima do fim da tela útil). */
+  --float-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 23px);
 }
 
 /*
@@ -142,40 +125,126 @@
   .ds-data-md { font-size: 12px; }
   .ds-data-sm { font-size: 10px; }
 
-  /* Micro-label de seção: dot-matrix (VT323) em caixa alta, estilo DeerFlow. */
+  /* Micro-label de seção (estilo Aaru): Bricolage 11px em caixa alta, tracking aberto. */
   .ds-label {
-    font-family: var(--font-terminal);
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.1;
-    letter-spacing: 0.06em;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--cinza);
+    color: var(--cinza2-texto);
   }
 
-  /*
-   * Escala VT323. A fonte é pixelada e tem altura-x pequena: em 10–12px os
-   * glifos ficam com 5px e não se leem no celular. Por isso cada degrau aqui
-   * equivale ao tamanho pedido em fonte comum (xs ≈ 10px, sm ≈ 12px, md ≈ 14px…).
-   */
+  /* Escala de labels em caixa alta (status, chips, eyebrows). */
   .ds-terminal-xs,
   .ds-terminal-sm,
   .ds-terminal-md,
   .ds-terminal-lg,
   .ds-terminal-xl,
   .ds-terminal-2xl {
-    font-family: var(--font-terminal);
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: 0.06em;
+    font-family: var(--font-body);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-  .ds-terminal-xs { font-size: 15px; }
-  .ds-terminal-sm { font-size: 16px; }
-  .ds-terminal-md { font-size: 19px; }
-  .ds-terminal-lg { font-size: 22px; }
-  .ds-terminal-xl { font-size: 26px; }
-  .ds-terminal-2xl { font-size: 30px; }
+  .ds-terminal-xs { font-size: 10px; }
+  .ds-terminal-sm { font-size: 11px; }
+  .ds-terminal-md { font-size: 13px; }
+  .ds-terminal-lg { font-size: 15px; }
+  .ds-terminal-xl { font-size: 18px; letter-spacing: 0.04em; }
+  .ds-terminal-2xl { font-size: 22px; letter-spacing: 0.02em; }
+
+  /* ================================ liquid glass =============================== */
+
+  .glass-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--glass-shadow);
+    transition:
+      background-color var(--dur-normal) var(--spring-smooth),
+      border-color var(--dur-normal) var(--spring-smooth),
+      box-shadow var(--dur-normal) var(--spring-smooth),
+      transform var(--dur-normal) var(--spring-smooth);
+  }
+
+  /* Blur só onde há conteúdo passando por trás (tab bar, sidebar, modais, cronômetro):
+     sobre o fundo preto liso o blur não aparece e só custa GPU a cada rolagem. */
+  .glass-blur {
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+  }
+
+  /* Gradiente interno sutil (opcional) */
+  .glass-card.gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-card);
+    pointer-events: none;
+  }
+
+  /* Linha superior brilhante (efeito Liquid Glass) */
+  .glass-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    pointer-events: none;
+  }
+
+  /* Hover/press só em card clicável: card estático não "pula" sob o mouse. */
+  @media (hover: hover) {
+    .glass-card.interactive:hover {
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border-hover);
+      transform: translateY(-1px);
+    }
+  }
+  .glass-card.interactive:active {
+    transform: scale(0.98);
+    transition-duration: var(--dur-fast);
+  }
+
+  .glass-card.active {
+    border-color: rgba(252, 76, 19, 0.5);
+    box-shadow: var(--glass-shadow), 0 0 0 1px rgba(252, 76, 19, 0.2);
+  }
+
+  .glass-card.glow {
+    box-shadow: var(--glass-shadow), var(--glow-brasa);
+  }
+
+  .glass-card.active.glow {
+    box-shadow: var(--glass-shadow), 0 0 0 1px rgba(252, 76, 19, 0.2), var(--glow-brasa);
+  }
+
+  /* Conteúdo acima do ::before do gradiente. */
+  .glass-card > * {
+    position: relative;
+  }
+
+  /* Ripple do toque (useRipple). */
+  .ds-ripple {
+    position: absolute;
+    border-radius: 9999px;
+    background: rgba(252, 76, 19, 0.2);
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0);
+    animation: ripple 400ms ease-out forwards;
+  }
+
+  /* Entrada de tela (troca de rota). */
+  .ds-page-enter {
+    animation: pageIn var(--dur-normal) var(--spring-smooth) both;
+  }
 
   /* Fundo de pontos sutil (card sem dado, grids decorativos). */
   .ds-dots {
@@ -232,9 +301,9 @@
     box-shadow: var(--shadow-brasa);
   }
   @media (hover: hover) {
-    .ds-btn-primary:hover:not(:disabled) { background: var(--brasa2); transform: translateY(-1px); }
-    .ds-btn-secondary:hover:not(:disabled) { background: rgba(252, 76, 19, 0.1); }
-    .ds-btn-ghost:hover:not(:disabled) { border-color: var(--cinza); }
+    .ds-btn-primary:hover:not(:disabled) { background: var(--brasa2); transform: translateY(-1px); box-shadow: 0 6px 28px rgba(252, 76, 19, 0.4); }
+    .ds-btn-secondary:hover:not(:disabled) { background: rgba(252, 76, 19, 0.08); }
+    .ds-btn-ghost:hover:not(:disabled) { color: var(--brasa); border-color: var(--glass-border-hover); background: var(--glass-bg-hover); }
   }
 
   .ds-btn-secondary {
@@ -244,8 +313,8 @@
   }
 
   .ds-btn-ghost {
-    background: var(--aco);
-    border: 1px solid var(--linha);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     color: var(--cinza);
   }
 
@@ -280,7 +349,7 @@
   /* ================================= movimento ================================= */
 
   .ds-shimmer {
-    background: linear-gradient(90deg, #1d1d1d 25%, #2d2d2d 50%, #1d1d1d 75%);
+    background: linear-gradient(90deg, #121212 25%, #1f1f1f 50%, #121212 75%);
     background-size: 200% 100%;
     animation: shimmer 1.8s ease infinite;
   }
@@ -422,4 +491,46 @@
 @keyframes ds-muscle-on {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes ripple {
+  to { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ============================== Material Symbols ============================== */
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' -25, 'opsz' 24;
+  user-select: none;
+}
+
+/* Variantes */
+.icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.icon-bold { font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24; }
+.icon-active { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+
+/* Animação do preenchimento ao ativar (tabs, toggles) */
+.icon-animated {
+  transition: font-variation-settings 200ms ease, color 200ms ease;
 }

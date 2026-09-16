@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { toast } from 'sonner'
 import {
   Bar,
@@ -88,7 +88,7 @@ export function SonoPage() {
           to="/health"
           className="-ml-2 flex min-h-11 items-center gap-1 self-start rounded-full px-2 ds-body-sm text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <ChevronLeft className="size-4" aria-hidden="true" />
+          <Icon name="chevron_left" size={16} />
           Saúde
         </Link>
         <h1 className="ds-h1 text-foreground">Sono</h1>

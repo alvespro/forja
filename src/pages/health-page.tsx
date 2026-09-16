@@ -1,6 +1,6 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, Moon } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { EcgLine } from '@/components/ds/ecg-line'
 import { MetricCard } from '@/components/ds/metric-card'
@@ -100,13 +100,13 @@ export function HealthPage() {
         className="ds-pressable-card flex min-h-16 items-center gap-3 rounded-[var(--r-md)] border border-linha bg-aco px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-linha bg-fundo text-brasa" aria-hidden="true">
-          <Moon className="size-5" />
+          <Icon name="bedtime" size={20} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="ds-body-md font-semibold text-nevoa">Sono</span>
           <span className="ds-body-sm text-cinza">Histórico, dívida da semana e recuperação</span>
         </span>
-        <ChevronRight className="size-5 text-cinza" aria-hidden="true" />
+        <Icon name="chevron_right" size={20} className="text-cinza" />
       </Link>
 
       <ClinicalAnalysisSection />

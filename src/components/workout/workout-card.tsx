@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, Pencil, Play, Plus, Trash2 } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { StatusDot } from '@/components/ds/status-dot'
 import { Button } from '@/components/ui/button'
@@ -137,7 +137,7 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
               onClick={() => setIsEditing(true)}
               className="flex size-11 items-center justify-center rounded-full text-cinza outline-none hover:bg-aco2 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Pencil className="size-4" aria-hidden="true" />
+              <Icon name="edit" size={16} />
             </button>
             <button
               type="button"
@@ -145,7 +145,7 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
               onClick={handleDelete}
               className="flex size-11 items-center justify-center rounded-full text-cinza outline-none hover:bg-aco2 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Trash2 className="size-4" aria-hidden="true" />
+              <Icon name="delete" size={16} />
             </button>
             </span>
           </div>
@@ -175,7 +175,7 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
               aria-label={`Iniciar ${workout.nome}`}
               className="ds-pressable flex size-11 shrink-0 items-center justify-center rounded-full bg-brasa text-fundo shadow-[var(--shadow-brasa)] outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
             >
-              <Play className="size-5 fill-current" aria-hidden="true" />
+              <Icon name="play_arrow" size={20} filled />
             </button>
           </div>
         </div>
@@ -189,7 +189,7 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
             className="flex min-h-11 items-center justify-between gap-2 ds-body-sm font-semibold text-aco-texto outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
             {expanded ? 'Ocultar exercícios' : 'Ver exercícios'}
-            <ChevronDown className={cn('size-4 transition-transform', expanded && 'rotate-180')} aria-hidden="true" />
+            <Icon name="expand_more" size={16} className={cn('size-4 transition-transform', expanded && 'rotate-180')} />
           </button>
 
         {expanded && (
@@ -234,7 +234,7 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
                 className="self-start"
                 onClick={() => setIsAddingExercise(true)}
               >
-                <Plus className="size-3.5" aria-hidden="true" />
+                <Icon name="add" size={14} />
                 Exercício
               </Button>
             )}

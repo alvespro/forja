@@ -1,7 +1,15 @@
 import { toast } from 'sonner'
-import { Activity } from 'lucide-react'
 
 import { BodyMap } from '@/components/BodyMap'
+import { GlassCard } from '@/components/GlassCard'
+import { Icon } from '@/components/Icon'
+import { HabitChecklistCard } from '@/components/today/habit-checklist-card'
+import { NextActionCard } from '@/components/today/next-action-card'
+import { NutritionTodayCard } from '@/components/today/nutrition-today-card'
+import { QuickStatsCard } from '@/components/today/quick-stats-card'
+import { RecoveryRingCard } from '@/components/today/recovery-ring-card'
+import { Sidebar } from '@/components/layout/sidebar'
+import { TabBar } from '@/components/layout/tab-bar'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { ExerciseTile } from '@/components/ds/exercise-tile'
 import { MacroBar } from '@/components/ds/macro-bar'
@@ -22,7 +30,53 @@ import { Skeleton } from '@/components/ui/skeleton'
  */
 export function DesignSystemPage() {
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col gap-10 bg-background px-5 py-8">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col gap-10 bg-background px-5 pb-32 pt-8">
+      <TabBar />
+      <div className="fixed inset-y-0 left-0 z-30 hidden md:block">
+        <Sidebar />
+      </div>
+      <Section title="GlassCard">
+        <div className="flex flex-col gap-3">
+          <GlassCard gradient glow>
+            <p className="text-[13px] text-cinza">Boa noite,</p>
+            <p className="text-[32px] font-bold leading-tight text-nevoa">Welber.</p>
+          </GlassCard>
+          <div className="grid grid-cols-2 gap-2">
+            <GlassCard onClick={() => toast.info('Card clicável (ripple)')} padding="var(--s4)">
+              <Icon name="favorite" size={24} className="text-brasa" />
+              <p className="mt-2 text-[14px] text-nevoa">Clicável</p>
+            </GlassCard>
+            <GlassCard active padding="var(--s4)">
+              <Icon name="bolt" size={24} filled className="text-brasa" />
+              <p className="mt-2 text-[14px] text-nevoa">Ativo</p>
+            </GlassCard>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Material Symbols">
+        <div className="flex flex-wrap gap-3 text-cinza">
+          {(['home', 'fitness_center', 'restaurant', 'monitor_heart', 'grid_view', 'timer', 'check_circle', 'local_fire_department', 'scale', 'psychology'] as const).map((n) => (
+            <span key={n} className="flex flex-col items-center gap-1">
+              <Icon name={n} size={28} />
+              <Icon name={n} size={28} filled className="text-brasa" />
+            </span>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Hoje (sem login: estados vazios)">
+        <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-2">
+            <RecoveryRingCard />
+            <NextActionCard />
+          </div>
+          <HabitChecklistCard />
+          <QuickStatsCard />
+          <NutritionTodayCard />
+        </div>
+      </Section>
+
       <Section title="BodyMap">
         <div className="flex flex-col gap-6">
           <div className="flex items-end justify-around">
@@ -181,7 +235,7 @@ export function DesignSystemPage() {
 
       <Section title="EmptyState">
         <EmptyState
-          icon={Activity}
+          icon="monitor_heart"
           message="Nenhum treino ainda"
           description="Registre a primeira sessão para acompanhar sua evolução de carga."
           action={<Button size="sm">Criar treino</Button>}

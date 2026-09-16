@@ -1,22 +1,7 @@
 import { useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import {
-  BicepsFlexed,
-  Bone,
-  Droplets,
-  Egg,
-  Flame,
-  Gauge,
-  HeartPulse,
-  Hourglass,
-  Layers,
-  Plus,
-  Scale,
-  Trash2,
-  Zap,
-  type LucideIcon,
-} from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -25,6 +10,7 @@ import { MetricCard } from '@/components/ds/metric-card'
 import { MetricHero } from '@/components/ds/metric-hero'
 import { Sparkline } from '@/components/ds/sparkline'
 import type { StatusDotColor } from '@/components/ds/status-dot'
+import type { IconName } from '@/lib/icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BodyMetricForm } from '@/components/body/body-metric-form'
 import { BodyMetricsChart } from '@/components/body/body-metrics-chart'
@@ -44,19 +30,19 @@ import { buildCompositionCards, type CompositionKey } from '@/lib/body-compositi
 import { metricsForCycle, projectWeeksToGoal, type MetricKey } from '@/lib/body-goals'
 import { parseDateOnly } from '@/lib/date'
 
-const ICONES: Record<CompositionKey, LucideIcon> = {
-  peso_kg: Scale,
-  gordura_pct: Flame,
-  musculo_pct: BicepsFlexed,
-  agua_pct: Droplets,
-  gordura_visceral: HeartPulse,
-  imc: Gauge,
-  proteina_pct: Egg,
-  peso_muscular_kg: BicepsFlexed,
-  gordura_subcutanea_pct: Layers,
-  tmb_kcal: Zap,
-  massa_ossea_kg: Bone,
-  idade_corporal: Hourglass,
+const ICONES: Record<CompositionKey, IconName> = {
+  peso_kg: 'scale',
+  gordura_pct: 'local_fire_department',
+  musculo_pct: 'fitness_center',
+  agua_pct: 'water_drop',
+  gordura_visceral: 'monitor_heart',
+  imc: 'speed',
+  proteina_pct: 'egg',
+  peso_muscular_kg: 'fitness_center',
+  gordura_subcutanea_pct: 'layers',
+  tmb_kcal: 'bolt',
+  massa_ossea_kg: 'skeleton',
+  idade_corporal: 'hourglass_empty',
 }
 
 const STATUS_COMPOSICAO: Record<'ok' | 'atencao' | 'alerta' | 'neutro', { cor: StatusDotColor; label: string; tom: 'ok' | 'brasa' | 'alerta' | 'nevoa'; linha: string }> = {
@@ -211,7 +197,7 @@ export function BodyPage() {
                 onClick={() => setIsAdding(true)}
                 className="ds-btn-primary w-full outline-none"
               >
-                <Plus className="size-4" aria-hidden="true" />
+                <Icon name="add" size={16} />
                 Nova medição
               </button>
             )}
@@ -247,7 +233,7 @@ export function BodyPage() {
                       ? `meta ${br(c.meta)}${c.unit === '%' ? '%' : c.unit ? ` ${c.unit}` : ''}${semanas != null ? ` · ~${semanas} sem` : ''}`
                       : null
                   const status = STATUS_COMPOSICAO[c.status]
-                  const Icone = ICONES[c.key]
+                  const icone = ICONES[c.key]
                   return (
                     <MetricCard
                       key={c.key}
@@ -261,7 +247,7 @@ export function BodyPage() {
                         c.tendencia.length > 1 ? (
                           <Sparkline data={c.tendencia} width={60} color={status.linha} label={`Evolução de ${c.label}`} />
                         ) : (
-                          <Icone className="size-5 text-cinza2" aria-hidden="true" />
+                          <Icon name={icone} size={20} className="text-cinza2" />
                         )
                       }
                       footer={
@@ -330,7 +316,7 @@ export function BodyPage() {
                         onClick={() => handleDelete(metric.id)}
                         className="flex size-11 items-center justify-center rounded-full text-aco-texto outline-none hover:text-alerta-texto focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Trash2 className="size-4" aria-hidden="true" />
+                        <Icon name="delete" size={16} />
                       </button>
                     </div>
                   </li>

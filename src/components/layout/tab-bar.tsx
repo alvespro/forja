@@ -1,19 +1,21 @@
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { LayoutGrid } from 'lucide-react'
 
+import { Icon } from '@/components/Icon'
+import { haptic } from '@/lib/haptics'
+import type { IconName } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
 import { MoreSheet } from './more-sheet'
 import { isItemActive, isPrimaryPath, primaryNavItems } from './nav-items'
 
 const itemCls =
-  'relative flex min-h-[var(--tabbar-h)] flex-1 flex-col items-center justify-center gap-1 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
+  'relative flex min-h-[var(--tabbar-h)] flex-1 flex-col items-center justify-center gap-1 px-3 pt-2 pb-1.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
 
 /**
- * Tab bar mobile: 4 destinos + "Mais". Ativo: ícone e rótulo dot-matrix em brasa
- * com ponto indicador abaixo; inativo: só o ícone em cinza2. Preto com blur,
- * borda superior linha, respeita a safe area do iPhone.
+ * Tab bar mobile estilo Liquid Glass: vidro escuro com blur pesado, 4 destinos +
+ * "Mais". Ativo: ícone preenchido e rótulo em brasa, com a linha indicadora
+ * crescendo (spring) acima do ícone. Respeita a safe area do iPhone.
  */
 export function TabBar() {
   const location = useLocation()
@@ -24,24 +26,29 @@ export function TabBar() {
     <>
       <nav
         aria-label="Navegação principal"
-        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-linha pb-[env(safe-area-inset-bottom)] backdrop-blur-[20px] md:hidden [html[data-immersive]_&]:hidden"
-        style={{ backgroundColor: 'rgba(0,0,0,0.82)' }}
+        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-white/[0.08] pb-[env(safe-area-inset-bottom)] backdrop-blur-[30px] backdrop-saturate-[200%] md:hidden [html[data-immersive]_&]:hidden"
+        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
       >
         {primaryNavItems.map((item) => (
-          <NavLink key={item.to} to={item.to} end={item.to === '/'} aria-label={item.label} className={itemCls}>
-            <TabContent Icon={item.icon} label={item.label} ativo={isItemActive(item, location.pathname)} />
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === '/'}
+            onClick={() => haptic('light')}
+            className={itemCls}
+          >
+            <TabContent icon={item.icon} label={item.label} ativo={isItemActive(item, location.pathname)} />
           </NavLink>
         ))}
 
         <button
           type="button"
           onClick={() => setMaisAberto(true)}
-          aria-label="Mais"
           aria-haspopup="dialog"
           aria-expanded={maisAberto}
           className={itemCls}
         >
-          <TabContent Icon={LayoutGrid} label="Mais" ativo={maisAtivo} />
+          <TabContent icon="grid_view" label="Mais" ativo={maisAtivo} />
         </button>
       </nav>
 
@@ -50,19 +57,20 @@ export function TabBar() {
   )
 }
 
-function TabContent({ Icon, label, ativo }: { Icon: typeof LayoutGrid; label: string; ativo: boolean }) {
+function TabContent({ icon, label, ativo }: { icon: IconName; label: string; ativo: boolean }) {
   return (
     <>
-      <Icon
-        className={cn('size-[22px] transition-colors', ativo ? 'text-brasa' : 'text-cinza2')}
-        strokeWidth={ativo ? 2.25 : 1.75}
-        aria-hidden="true"
-      />
-      <span className={cn('ds-terminal-xs leading-none', ativo ? 'text-brasa' : 'sr-only')}>{label}</span>
       <span
-        className={cn('size-1 rounded-full bg-brasa transition-opacity', ativo ? 'opacity-100' : 'opacity-0')}
         aria-hidden="true"
+        className="absolute top-0 h-0.5 w-5 rounded-[1px] bg-brasa"
+        style={{
+          transform: ativo ? 'scaleX(1)' : 'scaleX(0)',
+          transition: 'transform var(--dur-normal) var(--spring-bounce)',
+        }}
       />
+      <Icon name={icon} size={24} filled={ativo} className={ativo ? 'text-brasa' : 'text-cinza2'} />
+      {/* Rótulo inativo em cinza2-texto: #646464 em 10px não passa no contraste AA. */}
+      <span className={cn('text-[10px] font-medium leading-none', ativo ? 'text-brasa' : 'text-cinza2-texto')}>{label}</span>
     </>
   )
 }

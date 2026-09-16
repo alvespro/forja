@@ -1,5 +1,5 @@
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-dom'
-import { AlertTriangle, RotateCcw } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
 
@@ -23,7 +23,7 @@ export function RouteError() {
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 p-6 text-center">
-      <AlertTriangle className="size-10 text-atencao" />
+      <Icon name="warning" size={40} className="text-atencao" />
       <div>
         <h1 className="font-heading text-xl font-bold text-foreground">
           {is404 ? 'Página não encontrada' : 'Algo quebrou por aqui'}
@@ -44,7 +44,7 @@ export function RouteError() {
           Ir para Hoje
         </Button>
         <Button type="button" onClick={() => window.location.reload()} className="gap-1.5">
-          <RotateCcw className="size-3.5" />
+          <Icon name="restart_alt" size={14} />
           Recarregar
         </Button>
       </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil } from 'lucide-react'
+import { Icon } from '@/components/Icon'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -30,7 +30,7 @@ export function ObjectiveCard() {
           <div className="flex flex-col gap-3">
             <EmptyState message="Nenhum objetivo de ciclo definido ainda." />
             <Button type="button" variant="outline" size="sm" className="self-start" onClick={() => setIsEditing(true)}>
-              <Pencil className="size-3.5" aria-hidden="true" />
+              <Icon name="edit" size={14} />
               Definir objetivo
             </Button>
           </div>
@@ -68,7 +68,7 @@ function ObjectiveContent({
           <span className="text-xs text-aco-texto">{cycle.nome}</span>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={onEdit}>
-          <Pencil className="size-3.5" aria-hidden="true" />
+          <Icon name="edit" size={14} />
           Editar objetivo
         </Button>
       </div>

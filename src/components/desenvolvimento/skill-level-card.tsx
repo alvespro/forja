@@ -80,9 +80,8 @@ export function SkillLevelCard({ area }: SkillLevelCardProps) {
                       />
                       <Button
                         type="button"
-                        size="xs"
+                        size="icon"
                         variant="outline"
-                        className="size-11 p-0"
                         aria-label="Salvar nível"
                         onClick={() => {
                           updateSkill.mutate({ id: skill.id, values: { nivel_atual: editValue } })
@@ -93,9 +92,8 @@ export function SkillLevelCard({ area }: SkillLevelCardProps) {
                       </Button>
                       <Button
                         type="button"
-                        size="xs"
+                        size="icon"
                         variant="ghost"
-                        className="size-11 p-0"
                         aria-label="Cancelar edição"
                         onClick={() => setEditingId(null)}
                       >
@@ -105,14 +103,16 @@ export function SkillLevelCard({ area }: SkillLevelCardProps) {
                   ) : (
                     <div className="flex items-center gap-1">
                       <Progress value={((skill.nivel_atual ?? 0) / 10) * 100} className="flex-1 h-1" />
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => { setEditingId(skill.id); setEditValue(skill.nivel_atual ?? 5) }}
                         aria-label={`Editar nível de ${skill.nome}`}
-                        className="-my-3 flex size-11 shrink-0 items-center justify-center rounded-full text-aco-texto hover:text-foreground"
+                        className="-my-2 text-aco-texto"
                       >
                         <Icon name="edit" size={16} />
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>

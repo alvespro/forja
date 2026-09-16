@@ -1,5 +1,5 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { notifyManager, useQueryClient } from '@tanstack/react-query'
 
 export type SystemStatus =
   | { estado: 'ok' }
@@ -21,16 +21,16 @@ function subscribeOnline(cb: () => void) {
  * "ALL SYSTEMS OPERATIONAL" só aparece quando é verdade.
  */
 export function useSystemStatus(): SystemStatus {
-  const queryClient = useQueryClient()
+  const cache = useQueryClient().getQueryCache()
   const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => true)
-  const [falhas, setFalhas] = useState(0)
-
-  useEffect(() => {
-    const cache = queryClient.getQueryCache()
-    const contar = () => setFalhas(cache.findAll({ predicate: (q) => q.state.status === 'error' }).length)
-    contar()
-    return cache.subscribe(contar)
-  }, [queryClient])
+  // O cache emite eventos no meio do render de outros componentes (useQuery novo = "added").
+  // batchCalls adia a notificação, como o useIsFetching do TanStack; sem isso o React acusa
+  // "Cannot update a component while rendering a different component".
+  const falhas = useSyncExternalStore(
+    useCallback((onChange: () => void) => cache.subscribe(notifyManager.batchCalls(onChange)), [cache]),
+    () => cache.findAll({ predicate: (q) => q.state.status === 'error' }).length,
+    () => 0,
+  )
 
   if (!online) return { estado: 'offline' }
   if (falhas > 0) return { estado: 'falhas', quantas: falhas }

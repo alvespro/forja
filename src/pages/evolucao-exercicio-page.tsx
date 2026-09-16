@@ -28,7 +28,7 @@ export function EvolucaoExercicioPage() {
   const [tab, setTab] = useState<EvolucaoTab>('evolucao')
 
   const exercise = exercises.data?.find((e) => e.id === id)
-  const logs = history.data ?? []
+  const logs = useMemo(() => history.data ?? [], [history.data])
   const aggregates = useMemo(() => computeSessionAggregates(logs), [logs])
 
   return (

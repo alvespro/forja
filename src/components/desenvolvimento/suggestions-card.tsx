@@ -88,9 +88,9 @@ export function SuggestionsCard({ tipo, semana }: SuggestionsCardProps) {
                 </Button>
                 <Button
                   type="button"
-                  size="xs"
+                  size="icon"
                   variant="ghost"
-                  className="-my-2 size-11 p-0 text-aco-texto"
+                  className="-my-1 text-aco-texto"
                   aria-label="Ignorar sugestão"
                   onClick={() => updateStatus.mutate({ id: s.id, status: 'ignorado' })}
                 >

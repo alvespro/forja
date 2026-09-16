@@ -317,15 +317,16 @@ function ProdutoCard({ produto, onSelecionar }: { produto: ProdutoAlimento; onSe
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-2">
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={handleFavoritar}
           aria-label={favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
           aria-pressed={!!favorito}
-          className="-m-2 flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Icon name="star" size={20} filled={!!favorito} className={favorito ? 'text-brasa' : 'text-aco-texto'} />
-        </button>
+        </Button>
         <Button type="button" size="sm" onClick={onSelecionar}>
           Adicionar
         </Button>

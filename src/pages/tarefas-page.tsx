@@ -282,7 +282,7 @@ function ListView({ titulo, cor, tarefas, feitasCount, isLoading, onBack, onTogg
                 placeholder="Nova tarefa"
                 autoFocus
                 disabled={isAdding}
-                className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-aco-texto/50"
+                className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-cinza2-texto"
               />
             </div>
           )}

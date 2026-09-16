@@ -591,14 +591,16 @@ export function ProtocoloPage() {
                 {alert.detail && <p className="text-xs text-aco-texto mt-0.5">{alert.detail}</p>}
               </div>
               {alert.level !== 'critico' && (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleDismissAlert(alert.id)}
                   aria-label="Dispensar alerta"
-                  className="-m-3 flex size-11 shrink-0 items-center justify-center rounded-full text-aco-texto hover:text-foreground"
+                  className="-my-1 text-aco-texto"
                 >
                   <Icon name="close" size={18} />
-                </button>
+                </Button>
               )}
             </div>
           ))}
@@ -733,14 +735,16 @@ export function ProtocoloPage() {
                         </p>
                         {c.notas && <p className="mt-1 text-xs text-cinza2-texto italic">{c.notas}</p>}
                       </div>
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => deleteCompound.mutate(c.id)}
                         aria-label={`Remover ${c.nome}`}
-                        className="-m-3 flex size-11 shrink-0 items-center justify-center rounded-full text-cinza2 hover:text-alerta-texto"
+                        className="text-cinza2 hover:text-alerta-texto"
                       >
                         <Icon name="close" size={18} />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -806,9 +810,16 @@ export function ProtocoloPage() {
                         {c.via && <span className="rounded-full bg-border/40 px-2 py-0.5 text-xs text-aco-texto">{c.via}</span>}
                       </div>
                     </div>
-                    <button type="button" onClick={() => deleteCompound.mutate(c.id)} aria-label={`Remover ${c.nome}`} className="-m-3 flex size-11 shrink-0 items-center justify-center rounded-full text-cinza2 hover:text-alerta-texto">
-                      <Icon name="close" size={16} />
-                    </button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteCompound.mutate(c.id)}
+                      aria-label={`Remover ${c.nome}`}
+                      className="text-cinza2 hover:text-alerta-texto"
+                    >
+                      <Icon name="close" size={18} />
+                    </Button>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {c.dose_mg != null && <div><span className="text-aco-texto">Dose:</span> <span className="text-foreground font-medium">{c.dose_mg}mg</span></div>}

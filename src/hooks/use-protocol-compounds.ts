@@ -45,6 +45,17 @@ export function useCreateProtocolCompound() {
   })
 }
 
+export function useUpdateProtocolCompound() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, values }: { id: string; values: ProtocolCompoundInput }) => {
+      const { error } = await supabase.from('protocol_compounds').update(values).eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['protocol-compounds'] }),
+  })
+}
+
 export function useDeleteProtocolCompound() {
   const qc = useQueryClient()
   return useMutation({

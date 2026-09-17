@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { useLocation } from 'react-router-dom'
 import { Icon } from '@/components/Icon'
 import {
@@ -17,13 +18,15 @@ import { Card, CardContent } from '@/components/ui/card'
 import { FieldInput, FieldSelect, FieldTextarea } from '@/components/ui/field'
 import { Modal } from '@/components/ui/modal'
 import { AgendaAplicacoes } from '@/components/protocolo/agenda-aplicacoes'
+import { CompostoModal } from '@/components/protocolo/composto-modal'
+import { ExameRealizadoModal } from '@/components/protocolo/exame-realizado-modal'
 import { MonitoramentoCiclo } from '@/components/protocolo/monitoramento-ciclo'
 import { ProtocolReport } from '@/components/protocolo/protocol-report'
 import { RegistrarAplicacaoModal } from '@/components/protocolo/registrar-aplicacao-modal'
 import { ProtocolCreateWizard } from '@/components/protocolo/protocol-create-wizard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useActiveProtocol, useUpdateProtocol } from '@/hooks/use-protocols'
-import { useProtocolCompounds, useCreateProtocolCompound, useDeleteProtocolCompound } from '@/hooks/use-protocol-compounds'
+import { useProtocolCompounds, useDeleteProtocolCompound } from '@/hooks/use-protocol-compounds'
 import { useCicloProtocolo } from '@/hooks/use-ciclo-protocolo'
 import { useProtocolLogs } from '@/hooks/use-protocol-logs'
 import { useProtocolExams, useUpdateProtocolExam } from '@/hooks/use-protocol-exams'
@@ -40,9 +43,11 @@ import {
 import { useConfirm } from '@/hooks/use-confirm'
 import { useForjaAI } from '@/hooks/useForjaAI'
 import { todayInSaoPaulo } from '@/lib/date'
+import { abrirDocumentUpload } from '@/lib/document-upload-store'
+import { mensagemDeErro } from '@/lib/feedback'
 import { computeWeekNumber } from '@/lib/protocol'
 import { dataDoLog } from '@/lib/protocol-cycle'
-import type { ProtocolExamStatus, ProtocolStatus } from '@/types/database'
+import type { ProtocolCompound, ProtocolExam, ProtocolExamStatus, ProtocolStatus } from '@/types/database'
 
 type Tab = 'protocolo' | 'compostos' | 'agenda' | 'monitoramento' | 'exames'
 
@@ -118,7 +123,9 @@ export function ProtocoloPage() {
   // "Abrir agenda" (card do Hoje) chega com { tab: 'agenda' } no state da navegação.
   const location = useLocation()
   const [tab, setTab] = useState<Tab>(((location.state as { tab?: Tab } | null)?.tab) ?? 'protocolo')
-  const [showAddCompound, setShowAddCompound] = useState(false)
+  // Composto em edição ('novo' = adicionar) e exame sendo marcado como realizado.
+  const [compostoModal, setCompostoModal] = useState<ProtocolCompound | 'novo' | null>(null)
+  const [exameRealizado, setExameRealizado] = useState<ProtocolExam | null>(null)
   const [showAddSupport, setShowAddSupport] = useState(false)
   const [registrandoAplicacao, setRegistrandoAplicacao] = useState(false)
   const [showScheduleModal, setShowScheduleModal] = useState<string | null>(null)
@@ -153,7 +160,6 @@ export function ProtocoloPage() {
   const healthMetrics = useHealthMetrics()
 
   const updateProtocol = useUpdateProtocol()
-  const createCompound = useCreateProtocolCompound()
   const createHealthMetric = useCreateHealthMetric()
   const deleteCompound = useDeleteProtocolCompound()
   const ciclo = useCicloProtocolo()
@@ -210,14 +216,6 @@ export function ProtocoloPage() {
   const visibleAlerts = alerts.filter((a) => !dismissedAlerts.has(a.id))
 
   // ── Estado de formulários ──
-  const [cNome, setCNome] = useState('')
-  const [cCategoria, setCCategoria] = useState('')
-  const [cDose, setCDose] = useState('')
-  const [cFreq, setCFreq] = useState('')
-  const [cVia, setCVia] = useState('injetavel')
-  const [cSemIni, setCSemIni] = useState('1')
-  const [cSemFim, setCSemFim] = useState(String(totalWeeks))
-  const [cNotas, setCNotas] = useState('')
 
   const [sNome, setSNome] = useState('')
   const [sCategoria, setSCategoria] = useState('hepatoprotetor')
@@ -232,23 +230,16 @@ export function ProtocoloPage() {
     setDismissedAlerts((prev) => new Set([...prev, id]))
   }
 
-  function handleAddCompound() {
-    if (!p || !cNome.trim()) return
-    createCompound.mutate({
-      protocol_id: p.id,
-      nome: cNome,
-      categoria: cCategoria || null,
-      dose_mg: cDose ? Number(cDose) : null,
-      frequencia: cFreq || null,
-      via: cVia || null,
-      semana_inicio: cSemIni ? Number(cSemIni) : null,
-      semana_fim: cSemFim ? Number(cSemFim) : null,
-      notas: cNotas || null,
-    }, {
-      onSuccess: () => {
-        setShowAddCompound(false)
-        setCNome(''); setCCategoria(''); setCDose(''); setCFreq(''); setCNotas('')
-      },
+  async function handleExcluirComposto(c: ProtocolCompound) {
+    const ok = await confirm({
+      title: `Excluir ${c.nome}?`,
+      description: 'O composto e todas as aplicações registradas dele saem do histórico do protocolo. Não dá para desfazer.',
+      critico: true,
+    })
+    if (!ok) return
+    deleteCompound.mutate(c.id, {
+      onSuccess: () => toast.success(`${c.nome} excluído.`),
+      onError: (e) => toast.error(mensagemDeErro(e, 'excluir o composto')),
     })
   }
 
@@ -672,7 +663,7 @@ export function ProtocoloPage() {
             <CardContent className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-foreground">💉 Compostos prescritos</p>
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowAddCompound(true)} className="h-7 text-xs gap-1">
+                <Button type="button" variant="outline" size="sm" onClick={() => setCompostoModal('novo')} className="h-7 text-xs gap-1">
                   <Icon name="add_circle" size={18} className="mr-1.5 inline-block align-middle" />Adicionar
                 </Button>
               </div>
@@ -699,16 +690,14 @@ export function ProtocoloPage() {
                         </p>
                         {c.notas && <p className="mt-1 text-xs text-cinza2-texto italic">{c.notas}</p>}
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteCompound.mutate(c.id)}
-                        aria-label={`Remover ${c.nome}`}
-                        className="text-cinza2 hover:text-alerta-texto"
-                      >
-                        <Icon name="close" size={18} />
-                      </Button>
+                      <div className="flex shrink-0">
+                        <Button type="button" variant="ghost" size="icon" onClick={() => setCompostoModal(c)} aria-label={`Editar ${c.nome}`}>
+                          <Icon name="edit" size={18} />
+                        </Button>
+                        <Button type="button" variant="ghost" size="icon" onClick={() => void handleExcluirComposto(c)} aria-label={`Excluir ${c.nome}`} className="text-cinza2 hover:text-alerta-texto">
+                          <Icon name="delete" size={18} />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -759,7 +748,7 @@ export function ProtocoloPage() {
               </p>
             </CardContent>
           </Card>
-          <Button type="button" variant="outline" onClick={() => setShowAddCompound(true)} className="gap-1.5 w-full">
+          <Button type="button" variant="outline" onClick={() => setCompostoModal('novo')} className="gap-1.5 w-full">
             <Icon name="add_circle" size={18} className="mr-1.5 inline-block align-middle" />Adicionar composto prescrito
           </Button>
           <div className="flex flex-col gap-2">
@@ -774,16 +763,14 @@ export function ProtocoloPage() {
                         {c.via && <span className="rounded-full bg-border/40 px-2 py-0.5 text-xs text-aco-texto">{c.via}</span>}
                       </div>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteCompound.mutate(c.id)}
-                      aria-label={`Remover ${c.nome}`}
-                      className="text-cinza2 hover:text-alerta-texto"
-                    >
-                      <Icon name="close" size={18} />
-                    </Button>
+                    <div className="flex shrink-0">
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setCompostoModal(c)} aria-label={`Editar ${c.nome}`}>
+                        <Icon name="edit" size={18} />
+                      </Button>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => void handleExcluirComposto(c)} aria-label={`Excluir ${c.nome}`} className="text-cinza2 hover:text-alerta-texto">
+                        <Icon name="delete" size={18} />
+                      </Button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {c.dose_mg != null && <div><span className="text-aco-texto">Dose:</span> <span className="text-foreground font-medium">{c.dose_mg}mg</span></div>}
@@ -1017,23 +1004,27 @@ export function ProtocoloPage() {
                         <div className="flex flex-col gap-1 shrink-0">
                           {exam.status !== 'realizado' && (
                             <>
-                              <Button
-                                type="button"
-                                size="xs"
-                                variant="outline"
-                                className="h-6 text-xs px-2"
-                                onClick={() => { setShowExamResultModal(exam.id); setExamResultValues({}); setExamResultCritical([]) }}
-                              >
-                                <Icon name="check" size={18} className="mr-1.5 inline-block align-middle" />Realizado
+                              <Button type="button" size="sm" variant="outline" className="min-h-11 justify-start" onClick={() => setExameRealizado(exam)}>
+                                <Icon name="check" size={18} />
+                                Marcar realizado
+                              </Button>
+                              <Button type="button" size="sm" variant="ghost" className="min-h-11 justify-start" onClick={() => abrirDocumentUpload('exame', { protocolExamId: exam.id })}>
+                                <Icon name="photo_camera" size={18} />
+                                Registrar resultado
                               </Button>
                               <Button
                                 type="button"
-                                size="xs"
+                                size="sm"
                                 variant="ghost"
-                                className="h-6 text-xs px-2"
-                                onClick={() => setShowScheduleModal(exam.id)}
+                                className="min-h-11 justify-start"
+                                onClick={() => { setShowExamResultModal(exam.id); setExamResultValues({}); setExamResultCritical([]) }}
                               >
-                                <Icon name="calendar_today" size={18} className="mr-1.5 inline-block align-middle" />Agendar
+                                <Icon name="edit_note" size={18} />
+                                Digitar resultado
+                              </Button>
+                              <Button type="button" size="sm" variant="ghost" className="min-h-11 justify-start" onClick={() => setShowScheduleModal(exam.id)}>
+                                <Icon name="calendar_today" size={18} />
+                                Agendar
                               </Button>
                             </>
                           )}
@@ -1135,50 +1126,14 @@ export function ProtocoloPage() {
       </div>
 
       {/* ════ MODAL: Adicionar Composto ════ */}
-      <Modal open={showAddCompound} onClose={() => setShowAddCompound(false)} title="Registrar composto">
-        <div className="rounded-lg border border-brasa/40 bg-brasa/10 p-3">
-          <p className="text-xs text-brasa">
-            Registre apenas o que foi prescrito pelo seu médico. O FORJA não recomenda compostos ou doses.
-          </p>
-        </div>
-        {[
-          { label: 'Nome do composto *', value: cNome, set: setCNome, placeholder: 'Ex: Testosterona Cipionato' },
-          { label: 'Categoria', value: cCategoria, set: setCCategoria, placeholder: 'Ex: androgenico, esteroide...' },
-          { label: 'Dose (mg)', value: cDose, set: setCDose, placeholder: '200', type: 'number' },
-          { label: 'Frequência', value: cFreq, set: setCFreq, placeholder: '1x por semana, E3D...' },
-          { label: 'Semana início', value: cSemIni, set: setCSemIni, placeholder: '1', type: 'number' },
-          { label: 'Semana fim', value: cSemFim, set: setCSemFim, placeholder: '12', type: 'number' },
-        ].map(({ label, value, set, placeholder, type }) => (
-          <FieldInput
-            key={label}
-            label={label}
-            type={type ?? 'text'}
-            value={value}
-            onChange={(e) => set(e.target.value)}
-            placeholder={placeholder}
-          />
-        ))}
-        <FieldSelect label="Via" value={cVia} onChange={(e) => setCVia(e.target.value)}>
-          <option value="injetavel">Injetável</option>
-          <option value="oral">Oral</option>
-          <option value="topico">Tópico</option>
-        </FieldSelect>
-        <FieldTextarea
-          label="Notas"
-          value={cNotas}
-          onChange={(e) => setCNotas(e.target.value)}
-          placeholder="Observações..."
-          rows={2}
-        />
-        <Button
-          type="button"
-          onClick={handleAddCompound}
-          disabled={!cNome.trim() || createCompound.isPending}
-          className="w-full"
-        >
-          {createCompound.isPending ? 'Salvando…' : 'Salvar composto'}
-        </Button>
-      </Modal>
+      <CompostoModal
+        open={compostoModal !== null}
+        protocolId={p.id}
+        totalSemanas={totalWeeks}
+        composto={compostoModal === 'novo' || compostoModal === null ? undefined : compostoModal}
+        onClose={() => setCompostoModal(null)}
+      />
+      <ExameRealizadoModal exame={exameRealizado} onClose={() => setExameRealizado(null)} />
 
       {/* ════ MODAL: Adicionar Suporte ════ */}
       <Modal open={showAddSupport} onClose={() => setShowAddSupport(false)} title="Adicionar suporte">

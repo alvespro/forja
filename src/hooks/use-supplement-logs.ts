@@ -28,6 +28,31 @@ export function useSupplementLogs() {
   })
 }
 
+/** Marca/desmarca um item do "Suporte do ciclo" (protocol_support) como tomado hoje. */
+export function useToggleSupportLog() {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ supportId, tomado }: { supportId: string; tomado: boolean }) => {
+      if (!user) throw new Error('Usuário não autenticado')
+      const { error } = await supabase.from('supplement_logs').upsert(
+        {
+          user_id: user.id,
+          protocol_support_id: supportId,
+          supplement_id: null,
+          data: todayInSaoPaulo(),
+          tomado,
+          horario: new Date().toTimeString().slice(0, 8),
+        },
+        { onConflict: 'protocol_support_id,data' },
+      )
+      if (error) throw error
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['supplement-logs'] }),
+  })
+}
+
 /** Marca/desmarca um suplemento como tomado hoje. Upsert por (supplement_id, data) — constraint única já existe. */
 export function useToggleSupplementLog() {
   const { user } = useAuth()

@@ -413,6 +413,18 @@ export type BodyMetric = {
   gordura_visceral: number | null
   imc: number | null
   medido_em: string
+  tgc_pct: number | null
+  massa_ossea_kg: number | null
+  tmb_kcal: number | null
+  proteina_pct: number | null
+  idade_corporal: number | null
+  gordura_subcutanea_pct: number | null
+  gordura_corporal_kg: number | null
+  peso_sem_gordura_kg: number | null
+  peso_muscular_kg: number | null
+  proteina_kg: number | null
+  peso_ideal_kg: number | null
+  fonte: 'manual' | 'document_vision' | null
 }
 
 export type ObjetivoCorporal = 'ganho_massa' | 'recomposicao' | 'perda_peso' | 'definicao' | 'performance'
@@ -581,7 +593,9 @@ export type Supplement = {
 export type SupplementLog = {
   id: string
   user_id: string
-  supplement_id: string
+  /** Suplemento comum OU item de suporte do protocolo (exatamente um dos dois). */
+  supplement_id: string | null
+  protocol_support_id: string | null
   data: string
   tomado: boolean
   horario: string | null

@@ -1,8 +1,10 @@
 // protocol-reminders — Edge Function agendada (diária, ~08h BRT)
 // Verifica protocolos ativos e gera lembretes em `notifications`:
-//   1. 3+ dias sem registrar aplicação (protocolo ativo)
-//   2. Exame previsto nos próximos 3 dias (por data_prevista ou por semana_alvo)
-//   3. Exame atrasado (idem; atualiza status para 'atrasado' e reincide 1×/semana)
+//   1. Dia de aplicação (mesmo dia da semana do início) — "Ciclo semana X de N"
+//   2. Última aplicação do ciclo (semana N)
+//   3. Aplicação anterior sem registro
+//   4. Exames previstos nos próximos 3 dias, agrupados por data (por data_prevista ou semana_alvo)
+//   5. Exame atrasado (atualiza status para 'atrasado' e reincide 1×/semana)
 // Dedupe via unique index (user_id, dedupe_key). Chamável via POST para testes.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
@@ -39,6 +41,14 @@ function daysBetween(a: string, b: string): number {
   )
 }
 
+/** Data (fuso de São Paulo) de um data_aplicacao — timestamp ou data pura (registros antigos). */
+function dataSaoPaulo(valor: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) return valor
+  return new Date(valor).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
+}
+
+const dataBr = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`
+
 /** Bucket semanal (âncora numa segunda-feira fixa) para lembretes que devem reincidir. */
 function weekBucket(dateStr: string): number {
   return Math.floor(daysBetween('2026-01-05', dateStr) / 7)
@@ -69,7 +79,7 @@ Deno.serve(async (req) => {
   try {
     const { data: protocols, error: pErr } = await sb
       .from('protocols')
-      .select('id, user_id, nome, status, data_inicio')
+      .select('id, user_id, nome, status, data_inicio, duracao_semanas')
       .in('status', ['planejado', 'ativo', 'tpc'])
     if (pErr) throw pErr
 
@@ -77,32 +87,58 @@ Deno.serve(async (req) => {
     let examesAtrasados = 0
 
     for (const p of protocols ?? []) {
-      // ── 1. Dias sem registrar aplicação (só ciclo ativo) ──────────────
-      if (p.status === 'ativo') {
-        const { data: lastLog } = await sb
-          .from('protocol_logs')
-          .select('data_aplicacao')
-          .eq('protocol_id', p.id)
-          .order('data_aplicacao', { ascending: false })
-          .limit(1)
-          .maybeSingle()
+      // ── 1–3. Aplicações do ciclo ativo ────────────────────────────────
+      if (p.status === 'ativo' && p.data_inicio) {
+        const total = (p.duracao_semanas as number | null) ?? 12
+        const dias = daysBetween(p.data_inicio, today)
+        const ultimaAplicacao = addDays(p.data_inicio, (total - 1) * 7)
 
-        if (lastLog?.data_aplicacao) {
-          const dias = daysBetween(lastLog.data_aplicacao, today)
-          if (dias >= 3) {
+        if (dias >= 0 && dias % 7 === 0 && today <= ultimaAplicacao) {
+          const semana = Math.floor(dias / 7) + 1
+          notifications.push({
+            user_id: p.user_id,
+            tipo: 'protocolo',
+            titulo: `💉 Dia de aplicação — Ciclo semana ${semana} de ${total}`,
+            corpo: `Registre a aplicação de hoje no protocolo "${p.nome}".`,
+            link: '/protocolo',
+            dedupe_key: `aplicacao_${p.id}_${today}`,
+          })
+          if (semana === total) {
             notifications.push({
               user_id: p.user_id,
               tipo: 'protocolo',
-              titulo: `💉 ${dias} dias sem registrar aplicação`,
-              corpo: `Último registro em ${lastLog.data_aplicacao}. Mantenha o log do protocolo "${p.nome}" atualizado.`,
+              titulo: '⚠️ Última aplicação do ciclo esta semana',
+              corpo: 'TPC inicia em ~2 semanas.',
               link: '/protocolo',
-              dedupe_key: `sem_log_${p.id}_${today}`,
+              dedupe_key: `ultima_aplicacao_${p.id}`,
+            })
+          }
+        }
+
+        // Aplicação mais recente antes de hoje, dentro do ciclo, sem nenhum registro no dia.
+        if (dias > 0) {
+          const semanasPassadas = Math.min(total - 1, Math.floor((dias - 1) / 7))
+          const anterior = addDays(p.data_inicio, semanasPassadas * 7)
+          const { data: logs } = await sb
+            .from('protocol_logs')
+            .select('data_aplicacao')
+            .eq('protocol_id', p.id)
+            .gte('data_aplicacao', addDays(anterior, -1))
+          const registrada = (logs ?? []).some((l) => dataSaoPaulo(l.data_aplicacao as string) === anterior)
+          if (!registrada) {
+            notifications.push({
+              user_id: p.user_id,
+              tipo: 'protocolo',
+              titulo: `⚠️ Aplicação de ${dataBr(anterior)} não registrada`,
+              corpo: 'Você aplicou? Registre agora para manter o histórico do ciclo.',
+              link: '/protocolo',
+              dedupe_key: `aplicacao_perdida_${p.id}_${anterior}`,
             })
           }
         }
       }
 
-      // ── 2. Exames próximos (≤3 dias) e 3. atrasados ───────────────────
+      // ── 4. Exames próximos (≤3 dias, agrupados por data) e 5. atrasados ─
       const { data: exams, error: eErr } = await sb
         .from('protocol_exams')
         .select('id, nome, status, data_prevista, semana_alvo')
@@ -110,6 +146,7 @@ Deno.serve(async (req) => {
         .neq('status', 'realizado')
       if (eErr) throw eErr
 
+      const proximosPorData = new Map<string, string[]>()
       for (const exam of exams ?? []) {
         // Prazo: data_prevista quando existe; senão o último dia da semana-alvo
         // (data_inicio + semana_alvo*7 − 1) — mesmo critério do isExamOverdue do frontend.
@@ -122,17 +159,7 @@ Deno.serve(async (req) => {
         if (!alvo) continue
 
         if (alvo >= today && alvo <= em3dias) {
-          const dias = daysBetween(today, alvo)
-          notifications.push({
-            user_id: p.user_id,
-            tipo: 'exame',
-            titulo: `🧪 Exame "${exam.nome}" ${dias === 0 ? 'é hoje' : `em ${dias} dia(s)`}`,
-            corpo: prevista
-              ? `Previsto para ${alvo}. Protocolo "${p.nome}".`
-              : `Alvo: semana ${exam.semana_alvo} do protocolo "${p.nome}" (até ${alvo}).`,
-            link: '/protocolo',
-            dedupe_key: `exame_prox_${exam.id}_${alvo}`,
-          })
+          proximosPorData.set(alvo, [...(proximosPorData.get(alvo) ?? []), exam.nome as string])
         }
 
         if (alvo < today) {
@@ -152,6 +179,19 @@ Deno.serve(async (req) => {
             examesAtrasados++
           }
         }
+      }
+
+      // Um aviso por data com a lista dos exames (antes: um aviso por exame).
+      for (const [alvo, nomes] of proximosPorData) {
+        const dias = daysBetween(today, alvo)
+        notifications.push({
+          user_id: p.user_id,
+          tipo: 'exame',
+          titulo: dias === 0 ? `🧪 ${nomes.length} exame(s) hoje` : `🧪 Exames em ${dias} dia(s) — agendar agora`,
+          corpo: `${dataBr(alvo)}: ${nomes.join(', ')}.`,
+          link: '/protocolo',
+          dedupe_key: `exames_prox_${p.id}_${alvo}_${today}`,
+        })
       }
     }
 

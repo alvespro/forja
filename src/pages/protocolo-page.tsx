@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Icon } from '@/components/Icon'
 import {
   CartesianGrid,
@@ -15,13 +16,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { FieldInput, FieldSelect, FieldTextarea } from '@/components/ui/field'
 import { Modal } from '@/components/ui/modal'
+import { AgendaAplicacoes } from '@/components/protocolo/agenda-aplicacoes'
+import { MonitoramentoCiclo } from '@/components/protocolo/monitoramento-ciclo'
 import { ProtocolReport } from '@/components/protocolo/protocol-report'
+import { RegistrarAplicacaoModal } from '@/components/protocolo/registrar-aplicacao-modal'
 import { ProtocolCreateWizard } from '@/components/protocolo/protocol-create-wizard'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useActiveProtocol, useUpdateProtocol } from '@/hooks/use-protocols'
 import { useProtocolCompounds, useCreateProtocolCompound, useDeleteProtocolCompound } from '@/hooks/use-protocol-compounds'
-import { useProtocolLogs, useCreateProtocolLog } from '@/hooks/use-protocol-logs'
+import { useCicloProtocolo } from '@/hooks/use-ciclo-protocolo'
+import { useProtocolLogs } from '@/hooks/use-protocol-logs'
 import { useProtocolExams, useUpdateProtocolExam } from '@/hooks/use-protocol-exams'
 import { useProtocolSupport, useCreateProtocolSupport } from '@/hooks/use-protocol-support'
 import { useProtocolGoals } from '@/hooks/use-protocol-goals'
@@ -37,6 +41,7 @@ import { useConfirm } from '@/hooks/use-confirm'
 import { useForjaAI } from '@/hooks/useForjaAI'
 import { todayInSaoPaulo } from '@/lib/date'
 import { computeWeekNumber } from '@/lib/protocol'
+import { dataDoLog } from '@/lib/protocol-cycle'
 import type { ProtocolExamStatus, ProtocolStatus } from '@/types/database'
 
 type Tab = 'protocolo' | 'compostos' | 'agenda' | 'monitoramento' | 'exames'
@@ -47,12 +52,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'agenda', label: '📅 Agenda' },
   { id: 'monitoramento', label: '📊 Monitoramento' },
   { id: 'exames', label: '🧪 Exames' },
-]
-
-const LOCAL_OPTIONS = [
-  'Glúteo direito', 'Glúteo esquerdo',
-  'Deltoide direito', 'Deltoide esquerdo',
-  'Vasto direito', 'Vasto esquerdo',
 ]
 
 const EXAM_MARKERS = [
@@ -116,10 +115,12 @@ function examStatusBadge(status: ProtocolExamStatus | string | null) {
 }
 
 export function ProtocoloPage() {
-  const [tab, setTab] = useState<Tab>('protocolo')
+  // "Abrir agenda" (card do Hoje) chega com { tab: 'agenda' } no state da navegação.
+  const location = useLocation()
+  const [tab, setTab] = useState<Tab>(((location.state as { tab?: Tab } | null)?.tab) ?? 'protocolo')
   const [showAddCompound, setShowAddCompound] = useState(false)
   const [showAddSupport, setShowAddSupport] = useState(false)
-  const [showLogModal, setShowLogModal] = useState(false)
+  const [registrandoAplicacao, setRegistrandoAplicacao] = useState(false)
   const [showScheduleModal, setShowScheduleModal] = useState<string | null>(null)
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
   const [showInsights, setShowInsights] = useState(false)
@@ -155,7 +156,7 @@ export function ProtocoloPage() {
   const createCompound = useCreateProtocolCompound()
   const createHealthMetric = useCreateHealthMetric()
   const deleteCompound = useDeleteProtocolCompound()
-  const createLog = useCreateProtocolLog()
+  const ciclo = useCicloProtocolo()
   const updateExam = useUpdateProtocolExam()
   const createSupport = useCreateProtocolSupport()
   const gerarInsights = useForjaAI()
@@ -224,15 +225,6 @@ export function ProtocoloPage() {
   const [sMomento, setSMomento] = useState('')
   const [sMotivo, setSMotivo] = useState('')
 
-  const [logCompound, setLogCompound] = useState('')
-  const [logDose, setLogDose] = useState('')
-  const [logLocal, setLogLocal] = useState('Glúteo direito')
-  const [logHumor, setLogHumor] = useState(3)
-  const [logEnergia, setLogEnergia] = useState(3)
-  const [logLibido, setLogLibido] = useState(3)
-  const [logEfeitos, setLogEfeitos] = useState('')
-  const [logObs, setLogObs] = useState('')
-
   const [scheduleDate, setScheduleDate] = useState(today)
 
   function handleDismissAlert(id: string) {
@@ -274,26 +266,6 @@ export function ProtocoloPage() {
       onSuccess: () => {
         setShowAddSupport(false)
         setSNome(''); setSDose(''); setSMomento(''); setSMotivo('')
-      },
-    })
-  }
-
-  function handleRegistrarLog() {
-    if (!p) return
-    createLog.mutate({
-      protocol_id: p.id,
-      compound_id: logCompound || null,
-      dose_aplicada_mg: logDose ? Number(logDose) : null,
-      local_aplicacao: logLocal || null,
-      humor: logHumor,
-      energia: logEnergia,
-      libido: logLibido,
-      efeitos_percebidos: logEfeitos || null,
-      observacoes: logObs || null,
-    }, {
-      onSuccess: () => {
-        setShowLogModal(false)
-        setLogDose(''); setLogEfeitos(''); setLogObs(''); setLogHumor(3); setLogEnergia(3); setLogLibido(3)
       },
     })
   }
@@ -465,20 +437,12 @@ export function ProtocoloPage() {
   const preRealizados = preExams.filter((e) => e.status === 'realizado').length
   const showPreAlert = p.status === 'planejado' && preExams.length > 0 && preRealizados < preExams.length
 
-  // Dados para gráfico de monitoramento
-  const chartData = (bodyMetrics.data ?? []).map((m) => ({
-    data: m.medido_em,
-    peso: m.peso_kg,
-    gordura: m.gordura_pct,
-    musculo: m.musculo_pct ? (m.peso_kg ?? 0) * (m.musculo_pct / 100) : null,
-  })).filter((d) => !p.data_inicio || d.data >= p.data_inicio!)
-
   // Dados de bem-estar
   const wellnessData = (logs.data ?? [])
     .slice()
     .reverse()
     .map((l) => ({
-      data: l.data_aplicacao,
+      data: dataDoLog(l.data_aplicacao),
       humor: l.humor,
       energia: l.energia,
       libido: l.libido,
@@ -839,10 +803,12 @@ export function ProtocoloPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground">📅 Semana {weekNum}</p>
-            <Button type="button" onClick={() => setShowLogModal(true)} className="gap-1.5">
+            <Button type="button" onClick={() => setRegistrandoAplicacao(true)} className="gap-1.5">
               <Icon name="vaccines" size={18} className="mr-1.5 inline-block align-middle" />Registrar aplicação
             </Button>
           </div>
+
+          <AgendaAplicacoes protocolo={p} compostos={compounds.data ?? []} logs={ciclo.logs} hoje={today} onRegistrarHoje={() => setRegistrandoAplicacao(true)} />
 
           {/* Janelas de exames */}
           <Card>
@@ -896,7 +862,7 @@ export function ProtocoloPage() {
                           </div>
                           <div className="flex flex-wrap gap-2 mt-0.5">
                             <span className="text-xs text-aco-texto">
-                              {new Date(l.data_aplicacao + 'T12:00:00').toLocaleDateString('pt-BR')}
+                              {dataDoLog(l.data_aplicacao).split('-').reverse().join('/')}
                             </span>
                             {l.local_aplicacao && (
                               <span className="text-xs text-aco-texto">{l.local_aplicacao}</span>
@@ -983,28 +949,7 @@ export function ProtocoloPage() {
             </Card>
           )}
 
-          {/* Gráfico de evolução */}
-          {chartData.length > 0 && (
-            <Card>
-              <CardContent className="flex flex-col gap-3">
-                <p className="text-sm font-semibold text-foreground">Evolução durante o ciclo</p>
-                <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ left: -20, right: 8 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                      <XAxis dataKey="data" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} />
-                      <YAxis tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} />
-                      <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Line type="monotone" dataKey="peso" stroke="#FC4C13" dot={false} name="Peso (kg)" strokeWidth={2} />
-                      <Line type="monotone" dataKey="gordura" stroke="#F9F9F9" dot={false} name="Gordura %" strokeWidth={2} />
-                      <Line type="monotone" dataKey="musculo" stroke="#4CAF7D" dot={false} name="Músculo (kg)" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <MonitoramentoCiclo protocolo={p} medicoes={bodyMetrics.data ?? []} />
 
           {/* Gráfico de bem-estar */}
           {wellnessData.length > 0 && (
@@ -1276,75 +1221,15 @@ export function ProtocoloPage() {
       </Modal>
 
       {/* ════ MODAL: Registrar Aplicação ════ */}
-      <Modal open={showLogModal} onClose={() => setShowLogModal(false)} title="Registrar aplicação">
-        <FieldSelect
-          label="Composto"
-          value={logCompound}
-          onChange={(e) => {
-            setLogCompound(e.target.value)
-            const c = compounds.data?.find((x) => x.id === e.target.value)
-            if (c?.dose_mg) setLogDose(String(c.dose_mg))
-          }}
-        >
-          <option value="">Selecionar composto</option>
-          {(compounds.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>{c.nome}</option>
-          ))}
-        </FieldSelect>
-
-        <FieldInput
-          label="Dose aplicada (mg)"
-          type="number"
-          value={logDose}
-          onChange={(e) => setLogDose(e.target.value)}
-        />
-
-        <FieldSelect label="Local de aplicação" value={logLocal} onChange={(e) => setLogLocal(e.target.value)}>
-          {LOCAL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-        </FieldSelect>
-
-        {[
-              { label: 'Humor', value: logHumor, set: setLogHumor },
-              { label: 'Energia', value: logEnergia, set: setLogEnergia },
-              { label: 'Libido', value: logLibido, set: setLogLibido },
-            ].map(({ label, value, set }) => (
-              <div key={label}>
-                <div className="flex justify-between text-xs text-aco-texto mb-1">
-                  <Label className="text-xs">{label}</Label>
-                  <span>{value}/5</span>
-                </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={5}
-                  step={1}
-                  value={value}
-                  onChange={(e) => set(Number(e.target.value))}
-                  className="w-full h-1.5 accent-brasa"
-                />
-              </div>
-            ))}
-
-        <FieldTextarea
-          label="Efeitos percebidos"
-          value={logEfeitos}
-          onChange={(e) => setLogEfeitos(e.target.value)}
-          placeholder="Como você está se sentindo..."
-          rows={2}
-        />
-
-        <FieldTextarea
-          label="Observações"
-          value={logObs}
-          onChange={(e) => setLogObs(e.target.value)}
-          placeholder="Observações gerais..."
-          rows={2}
-        />
-
-        <Button type="button" onClick={handleRegistrarLog} disabled={createLog.isPending} className="w-full">
-          {createLog.isPending ? 'Registrando…' : 'Registrar aplicação'}
-        </Button>
-      </Modal>
+      <RegistrarAplicacaoModal
+        open={registrandoAplicacao}
+        onClose={() => setRegistrandoAplicacao(false)}
+        protocolId={p.id}
+        compostos={ciclo.compostosDaSemana}
+        semana={ciclo.estado?.fase === 'ativo' ? ciclo.estado.semana : Math.max(1, weekNum)}
+        totalSemanas={totalWeeks}
+        jaRegistradoHoje={ciclo.registradoHoje}
+      />
 
       {/* ════ MODAL: Agendar exame ════ */}
       <Modal

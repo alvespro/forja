@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
@@ -10,14 +11,17 @@ import { SupplementForm } from '@/components/supplements/supplement-form'
 import { useActiveCycle } from '@/hooks/use-active-cycle'
 import { useActiveProtocol } from '@/hooks/use-protocols'
 import { useProtocolSupport } from '@/hooks/use-protocol-support'
-import { useSupplementLogs } from '@/hooks/use-supplement-logs'
+import { useSupplementLogs, useToggleSupportLog } from '@/hooks/use-supplement-logs'
 import { useCreateSupplement, useSupplements } from '@/hooks/use-supplements'
 import { addDaysToDateString, todayInSaoPaulo } from '@/lib/date'
+import { mensagemDeErro } from '@/lib/feedback'
 import { weekdayAbbrevOf } from '@/lib/nutrition'
+import { cn } from '@/lib/utils'
 
 export function SupplementsPage() {
   const supplements = useSupplements()
   const logs = useSupplementLogs()
+  const toggleSupport = useToggleSupportLog()
   const activeCycle = useActiveCycle()
   const activeProtocol = useActiveProtocol()
   const protocolSupport = useProtocolSupport(activeProtocol.data?.id)
@@ -96,39 +100,50 @@ export function SupplementsPage() {
         </div>
       )}
 
-      {/* ── Suporte do ciclo (protocolo) ── */}
+      {/* ── Suporte do ciclo (protocolo): check diário no mesmo log dos suplementos ── */}
       {activeProtocol.data && (protocolSupport.data?.filter((s) => s.ativo).length ?? 0) > 0 && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 mt-2">
-            <h2 className="text-sm font-semibold text-foreground">Suporte do ciclo</h2>
-            <span className="rounded-full bg-brasa/20 px-2 py-0.5 text-[10px] font-medium text-brasa">
-              🔬 Protocolo ativo
-            </span>
+        <section className="flex flex-col gap-2" aria-labelledby="suporte-ciclo">
+          <div className="mt-2 flex items-center gap-2">
+            <Icon name="science" size={20} className="text-brasa" />
+            <h2 id="suporte-ciclo" className="text-sm font-semibold text-foreground">
+              Suporte do ciclo
+            </h2>
+            <span className="rounded-full border border-brasa/40 bg-brasa/15 px-2 py-0.5 text-[11px] font-semibold text-brasa">{activeProtocol.data.nome}</span>
           </div>
           {protocolSupport.data!
             .filter((s) => s.ativo)
-            .map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center gap-3 rounded-xl border border-brasa/20 bg-brasa/5 p-3"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-sm font-medium text-foreground">{s.nome}</span>
-                    <span className="rounded-full bg-brasa/20 px-2 py-0.5 text-[10px] text-brasa">
-                      🔬 Suporte do ciclo
-                    </span>
+            .map((s) => {
+              const tomado = (logs.data ?? []).some((l) => l.protocol_support_id === s.id && l.data === today && l.tomado)
+              return (
+                <div key={s.id} className={cn('flex items-center gap-3 rounded-xl border p-3 transition-colors', tomado ? 'border-ok/40 bg-ok/[0.06]' : 'border-brasa/25 bg-brasa/5')}>
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={tomado}
+                    aria-label={`${s.nome}: ${tomado ? 'tomado hoje' : 'marcar como tomado hoje'}`}
+                    disabled={toggleSupport.isPending}
+                    onClick={() =>
+                      toggleSupport.mutate(
+                        { supportId: s.id, tomado: !tomado },
+                        { onError: (e) => toast.error(mensagemDeErro(e, 'marcar o suporte')) },
+                      )
+                    }
+                    className="-m-1.5 flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Icon name="check_circle" size={28} filled={tomado} className={tomado ? 'text-ok' : 'text-cinza2'} />
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className={cn('text-sm font-medium', tomado ? 'text-cinza line-through' : 'text-foreground')}>{s.nome}</span>
+                      <span className="rounded-full bg-brasa/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brasa">Ciclo</span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-aco-texto">{[s.dose, s.momento, s.categoria].filter(Boolean).join(' · ')}</p>
+                    {s.motivo && <p className="mt-0.5 text-xs italic text-cinza2-texto">{s.motivo}</p>}
                   </div>
-                  <p className="mt-0.5 text-xs text-aco-texto">
-                    {[s.dose, s.momento, s.categoria].filter(Boolean).join(' · ')}
-                  </p>
-                  {s.motivo && (
-                    <p className="mt-0.5 text-xs text-cinza2-texto italic">{s.motivo}</p>
-                  )}
                 </div>
-              </div>
-            ))}
-        </div>
+              )
+            })}
+        </section>
       )}
     </div>
   )

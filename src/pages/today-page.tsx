@@ -16,6 +16,7 @@ import { PretreinoAlertCard } from '@/components/today/pretreino-alert-card'
 import { ProtocolSummaryCard } from '@/components/today/protocol-summary-card'
 import { PullToRefresh } from '@/components/today/pull-to-refresh'
 import { QuickStatsCard } from '@/components/today/quick-stats-card'
+import { ProtocolCycleCard } from '@/components/today/protocol-cycle-card'
 import { RecoveryCard } from '@/components/today/recovery-card'
 import { RecoveryRingCard } from '@/components/today/recovery-ring-card'
 import { SpacedReviewCard } from '@/components/today/spaced-review-card'
@@ -38,6 +39,8 @@ export function TodayPage() {
       <GamifiedDashboard
         afterHero={
           <>
+            {/* Ciclo do protocolo: no dia de aplicação é a prioridade do dia. */}
+            <ProtocolCycleCard />
             <section className="grid grid-cols-2 gap-2" aria-label="Recuperação e próxima ação">
               <RecoveryRingCard />
               <NextActionCard />

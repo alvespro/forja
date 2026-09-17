@@ -1,14 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/hooks/use-auth'
-import { todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 import type { ProtocolLog } from '@/types/database'
 
 export function useProtocolLogs(protocolId?: string, limit = 90) {
   const { user } = useAuth()
   return useQuery({
-    queryKey: ['protocol-logs', protocolId],
+    queryKey: ['protocol-logs', protocolId, limit],
     queryFn: async () => {
       const q = supabase
         .from('protocol_logs')
@@ -46,8 +45,37 @@ export function useCreateProtocolLog() {
       const { error } = await supabase.from('protocol_logs').insert({
         ...values,
         user_id: user.id,
-        data_aplicacao: values.data_aplicacao ?? todayInSaoPaulo(),
+        // Timestamp real: data pura vira 00:00 UTC, que é o dia anterior em São Paulo.
+        data_aplicacao: values.data_aplicacao ?? new Date().toISOString(),
       })
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['protocol-logs'] }),
+  })
+}
+
+export type RegistroAplicacaoInput = {
+  protocol_id: string
+  compostos: { compound_id: string; dose_aplicada_mg: number | null }[]
+  local_aplicacao: string
+  observacoes: string | null
+  humor: number
+  energia: number
+  libido: number
+}
+
+/** "✓ Confirmar aplicação": um protocol_log por composto aplicado, todos com o mesmo horário. */
+export function useRegistrarAplicacao() {
+  const { user } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ compostos, ...comum }: RegistroAplicacaoInput) => {
+      if (!user) throw new Error('Não autenticado')
+      if (compostos.length === 0) throw new Error('Nenhum composto selecionado')
+      const agora = new Date().toISOString()
+      const { error } = await supabase
+        .from('protocol_logs')
+        .insert(compostos.map((c) => ({ ...comum, ...c, user_id: user.id, data_aplicacao: agora })))
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['protocol-logs'] }),

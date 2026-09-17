@@ -3,10 +3,12 @@ import { toast } from 'sonner'
 import { BodyMap } from '@/components/BodyMap'
 import { NovoCursoForm } from '@/components/desenvolvimento/novo-curso-form'
 import { PlacarSaude } from '@/components/health/placar-saude'
+import { AgendaAplicacoes } from '@/components/protocolo/agenda-aplicacoes'
+import { MonitoramentoCiclo } from '@/components/protocolo/monitoramento-ciclo'
 import { AppVersionCard } from '@/components/settings/app-version-card'
 import { UpdateBanner } from '@/components/UpdateBanner'
 import { groupHealthMetricsByKey } from '@/hooks/use-health-metrics'
-import type { HealthMetric } from '@/types/database'
+import type { BodyMetric, HealthMetric, Protocol, ProtocolCompound } from '@/types/database'
 import { CardioTimerView, MobilidadeBadge, ObservacaoDestaque, PhaseTimerView } from '@/components/workout/session/phase-views'
 import { GlassCard } from '@/components/GlassCard'
 import { Icon } from '@/components/Icon'
@@ -43,6 +45,15 @@ const EXAMES_EXEMPLO: HealthMetric[] = [
     triglicerides: 136, tsh: 2.38, vitamina_b12: 600, vitamina_c: 0.5, vitamina_d: 42, vldl: 25,
   }).map(([chave, valor]) => ({ chave, valor, measured_at: '2026-07-15' })),
 ].map((m, i) => ({ ...m, id: String(i), user_id: '' }))
+
+/** Ciclo de exemplo (mesmas datas e compostos cadastrados) para a Agenda e o Monitoramento sem login. */
+const CICLO_EXEMPLO = { id: 'p', user_id: '', nome: 'Ciclo 01 — Recomposição', objetivo: 'recomposicao', status: 'ativo', via: 'injetavel', medico_responsavel: null, data_inicio: '2026-09-17', data_fim_prevista: '2026-12-10', duracao_semanas: 12, notas: null, created_at: null } as Protocol
+const COMPOSTOS_EXEMPLO = [
+  ['Testosterona Enantato', 300],
+  ['Masteron Propionato', 100],
+  ['Tirzepatide (Tirzec)', 2.5],
+].map(([nome, dose], i) => ({ id: String(i), user_id: '', protocol_id: 'p', nome, categoria: null, dose_mg: dose, frequencia: null, via: 'injetavel', semana_inicio: 1, semana_fim: 12, notas: null, ordem: i })) as ProtocolCompound[]
+const MEDICAO_EXEMPLO = { id: 'm', user_id: '', medido_em: '2026-06-29', peso_kg: 84.4, gordura_pct: 22.1, musculo_pct: 57.3, peso_muscular_kg: 47.2 } as BodyMetric
 
 /**
  * Galeria do design system — só existe em desenvolvimento (rota fora do login),
@@ -82,6 +93,13 @@ export function DesignSystemPage() {
               <Icon name={n} size={28} filled className="text-brasa" />
             </span>
           ))}
+        </div>
+      </Section>
+
+      <Section title="Protocolo — agenda e monitoramento">
+        <div className="flex flex-col gap-3">
+          <AgendaAplicacoes protocolo={CICLO_EXEMPLO} compostos={COMPOSTOS_EXEMPLO} logs={[]} hoje="2026-09-17" onRegistrarHoje={() => toast.info('Abriria o registro da aplicação')} />
+          <MonitoramentoCiclo protocolo={CICLO_EXEMPLO} medicoes={[MEDICAO_EXEMPLO]} />
         </div>
       </Section>
 

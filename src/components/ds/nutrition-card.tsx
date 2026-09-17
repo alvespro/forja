@@ -25,6 +25,8 @@ export type NutritionCardProps = {
   registrado?: boolean
   /** Versão menor para a lista de próximas refeições. */
   compact?: boolean
+  /** Ações do cabeçalho (menu ⋮ de editar/excluir a refeição). */
+  menu?: ReactNode
   /** Passou de um limite do plano (ex.: carbo no jantar): borda vermelha. */
   alerta?: boolean
   className?: string
@@ -46,6 +48,7 @@ export function NutritionCard({
   onRegistrar,
   extra,
   aviso,
+  menu,
   registrado: registradoProp,
   compact = false,
   alerta = false,
@@ -82,6 +85,7 @@ export function NutritionCard({
             <span className="text-cinza"> / {Math.round(kcal.meta)} kcal</span>
           </span>
           {agora && <StatusDot color="brasa" pulse />}
+          {menu}
         </span>
       </div>
 

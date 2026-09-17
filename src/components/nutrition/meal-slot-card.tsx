@@ -5,6 +5,7 @@ import { NutritionCard } from '@/components/ds/nutrition-card'
 import { Modal } from '@/components/ui/modal'
 import { FoodSearch } from '@/components/FoodSearch'
 import { MealLogForm } from '@/components/nutrition/meal-log-form'
+import { RefeicaoMenu, SugestoesDaRefeicao } from '@/components/nutrition/dieta-crud'
 import { MealSuggestionsModal } from '@/components/nutrition/meal-suggestions-modal'
 import { useCreateMealLog } from '@/hooks/use-meal-logs'
 import { cn } from '@/lib/utils'
@@ -59,6 +60,7 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
         compact={!isFeatured}
         alerta={carboAcimaDoLimite}
         registrado={registrado}
+        menu={<RefeicaoMenu refeicao={slot} />}
         kcal={{ atual: registradoHoje.calorias, meta: slot.calorias_alvo ?? 0 }}
         proteina={{ atual: registradoHoje.proteina_g, meta: slot.proteina_g_alvo ?? 0 }}
         carbo={{ atual: registradoHoje.carbo_g, meta: slot.carbo_g_alvo ?? 0 }}
@@ -90,6 +92,7 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
                 <Icon name="auto_awesome" size={14} />
                 Sugestões
               </button>
+              <SugestoesDaRefeicao refeicao={slot} />
           </>
         }
       />

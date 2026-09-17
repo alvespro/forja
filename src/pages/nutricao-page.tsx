@@ -6,8 +6,10 @@ import { FoodSearch } from '@/components/FoodSearch'
 import { ErrorState } from '@/components/feedback/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MacroBar } from '@/components/ds/macro-bar'
+import { Button } from '@/components/ui/button'
 import { StatusDot } from '@/components/ds/status-dot'
 import { FoodBodyChart } from '@/components/nutrition/food-body-chart'
+import { NovaRefeicaoButton, PlanoAlimentarModal } from '@/components/nutrition/dieta-crud'
 import { MealSlotCard } from '@/components/nutrition/meal-slot-card'
 import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
 import { ObjectiveBadge } from '@/components/body/objective-badge'
@@ -25,6 +27,7 @@ export function NutricaoPage() {
   const mealLogs = useMealLogsToday()
   const [showSupps, setShowSupps] = useState(true)
   const [buscando, setBuscando] = useState(false)
+  const [editandoPlano, setEditandoPlano] = useState(false)
 
   const consumido = useMemo(() => {
     const logs = mealLogs.data ?? []
@@ -77,8 +80,17 @@ export function NutricaoPage() {
           <h1 className="ds-h1 text-foreground">Nutrição</h1>
           <ObjectiveBadge />
         </div>
-        {dietPlan.data?.nome && <p className="ds-body-sm text-aco-texto">{dietPlan.data.nome}</p>}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {dietPlan.data?.nome && <p className="ds-body-sm text-aco-texto">{dietPlan.data.nome}</p>}
+          {!isLoading && !isError && (
+            <button type="button" onClick={() => setEditandoPlano(true)} className="ds-btn-ghost min-h-11 px-3 text-[13px]">
+              <Icon name="settings" size={18} />
+              Plano alimentar
+            </button>
+          )}
+        </div>
       </header>
+      <PlanoAlimentarModal open={editandoPlano} plano={dietPlan.data ?? null} onClose={() => setEditandoPlano(false)} />
 
       {isLoading ? (
         <div className="flex flex-col gap-3">
@@ -97,7 +109,11 @@ export function NutricaoPage() {
           }}
         />
       ) : !dietPlan.data ? (
-        <EmptyState message="Nenhum plano alimentar ativo" description="Cadastre um plano para acompanhar macros e refeições." />
+        <EmptyState
+          message="Nenhum plano alimentar ativo"
+          description="Cadastre um plano para acompanhar macros e refeições."
+          action={<Button type="button" onClick={() => setEditandoPlano(true)}>Criar plano alimentar</Button>}
+        />
       ) : (
         <>
           {/* HEADER FIXO: macros do dia em destaque */}
@@ -143,7 +159,10 @@ export function NutricaoPage() {
           </section>
 
           {slots.length === 0 ? (
-            <EmptyState message="Nenhuma refeição no plano" description="Configure as refeições do plano ativo." />
+            <>
+              <EmptyState message="Nenhuma refeição no plano" description="Adicione as refeições do plano ativo." />
+              <NovaRefeicaoButton dietPlanId={dietPlan.data.id} total={0} />
+            </>
           ) : (
             <>
               {/* REFEIÇÃO ATUAL (hero) */}
@@ -172,6 +191,7 @@ export function NutricaoPage() {
                       passada={slot.numero < agoraNumero}
                     />
                   ))}
+                <NovaRefeicaoButton dietPlanId={dietPlan.data.id} total={slots.length} />
               </section>
             </>
           )}

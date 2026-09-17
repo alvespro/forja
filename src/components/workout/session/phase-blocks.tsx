@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { CardioTimerView, PhaseTimerView } from '@/components/workout/session/phase-views'
 import { ExerciseMedia } from '@/components/workout/exercise-media'
 import { useCountdownTimer } from '@/hooks/use-countdown-timer'
+import { useVideoAutomatico } from '@/hooks/useYouTubeSearch'
 import { haptic } from '@/lib/haptics'
 import { faseDe } from '@/lib/workout-phases'
 import type { Exercise, WorkoutExercise } from '@/types/database'
@@ -24,6 +25,7 @@ type TimedPhaseBlockProps = {
 export function TimedPhaseBlock({ exercise, prescription, posicao, totalFase, proximoNome, onNext }: TimedPhaseBlockProps) {
   const total = prescription.tempo_seg ?? TEMPO_PADRAO_SEG
   const timer = useCountdownTimer(total)
+  useVideoAutomatico(exercise)
   const avancou = useRef(false)
   const onNextRef = useRef(onNext)
   onNextRef.current = onNext
@@ -46,7 +48,7 @@ export function TimedPhaseBlock({ exercise, prescription, posicao, totalFase, pr
       nome={exercise?.nome ?? 'Exercício'}
       cues={exercise?.cues}
       observacao={prescription.observacao}
-      media={exercise && (exercise.video_url || exercise.gif_url) ? <ExerciseMedia exercise={exercise} className="rounded-none" /> : undefined}
+      media={exercise && (exercise.video_url || exercise.gif_url || exercise.youtube_video_id) ? <ExerciseMedia exercise={exercise} className="rounded-none" /> : undefined}
       restanteSeg={Math.ceil(timer.remainingMs / 1000)}
       totalSeg={total}
       rodando={timer.isRunning}

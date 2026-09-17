@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { supabase } from '@/lib/supabase'
@@ -132,4 +133,21 @@ export function useYouTubeVideoLink() {
   }
 
   return { vincular, vincularAutomatico }
+}
+
+/**
+ * Tela de execução: exercício sem vídeo próprio nem ID salvo busca o vídeo uma vez e salva
+ * (o próximo treino já abre com ele). Sem chave do YouTube ou sem resultado, não faz nada.
+ */
+export function useVideoAutomatico(exercise: Pick<Exercise, 'id' | 'nome' | 'grupo_muscular' | 'video_url' | 'gif_url' | 'youtube_video_id'> | undefined) {
+  const { vincularAutomatico } = useYouTubeVideoLink()
+  const semMidia = !!exercise && !exercise.video_url && !exercise.gif_url && !exercise.youtube_video_id
+
+  useEffect(() => {
+    if (exercise && semMidia) void vincularAutomatico(exercise)
+    // Só ao abrir o exercício (ou quando ele ganha/perde mídia): a busca custa cota.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exercise?.id, semMidia])
+
+  return { buscando: semMidia && youtubeConfigurado }
 }

@@ -5,6 +5,7 @@ import { ObservacaoDestaque } from '@/components/workout/session/phase-views'
 import { ExerciseFocus } from '@/components/workout/session/session-views'
 import { SetRow } from '@/components/workout/set-row'
 import { useExerciseHistory } from '@/hooks/use-exercise-history'
+import { useVideoAutomatico } from '@/hooks/useYouTubeSearch'
 import { computeOverloadSuggestion } from '@/lib/workout-metrics'
 import { metaReps } from '@/lib/workout-phases'
 import type { Exercise, SetLog, WorkoutExercise } from '@/types/database'
@@ -28,6 +29,7 @@ export function SessionExerciseBlock({
   onSetCompleted,
 }: SessionExerciseBlockProps) {
   const history = useExerciseHistory(prescription.exercise_id)
+  useVideoAutomatico(exercise)
   const sugestao = useMemo(
     () => computeOverloadSuggestion(history.data ?? [], sessionId, prescription),
     [history.data, sessionId, prescription],

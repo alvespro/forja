@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -6,9 +8,10 @@ import { ErrorState } from '@/components/feedback/error-state'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { WorkoutCard } from '@/components/workout/workout-card'
-import { WorkoutForm } from '@/components/workout/workout-form'
+import { TreinoDadosModal } from '@/components/workout/editor/treino-dados-modal'
 import { useExercises } from '@/hooks/use-exercises'
-import { useCreateWorkout, useWorkouts } from '@/hooks/use-workouts'
+import { useCriarTreino, useWorkouts } from '@/hooks/use-workouts'
+import { mensagemDeErro } from '@/lib/feedback'
 
 type WorkoutBuilderProps = {
   onStartSession?: () => void
@@ -17,7 +20,8 @@ type WorkoutBuilderProps = {
 export function WorkoutBuilder({ onStartSession }: WorkoutBuilderProps) {
   const workouts = useWorkouts()
   const exercises = useExercises()
-  const createWorkout = useCreateWorkout()
+  const criarTreino = useCriarTreino()
+  const navigate = useNavigate()
   const [isAdding, setIsAdding] = useState(false)
 
   const isLoading = workouts.isLoading || exercises.isLoading
@@ -27,22 +31,29 @@ export function WorkoutBuilder({ onStartSession }: WorkoutBuilderProps) {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <p className="text-sm text-aco-texto">Monte seus treinos e prescreva os exercícios de cada um.</p>
-        {!isAdding && (
-          <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-            <Icon name="add" size={14} />
-            Treino
-          </Button>
-        )}
+        <Button type="button" className="min-h-11 shrink-0" onClick={() => setIsAdding(true)}>
+          <Icon name="add" size={18} />
+          Novo treino
+        </Button>
       </div>
 
-      {isAdding && (
-        <WorkoutForm
-          defaultOrdem={(workouts.data?.length ?? 0) + 1}
-          isSubmitting={createWorkout.isPending}
-          onCancel={() => setIsAdding(false)}
-          onSubmit={(values) => createWorkout.mutate(values, { onSuccess: () => setIsAdding(false) })}
-        />
-      )}
+      <TreinoDadosModal
+        open={isAdding}
+        titulo="Novo treino"
+        salvando={criarTreino.isPending}
+        rotuloSalvar="Criar e montar"
+        onClose={() => setIsAdding(false)}
+        onSalvar={(valores) =>
+          criarTreino.mutate(valores, {
+            onSuccess: (treino) => {
+              toast.success(`${treino.nome} criado. Adicione os exercícios.`)
+              setIsAdding(false)
+              navigate(`/workout/editar/${treino.id}`)
+            },
+            onError: (e) => toast.error(mensagemDeErro(e, 'criar o treino')),
+          })
+        }
+      />
 
       {isLoading ? (
         <div className="flex flex-col gap-3">
@@ -58,7 +69,7 @@ export function WorkoutBuilder({ onStartSession }: WorkoutBuilderProps) {
           }}
         />
       ) : !workouts.data || workouts.data.length === 0 ? (
-        !isAdding && <EmptyState message="Nenhum treino cadastrado ainda." />
+        <EmptyState message="Nenhum treino cadastrado ainda." />
       ) : (
         <div className="flex flex-col gap-3">
           {workouts.data.map((workout, i) => (

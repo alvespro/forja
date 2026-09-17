@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Icon } from '@/components/Icon'
 
 import { StatusDot } from '@/components/ds/status-dot'
@@ -6,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/feedback/empty-state'
 import { WorkoutExerciseForm } from '@/components/workout/workout-exercise-form'
 import { WorkoutExerciseRow } from '@/components/workout/workout-exercise-row'
-import { WorkoutForm } from '@/components/workout/workout-form'
 import { useActiveSession } from '@/hooks/use-active-session'
 import { useConfirm } from '@/hooks/use-confirm'
 import {
@@ -16,7 +17,8 @@ import {
   useWorkoutExercises,
 } from '@/hooks/use-workout-exercises'
 import { useCreateWorkoutSession, useWorkoutSessions } from '@/hooks/use-workout-sessions'
-import { useDeleteWorkout, useUpdateWorkout } from '@/hooks/use-workouts'
+import { useArquivarTreino } from '@/hooks/use-workouts'
+import { mensagemDeErro } from '@/lib/feedback'
 import { MobilidadeBadge } from '@/components/workout/session/phase-views'
 import { minutosMobilidade } from '@/lib/workout-phases'
 import { cn } from '@/lib/utils'
@@ -36,13 +38,12 @@ type WorkoutCardProps = {
 
 export function WorkoutCard({ workout, numero, exercises, onStartSession }: WorkoutCardProps) {
   const [expanded, setExpanded] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
   const [isAddingExercise, setIsAddingExercise] = useState(false)
 
   const prescriptions = useWorkoutExercises(workout.id)
   const allSessions = useWorkoutSessions()
-  const updateWorkout = useUpdateWorkout()
-  const deleteWorkout = useDeleteWorkout()
+  const arquivarTreino = useArquivarTreino()
+  const navigate = useNavigate()
   const createPrescription = useCreateWorkoutExercise()
   const updatePrescriptionOrder = useUpdateWorkoutExercise()
   const createSession = useCreateWorkoutSession()
@@ -80,27 +81,18 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
     })
   }
 
-  async function handleDelete() {
+  // Soft delete: arquivar tira da rotação sem apagar sessões nem cargas.
+  async function handleArquivar() {
     const ok = await confirm({
-      title: `Excluir o treino "${workout.nome}"?`,
-      description: 'Essa ação não pode ser desfeita.',
+      title: `Arquivar o treino "${workout.nome}"?`,
+      description: 'Ele sai da rotação e da lista. Sessões e cargas registradas continuam salvas.',
+      confirmLabel: 'Arquivar',
     })
     if (!ok) return
-    deleteWorkout.mutate(workout.id)
-  }
-
-  if (isEditing) {
-    return (
-      <WorkoutForm
-        workout={workout}
-        defaultOrdem={workout.ordem}
-        isSubmitting={updateWorkout.isPending}
-        onCancel={() => setIsEditing(false)}
-        onSubmit={(values) =>
-          updateWorkout.mutate({ id: workout.id, values }, { onSuccess: () => setIsEditing(false) })
-        }
-      />
-    )
+    arquivarTreino.mutate(workout.id, {
+      onSuccess: () => toast.success(`${workout.nome} arquivado.`),
+      onError: (e) => toast.error(mensagemDeErro(e, 'arquivar')),
+    })
   }
 
   return (
@@ -119,18 +111,18 @@ export function WorkoutCard({ workout, numero, exercises, onStartSession }: Work
             <button
               type="button"
               aria-label={`Editar treino ${workout.nome}`}
-              onClick={() => setIsEditing(true)}
+              onClick={() => navigate(`/workout/editar/${workout.id}`)}
               className="flex size-11 items-center justify-center rounded-full text-cinza outline-none hover:bg-aco2 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Icon name="edit" size={16} />
             </button>
             <button
               type="button"
-              aria-label={`Excluir treino ${workout.nome}`}
-              onClick={handleDelete}
+              aria-label={`Arquivar treino ${workout.nome}`}
+              onClick={handleArquivar}
               className="flex size-11 items-center justify-center rounded-full text-cinza outline-none hover:bg-aco2 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Icon name="delete" size={16} />
+              <Icon name="archive" size={16} />
             </button>
             </span>
           </div>

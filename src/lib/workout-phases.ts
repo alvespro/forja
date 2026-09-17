@@ -93,3 +93,25 @@ export function resumoPrescricao(p: Prescricao): string {
   if (p.cadencia_alvo) partes.push(`cadência ${p.cadencia_alvo}`)
   return partes.join(' · ')
 }
+
+/**
+ * Move um exercício para outra posição dentro da própria fase e renumera o treino inteiro
+ * (1..n, na ordem das fases). Devolve a lista nova e só as prescrições cuja ordem mudou.
+ */
+export function moverNaFase<T extends { id: string; fase: string | null; ordem: number }>(
+  lista: T[],
+  id: string,
+  novaPosicaoNaFase: number,
+): { lista: T[]; mudancas: { id: string; ordem: number }[] } {
+  const ordenada = ordenarPorFase(lista)
+  const item = ordenada.find((p) => p.id === id)
+  if (!item) return { lista: ordenada, mudancas: [] }
+  const fase = faseDe(item.fase)
+  const daFase = ordenada.filter((p) => faseDe(p.fase) === fase && p.id !== id)
+  const destino = Math.max(0, Math.min(novaPosicaoNaFase, daFase.length))
+  daFase.splice(destino, 0, item)
+
+  const novaOrdem = FASES_EM_ORDEM.flatMap((f) => (f === fase ? daFase : ordenada.filter((p) => faseDe(p.fase) === f)))
+  const mudancas = novaOrdem.flatMap((p, i) => (p.ordem === i + 1 ? [] : [{ id: p.id, ordem: i + 1 }]))
+  return { lista: novaOrdem.map((p, i) => ({ ...p, ordem: i + 1 })), mudancas }
+}

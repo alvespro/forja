@@ -105,6 +105,20 @@ export function useUpdateWorkoutExercise() {
   })
 }
 
+/** Grava a nova ordem (1..n) só das prescrições que mudaram de posição. */
+export function useReordenarPrescricoes() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ mudancas }: { workoutId: string; mudancas: { id: string; ordem: number }[] }) => {
+      for (const { id, ordem } of mudancas) {
+        const { error } = await supabase.from('workout_exercises').update({ ordem }).eq('id', id)
+        if (error) throw error
+      }
+    },
+    onSettled: (_data, _error, { workoutId }) => queryClient.invalidateQueries({ queryKey: ['workout-exercises', workoutId] }),
+  })
+}
+
 export function useDeleteWorkoutExercise() {
   const queryClient = useQueryClient()
 

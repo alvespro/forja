@@ -35,6 +35,7 @@ const ExercicioDetalhePage = lazy(() =>
 const EvolucaoExercicioPage = lazy(() =>
   import('@/pages/evolucao-exercicio-page').then((m) => ({ default: m.EvolucaoExercicioPage })),
 )
+const WorkoutEditPage = lazy(() => import('@/pages/workout-edit-page').then((m) => ({ default: m.WorkoutEditPage })))
 const OnboardingPage = lazy(() => import('@/pages/onboarding-page').then((m) => ({ default: m.OnboardingPage })))
 // Import dentro do ramo DEV: em produção o bundler elimina o chunk inteiro,
 // em vez de só deixar de registrar a rota (o PWA pré-cachearia o arquivo).
@@ -76,6 +77,7 @@ export const router = createBrowserRouter([
           { index: true, element: <TodayPage /> },
           { path: 'goals', element: <GoalsPage /> },
           { path: 'workout', element: <WorkoutPage /> },
+          { path: 'workout/editar/:id', element: <WorkoutEditPage /> },
           { path: 'workout/exercicio/:id', element: <ExercicioDetalhePage /> },
           { path: 'workout/evolucao/:id', element: <EvolucaoExercicioPage /> },
           { path: 'health', element: <HealthPage /> },

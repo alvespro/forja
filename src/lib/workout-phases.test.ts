@@ -5,6 +5,7 @@ import {
   faseDe,
   metaReps,
   minutosMobilidade,
+  moverNaFase,
   ordenarPorFase,
   parseRepsRange,
   repsAlvoMax,
@@ -93,5 +94,42 @@ describe('resumoPrescricao', () => {
     expect(resumoPrescricao({ ...base, fase: 'treino', series_alvo: 3, tempo_seg: 52 })).toBe('3×52s')
     expect(resumoPrescricao({ ...base, fase: 'mobilidade', tempo_seg: 60 })).toBe('Mobilidade · 60s')
     expect(resumoPrescricao({ ...base, fase: 'cardio', tempo_seg: 1080 })).toBe('Cardio · 18 min')
+  })
+})
+
+describe('moverNaFase', () => {
+  const lista = [
+    { id: 'm1', fase: 'mobilidade', ordem: 1 },
+    { id: 'm2', fase: 'mobilidade', ordem: 2 },
+    { id: 't1', fase: 'treino', ordem: 3 },
+    { id: 't2', fase: 'treino', ordem: 4 },
+    { id: 't3', fase: 'treino', ordem: 5 },
+    { id: 'c1', fase: 'cardio', ordem: 6 },
+  ]
+
+  it('move dentro da fase e grava só quem mudou de posição', () => {
+    const { lista: nova, mudancas } = moverNaFase(lista, 't3', 0)
+    expect(nova.map((p) => p.id)).toEqual(['m1', 'm2', 't3', 't1', 't2', 'c1'])
+    expect(mudancas).toEqual([
+      { id: 't3', ordem: 3 },
+      { id: 't1', ordem: 4 },
+      { id: 't2', ordem: 5 },
+    ])
+  })
+
+  it('posição fora do limite vai para a ponta; mesma posição não muda nada', () => {
+    expect(moverNaFase(lista, 'm1', 99).lista.map((p) => p.id).slice(0, 2)).toEqual(['m2', 'm1'])
+    expect(moverNaFase(lista, 't2', 1).mudancas).toEqual([])
+  })
+
+  it('ordens desalinhadas (buracos, repetidas) são renumeradas 1..n', () => {
+    const baguncada = [
+      { id: 'a', fase: 'treino', ordem: 10 },
+      { id: 'b', fase: 'treino', ordem: 10 },
+    ]
+    expect(moverNaFase(baguncada, 'b', 0).mudancas).toEqual([
+      { id: 'b', ordem: 1 },
+      { id: 'a', ordem: 2 },
+    ])
   })
 })

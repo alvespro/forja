@@ -9,6 +9,8 @@ import { ClinicalAnalysisSection } from '@/components/health/clinical-analysis'
 import { ErrorState } from '@/components/feedback/error-state'
 import { HealthMetricDetail, HealthMetricTile } from '@/components/health/health-metric-card'
 import { PlacarSaude } from '@/components/health/placar-saude'
+import { RegistrarExameModal } from '@/components/health/registrar-exame'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHealthMetricDefs } from '@/hooks/use-health-metric-defs'
 import { groupHealthMetricsByKey, useHealthMetrics } from '@/hooks/use-health-metrics'
@@ -20,6 +22,7 @@ export function HealthPage() {
   const metrics = useHealthMetrics()
   const { zones } = useHeartZones()
   const [selecionado, setSelecionado] = useState<string | null>(null)
+  const [registrando, setRegistrando] = useState(false)
 
   const isLoading = defs.isLoading || metrics.isLoading
   const isError = defs.isError || metrics.isError
@@ -40,7 +43,12 @@ export function HealthPage() {
         </span>
         <h1 className="ds-h1 text-nevoa">Saúde</h1>
         <p className="ds-body-sm text-cinza">Placar dos marcadores, medições e histórico.</p>
+        <Button type="button" className="mt-2 min-h-11 self-start" onClick={() => setRegistrando(true)}>
+          <Icon name="add" size={20} />
+          Registrar exame
+        </Button>
       </header>
+      <RegistrarExameModal open={registrando} onClose={() => setRegistrando(false)} />
 
       {/* FC de repouso: só com zonas Karvonen calculadas (valor informado, não leitura ao vivo). */}
       {zones.metodo === 'karvonen' && zones.fcRepouso != null && (

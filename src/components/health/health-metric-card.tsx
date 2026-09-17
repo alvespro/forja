@@ -6,6 +6,7 @@ import { Sparkline } from '@/components/ds/sparkline'
 import type { StatusDotColor } from '@/components/ds/status-dot'
 import { Button } from '@/components/ui/button'
 import { HealthHistoryChart } from '@/components/health/health-history-chart'
+import { EditarLeituraModal, useExcluirLeitura, type LeituraAlvo } from '@/components/health/leitura-acoes'
 import { MeasurementForm } from '@/components/health/measurement-form'
 import { useCreateHealthMetric } from '@/hooks/use-health-metrics'
 import { calculateHealthStatus, type HealthStatus } from '@/lib/health-status'
@@ -69,7 +70,10 @@ type DetailProps = {
 /** Painel do marcador escolhido (largura total, logo abaixo da linha do card): histórico e nova medição. */
 export function HealthMetricDetail({ def, metrics, onClose }: DetailProps) {
   const [isRegistering, setIsRegistering] = useState(false)
+  const [editando, setEditando] = useState<LeituraAlvo | null>(null)
   const createMetric = useCreateHealthMetric()
+  const { excluir, dialog } = useExcluirLeitura()
+  const alvo = (m: HealthMetric): LeituraAlvo => ({ id: m.id, chave: def.chave, label: def.label, unidade: def.unidade, valor: m.valor, measured_at: m.measured_at })
 
   return (
     <section className="col-span-2 flex flex-col gap-3 rounded-[var(--r-md)] border border-brasa/50 bg-aco p-4" aria-label={`Histórico de ${def.label}`}>
@@ -86,6 +90,31 @@ export function HealthMetricDetail({ def, metrics, onClose }: DetailProps) {
       </div>
 
       <HealthHistoryChart metrics={metrics} unidade={def.unidade} />
+
+      {dialog}
+      <EditarLeituraModal leitura={editando} onClose={() => setEditando(null)} />
+      {metrics.length > 0 && (
+        <ul className="flex flex-col divide-y divide-linha" aria-label={`Medições de ${def.label}`}>
+          {[...metrics].reverse().map((m) => (
+            <li key={m.id} className="flex min-h-11 items-center justify-between gap-2">
+              <span className="text-[13px] tabular-nums text-cinza [font-family:var(--font-display)]">
+                {m.measured_at.slice(8, 10)}/{m.measured_at.slice(5, 7)}/{m.measured_at.slice(0, 4)}
+              </span>
+              <span className="flex-1 text-right text-[15px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">
+                {br(m.valor)} <span className="text-[11px] font-normal text-cinza2-texto">{def.unidade}</span>
+              </span>
+              <span className="flex">
+                <Button type="button" variant="ghost" size="icon" aria-label={`Editar medição de ${m.measured_at}`} onClick={() => setEditando(alvo(m))}>
+                  <Icon name="edit" size={18} />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="text-cinza hover:text-alerta-texto" aria-label={`Excluir medição de ${m.measured_at}`} onClick={() => void excluir(alvo(m))}>
+                  <Icon name="delete" size={18} />
+                </Button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {isRegistering ? (
         <MeasurementForm

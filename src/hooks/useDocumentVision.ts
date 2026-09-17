@@ -1,3 +1,4 @@
+import { salvarLeiturasDeSaude } from '@/hooks/use-health-metrics'
 import { WORKOUT_VERSAO_ATUAL } from '@/hooks/use-workouts'
 import { parseRepsRange } from '@/lib/workout-phases'
 import { useState } from 'react'
@@ -119,14 +120,12 @@ async function findOrCreateExercise(userId: string, nome: string, grupoMuscular:
 
 async function aplicarExame(userId: string, dados: DadosExame) {
   const measuredAt = dados.data_coleta ?? todayInSaoPaulo()
-  const rows = dados.marcadores.map((marcador) => ({
-    user_id: userId,
-    chave: marcador.chave,
-    valor: marcador.valor,
-    measured_at: measuredAt,
-  }))
-  const { error } = await supabase.from('health_metrics').insert(rows)
-  if (error) throw error
+  // Mesmo laudo relançado atualiza as leituras do dia em vez de duplicar.
+  await salvarLeiturasDeSaude(
+    userId,
+    measuredAt,
+    dados.marcadores.map((marcador) => ({ chave: marcador.chave, valor: marcador.valor })),
+  )
 }
 
 async function aplicarTreino(userId: string, dados: DadosTreino) {

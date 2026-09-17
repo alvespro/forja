@@ -3,6 +3,8 @@ import { Fragment, useMemo, useState } from 'react'
 import { GlassCard } from '@/components/GlassCard'
 import { Icon } from '@/components/Icon'
 import { HealthMetricDetail } from '@/components/health/health-metric-card'
+import { EditarLeituraModal, LeituraMenu, useExcluirLeitura, useToqueLongo, type LeituraAlvo } from '@/components/health/leitura-acoes'
+import { Button } from '@/components/ui/button'
 import {
   alertasDoPlacar,
   evolucaoDesdeBase,
@@ -65,34 +67,50 @@ function VariacaoPill({ variacao }: { variacao: Variacao }) {
   )
 }
 
-function MarcadorTile({ item, selecionado, onSelect }: { item: ItemPlacar; selecionado: boolean; onSelect: () => void }) {
+function MarcadorTile({ item, selecionado, onSelect, onMenu }: { item: ItemPlacar; selecionado: boolean; onSelect: () => void; onMenu: () => void }) {
   const { def, valor, data, status, variacao } = item
+  const toqueLongo = useToqueLongo(onMenu)
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-expanded={selecionado}
-      aria-label={`${def.label}: ${num(valor)} ${def.unidade}, ${STATUS[status].label}${variacao ? `, ${variacao.sentido} vs anterior` : ''}`}
-      className={cn(
-        'glass-card interactive flex h-full flex-col gap-1.5 !rounded-[var(--r-md)] p-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        selecionado && '!border-brasa',
-        status === 'critico' && '!border-alerta/60',
-      )}
-    >
-      <span className="line-clamp-1 text-[12px] font-semibold text-cinza">{def.label}</span>
-      <span className="flex items-baseline gap-1">
-        <span className="text-[22px] font-bold leading-none tabular-nums text-nevoa [font-family:var(--font-display)]">{num(valor)}</span>
-        <span className="truncate text-[11px] text-cinza2-texto">{def.unidade}</span>
-      </span>
-      <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] tabular-nums text-cinza2-texto">
-        {dataCurta(data)}
-        {def.referencia && <span>· ref {def.referencia}</span>}
-      </span>
-      <span className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1">
-        <StatusPill status={status} />
-        {variacao && <VariacaoPill variacao={variacao} />}
-      </span>
-    </button>
+    <div className="relative h-full">
+      <button
+        type="button"
+        {...toqueLongo.handlers}
+        onClick={() => {
+          if (!toqueLongo.clickBloqueado()) onSelect()
+        }}
+        aria-expanded={selecionado}
+        aria-label={`${def.label}: ${num(valor)} ${def.unidade}, ${STATUS[status].label}${variacao ? `, ${variacao.sentido} vs anterior` : ''}`}
+        className={cn(
+          'glass-card interactive flex h-full flex-col gap-1.5 !rounded-[var(--r-md)] p-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          selecionado && '!border-brasa',
+          status === 'critico' && '!border-alerta/60',
+        )}
+      >
+        <span className="line-clamp-1 pr-8 text-[12px] font-semibold text-cinza">{def.label}</span>
+        <span className="flex items-baseline gap-1">
+          <span className="text-[22px] font-bold leading-none tabular-nums text-nevoa [font-family:var(--font-display)]">{num(valor)}</span>
+          <span className="truncate text-[11px] text-cinza2-texto">{def.unidade}</span>
+        </span>
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] tabular-nums text-cinza2-texto">
+          {dataCurta(data)}
+          {def.referencia && <span>· ref {def.referencia}</span>}
+        </span>
+        <span className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1">
+          <StatusPill status={status} />
+          {variacao && <VariacaoPill variacao={variacao} />}
+        </span>
+      </button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onMenu}
+        aria-label={`Ações de ${def.label}`}
+        className="absolute right-1 top-1 text-cinza"
+      >
+        <Icon name="more_vert" size={20} />
+      </Button>
+    </div>
   )
 }
 
@@ -123,6 +141,15 @@ export function PlacarSaude({ metrics, defs, metricsByKey }: PlacarSaudeProps) {
   const evolucao = useMemo(() => evolucaoDesdeBase(placar), [placar])
   const [filtro, setFiltro] = useState<GrupoMarcador | 'todos'>('todos')
   const [selecionado, setSelecionado] = useState<string | null>(null)
+  const [menu, setMenu] = useState<LeituraAlvo | null>(null)
+  const [editando, setEditando] = useState<LeituraAlvo | null>(null)
+  const { excluir, dialog } = useExcluirLeitura()
+
+  /** Última leitura do marcador, com id (o menu edita/exclui essa). */
+  function ultimaLeitura(item: ItemPlacar): LeituraAlvo | null {
+    const registro = (metricsByKey.get(item.chave) ?? []).at(-1)
+    return registro ? { id: registro.id, chave: item.chave, label: item.def.label, unidade: item.def.unidade, valor: registro.valor, measured_at: registro.measured_at } : null
+  }
 
   if (placar.length === 0) return null
   const grupos = filtro === 'todos' ? placar : placar.filter((g) => g.grupo === filtro)
@@ -130,6 +157,9 @@ export function PlacarSaude({ metrics, defs, metricsByKey }: PlacarSaudeProps) {
 
   return (
     <div className="flex flex-col gap-5">
+      {dialog}
+      <LeituraMenu leitura={menu} onClose={() => setMenu(null)} onEditar={setEditando} onExcluir={(l) => void excluir(l)} />
+      <EditarLeituraModal leitura={editando} onClose={() => setEditando(null)} />
       {evolucao && (
         <GlassCard gradient glow className="flex flex-col gap-3" padding="var(--s5)" aria-label={`Evolução desde ${mesAno(evolucao.dataBase)}`}>
           <span className="flex items-center gap-2 ds-label">
@@ -228,6 +258,7 @@ export function PlacarSaude({ metrics, defs, metricsByKey }: PlacarSaudeProps) {
                       item={item}
                       selecionado={item.chave === selecionado}
                       onSelect={() => setSelecionado((atual) => (atual === item.chave ? null : item.chave))}
+                      onMenu={() => setMenu(ultimaLeitura(item))}
                     />
                     {abreAqui && escolhido && (
                       <HealthMetricDetail

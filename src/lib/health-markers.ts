@@ -60,6 +60,8 @@ export const MARCADORES: Record<string, DefinicaoMarcador> = {
 
   // Glicemia
   glicemia: { label: 'Glicemia em jejum', unidade: 'mg/dL', grupo: 'glicemia', direcao: 'faixa', normal: { min: 70, max: 99 }, critico: { abaixoDe: 54, acimaDe: 125 }, referencia: '70–99' },
+  insulina: { label: 'Insulina', unidade: 'µUI/mL', grupo: 'glicemia', direcao: 'faixa', normal: { min: 2.6, max: 24.9 }, referencia: '2,6–24,9' },
+  hba1c: { label: 'Hemoglobina glicada (HbA1c)', unidade: '%', grupo: 'glicemia', direcao: 'menor_melhor', normal: { max: 5.6 }, critico: { acimaDe: 6.4 }, referencia: '< 5,7' },
 
   // Hormônios
   testosterona_total: { label: 'Testosterona total', unidade: 'ng/dL', grupo: 'hormonios', direcao: 'faixa', normal: { min: 264, max: 916 }, referencia: '264–916' },
@@ -76,11 +78,14 @@ export const MARCADORES: Record<string, DefinicaoMarcador> = {
   // Função renal
   creatinina: { label: 'Creatinina', unidade: 'mg/dL', grupo: 'renal', direcao: 'faixa', normal: { min: 0.7, max: 1.3 }, critico: { acimaDe: 2 }, referencia: '0,7–1,3' },
   egfr: { label: 'eGFR (filtração)', unidade: 'mL/min/1,73m²', grupo: 'renal', direcao: 'maior_melhor', normal: { min: 90 }, critico: { abaixoDe: 60 }, referencia: '≥ 90' },
+  ureia: { label: 'Ureia', unidade: 'mg/dL', grupo: 'renal', direcao: 'faixa', normal: { min: 15, max: 45 }, critico: { acimaDe: 100 }, referencia: '15–45' },
   acido_urico: { label: 'Ácido úrico', unidade: 'mg/dL', grupo: 'renal', direcao: 'faixa', normal: { min: 3.4, max: 7 }, critico: { acimaDe: 9 }, referencia: '3,4–7,0' },
 
   // Função hepática
   tgo: { label: 'TGO/AST', unidade: 'U/L', grupo: 'hepatica', direcao: 'menor_melhor', normal: { max: 40 }, critico: { acimaDe: 120 }, referencia: '≤ 40' },
   tgp: { label: 'TGP/ALT', unidade: 'U/L', grupo: 'hepatica', direcao: 'menor_melhor', normal: { max: 41 }, critico: { acimaDe: 123 }, referencia: '≤ 41' },
+  ggt: { label: 'GGT', unidade: 'U/L', grupo: 'hepatica', direcao: 'menor_melhor', normal: { max: 60 }, critico: { acimaDe: 180 }, referencia: '≤ 60' },
+  bilirrubina: { label: 'Bilirrubina total', unidade: 'mg/dL', grupo: 'hepatica', direcao: 'faixa', normal: { min: 0.2, max: 1.2 }, critico: { acimaDe: 3 }, referencia: '0,2–1,2' },
 
   // Hemograma
   hemoglobina: { label: 'Hemoglobina', unidade: 'g/dL', grupo: 'hemograma', direcao: 'faixa', normal: { min: 13.5, max: 17.5 }, critico: { abaixoDe: 10, acimaDe: 18.5 }, referencia: '13,5–17,5' },
@@ -96,10 +101,13 @@ export const MARCADORES: Record<string, DefinicaoMarcador> = {
   vitamina_b12: { label: 'Vitamina B12', unidade: 'pg/mL', grupo: 'vitaminas', direcao: 'faixa', normal: { min: 300, max: 900 }, critico: { abaixoDe: 200 }, referencia: '300–900' },
   // Referência do laboratório 0,4–2,0; até 0,6 fica em atenção por estar colado no limite inferior.
   vitamina_c: { label: 'Vitamina C', unidade: 'mg/dL', grupo: 'vitaminas', direcao: 'faixa', normal: { min: 0.61, max: 2 }, critico: { abaixoDe: 0.4 }, referencia: '0,4–2,0' },
+  zinco: { label: 'Zinco', unidade: 'µg/dL', grupo: 'vitaminas', direcao: 'faixa', normal: { min: 70, max: 120 }, critico: { abaixoDe: 50 }, referencia: '70–120' },
+  ferritina: { label: 'Ferritina', unidade: 'ng/mL', grupo: 'vitaminas', direcao: 'faixa', normal: { min: 30, max: 400 }, critico: { abaixoDe: 15, acimaDe: 1000 }, referencia: '30–400' },
 
   // Inflamação
   pcr_ultrassensivel: { label: 'PCR ultrassensível', unidade: 'mg/dL', grupo: 'inflamacao', direcao: 'menor_melhor', normal: { max: 0.3 }, critico: { acimaDe: 1 }, referencia: '< 0,3' },
   homocisteina: { label: 'Homocisteína', unidade: 'µmol/L', grupo: 'inflamacao', direcao: 'menor_melhor', normal: { max: 15 }, critico: { acimaDe: 30 }, referencia: '≤ 15' },
+  vhs: { label: 'VHS', unidade: 'mm/h', grupo: 'inflamacao', direcao: 'menor_melhor', normal: { max: 15 }, critico: { acimaDe: 50 }, referencia: '≤ 15' },
 
   // PSA
   psa_total: { label: 'PSA total', unidade: 'ng/mL', grupo: 'psa', direcao: 'menor_melhor', normal: { max: 4 }, critico: { acimaDe: 10 }, referencia: '< 4,0' },
@@ -107,6 +115,23 @@ export const MARCADORES: Record<string, DefinicaoMarcador> = {
 }
 
 type Leitura = { chave: string; valor: number; measured_at: string }
+
+/** Marcadores de um grupo, na ordem do catálogo (seletor do formulário de exame). */
+export function marcadoresDoGrupo(grupo: GrupoMarcador): { chave: string; def: DefinicaoMarcador }[] {
+  return Object.entries(MARCADORES)
+    .filter(([, def]) => def.grupo === grupo)
+    .map(([chave, def]) => ({ chave, def }))
+}
+
+/** "Ômega 3 índice" → "omega_3_indice": chave de um marcador digitado em "Outro". */
+export function chaveDoNome(nome: string): string {
+  return nome
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+}
 
 export function statusDoMarcador(chave: string, valor: number): StatusMarcador {
   const def = MARCADORES[chave]

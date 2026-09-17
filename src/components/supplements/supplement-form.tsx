@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { FormField, propsDeErro } from '@/components/ui/form-field'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
@@ -49,9 +50,14 @@ export function SupplementForm({ supplement, onSubmit, onCancel, isSubmitting }:
     setDiasSemana((current) => (current.includes(dia) ? current.filter((d) => d !== dia) : [...current, dia]))
   }
 
+  const [erroNome, setErroNome] = useState<string | null>(null)
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    if (!nome.trim()) return
+    if (!nome.trim()) {
+      setErroNome('Informe o nome do suplemento.')
+      return
+    }
     onSubmit({
       nome: nome.trim(),
       tipo,
@@ -71,10 +77,17 @@ export function SupplementForm({ supplement, onSubmit, onCancel, isSubmitting }:
       noValidate
     >
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="sup-nome">Nome</Label>
-          <Input id="sup-nome" autoFocus value={nome} onChange={(event) => setNome(event.target.value)} />
-        </div>
+        <FormField label="Nome" htmlFor="sup-nome" erro={erroNome}>
+          <Input
+            autoFocus
+            value={nome}
+            onChange={(event) => {
+              setNome(event.target.value)
+              setErroNome(null)
+            }}
+            {...propsDeErro('sup-nome', erroNome)}
+          />
+        </FormField>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="sup-tipo">Tipo</Label>
           <Select id="sup-tipo" value={tipo} onChange={(event) => setTipo(event.target.value as SupplementTipo)}>

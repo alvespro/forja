@@ -64,9 +64,9 @@ export function SupplementsPage() {
           <p className="text-sm text-aco-texto">Cadastro, dias da semana e histórico de adesão.</p>
         </div>
         {!isAdding && (
-          <Button type="button" variant="outline" size="sm" onClick={() => setIsAdding(true)}>
-            <Icon name="add" size={14} />
-            Novo suplemento
+          <Button type="button" className="min-h-11" onClick={() => setIsAdding(true)}>
+            <Icon name="add" size={18} />
+            Adicionar suplemento
           </Button>
         )}
       </div>
@@ -75,7 +75,15 @@ export function SupplementsPage() {
         <SupplementForm
           isSubmitting={createSupplement.isPending}
           onCancel={() => setIsAdding(false)}
-          onSubmit={(values) => createSupplement.mutate(values, { onSuccess: () => setIsAdding(false) })}
+          onSubmit={(values) =>
+            createSupplement.mutate(values, {
+              onSuccess: () => {
+                toast.success(`${values.nome} adicionado.`)
+                setIsAdding(false)
+              },
+              onError: (e) => toast.error(mensagemDeErro(e, 'adicionar o suplemento')),
+            })
+          }
         />
       )}
 

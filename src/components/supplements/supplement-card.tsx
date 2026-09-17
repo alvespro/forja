@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Icon } from '@/components/Icon'
 
 import { Button } from '@/components/ui/button'
@@ -6,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { SupplementForm } from '@/components/supplements/supplement-form'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useDeleteSupplement, useUpdateSupplement, type SupplementInput } from '@/hooks/use-supplements'
+import { mensagemDeErro } from '@/lib/feedback'
 import { cn } from '@/lib/utils'
 import type { Supplement } from '@/types/database'
 
@@ -23,14 +25,27 @@ export function SupplementCard({ supplement, adesaoPct }: SupplementCardProps) {
   async function handleDelete() {
     const ok = await confirm({
       title: `Excluir "${supplement.nome}"?`,
-      description: 'Essa ação não pode ser desfeita.',
+      description: 'O histórico de doses tomadas também é apagado. Para só parar de tomar, use pausar. Não dá para desfazer.',
+      critico: true,
     })
     if (!ok) return
-    deleteSupplement.mutate(supplement.id)
+    deleteSupplement.mutate(supplement.id, {
+      onSuccess: () => toast.success(`${supplement.nome} excluído.`),
+      onError: (e) => toast.error(mensagemDeErro(e, 'excluir o suplemento')),
+    })
   }
 
   function handleUpdate(values: SupplementInput) {
-    updateSupplement.mutate({ id: supplement.id, values }, { onSuccess: () => setIsEditing(false) })
+    updateSupplement.mutate(
+      { id: supplement.id, values },
+      {
+        onSuccess: () => {
+          toast.success(`${values.nome} atualizado.`)
+          setIsEditing(false)
+        },
+        onError: (e) => toast.error(mensagemDeErro(e, 'salvar o suplemento')),
+      },
+    )
   }
 
   function handleToggleAtivo() {
@@ -44,7 +59,13 @@ export function SupplementCard({ supplement, adesaoPct }: SupplementCardProps) {
       ativo: !supplement.ativo,
       notas: supplement.notas,
     }
-    updateSupplement.mutate({ id: supplement.id, values })
+    updateSupplement.mutate(
+      { id: supplement.id, values },
+      {
+        onSuccess: () => toast.success(values.ativo ? `${supplement.nome} reativado.` : `${supplement.nome} pausado — o histórico continua salvo.`),
+        onError: (e) => toast.error(mensagemDeErro(e, 'alterar o suplemento')),
+      },
+    )
   }
 
   if (isEditing) {

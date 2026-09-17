@@ -241,9 +241,11 @@
     animation: ripple 400ms ease-out forwards;
   }
 
-  /* Entrada de tela (troca de rota). */
+  /* Entrada de tela (troca de rota). "backwards", não "both": com "both" o transform final
+     continuava aplicado e virava o bloco de contenção dos filhos position: fixed (tela de
+     execução do treino, cronômetro de pausa, mobilidade), presos à página em vez da tela. */
   .ds-page-enter {
-    animation: pageIn var(--dur-normal) var(--spring-smooth) both;
+    animation: pageIn var(--dur-normal) var(--spring-smooth) backwards;
   }
 
   /* Fundo de pontos sutil (card sem dado, grids decorativos). */

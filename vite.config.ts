@@ -4,10 +4,16 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+import pkg from './package.json' with { type: 'json' }
+
 import { iconNamesParam } from './src/lib/icons.ts'
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [
     // Material Symbols: o index.html pede só os ícones do mapa (src/lib/icons.ts).
     {
@@ -17,7 +23,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt': a versão nova espera o usuário tocar "Atualizar agora" (UpdateBanner).
+      registerType: 'prompt',
       includeAssets: ['icons/favicon-32x32.png', 'icons/favicon-16x16.png', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'FORJA — Sistema de Alta Performance',

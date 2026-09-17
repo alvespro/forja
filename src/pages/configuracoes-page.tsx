@@ -1,3 +1,4 @@
+import { AppVersionCard } from '@/components/settings/app-version-card'
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -48,6 +49,13 @@ export function ConfiguracoesPage() {
         <h1 className="font-heading text-2xl font-bold text-foreground">Configurações</h1>
         <p className="text-sm text-aco-texto">Saúde, base de alimentos, importações e atividade.</p>
       </div>
+
+      <section className="flex flex-col gap-2" aria-labelledby="config-app">
+        <h2 id="config-app" className="font-heading text-lg font-semibold text-foreground">
+          App
+        </h2>
+        <AppVersionCard />
+      </section>
 
       <HealthCalculatorCard />
 

@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router-dom'
 import { Toaster } from 'sonner'
 
 import { AppErrorBoundary } from '@/components/feedback/app-error-boundary'
+import { UpdateBanner } from '@/components/UpdateBanner'
 import { AuthProvider } from '@/components/auth/auth-provider'
 import { useAuth } from '@/hooks/use-auth'
 import { queryClient } from '@/lib/query-client'
@@ -32,6 +33,7 @@ function App() {
         <AuthProvider>
           <RouterProvider router={router} />
           <FloatingTools />
+          <UpdateBanner />
         </AuthProvider>
         {/* Toast do design system: topo central, até 3, some em 3s, arrasta para cima para
             fechar; borda esquerda colorida por tipo (estilos em design-system.css → .forja-toast). */}

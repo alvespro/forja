@@ -428,6 +428,20 @@
 /* ================================= keyframes ================================= */
 
 /* Shimmer do skeleton: gradiente percorrendo da esquerda para a direita. */
+/* Banner de versão nova: desce do topo com spring. */
+@keyframes forja-slide-down {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.forja-update-banner {
+  animation: forja-slide-down var(--dur-normal) var(--spring-bounce) both;
+}
+
 @keyframes ds-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }

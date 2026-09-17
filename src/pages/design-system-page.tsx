@@ -3,6 +3,8 @@ import { toast } from 'sonner'
 import { BodyMap } from '@/components/BodyMap'
 import { NovoCursoForm } from '@/components/desenvolvimento/novo-curso-form'
 import { PlacarSaude } from '@/components/health/placar-saude'
+import { AppVersionCard } from '@/components/settings/app-version-card'
+import { UpdateBanner } from '@/components/UpdateBanner'
 import { groupHealthMetricsByKey } from '@/hooks/use-health-metrics'
 import type { HealthMetric } from '@/types/database'
 import { CardioTimerView, MobilidadeBadge, ObservacaoDestaque, PhaseTimerView } from '@/components/workout/session/phase-views'
@@ -80,6 +82,13 @@ export function DesignSystemPage() {
               <Icon name={n} size={28} filled className="text-brasa" />
             </span>
           ))}
+        </div>
+      </Section>
+
+      <Section title="Atualização do app">
+        <div className="flex flex-col gap-3">
+          <UpdateBanner previa />
+          <AppVersionCard />
         </div>
       </Section>
 

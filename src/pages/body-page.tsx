@@ -12,7 +12,7 @@ import { Sparkline } from '@/components/ds/sparkline'
 import type { StatusDotColor } from '@/components/ds/status-dot'
 import type { IconName } from '@/lib/icons'
 import { Skeleton } from '@/components/ui/skeleton'
-import { BodyMetricForm } from '@/components/body/body-metric-form'
+import { BodyMetricModal } from '@/components/body/body-metric-form'
 import { BodyMetricsChart } from '@/components/body/body-metrics-chart'
 import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { ObjectiveCard } from '@/components/body/objective-card'
@@ -20,7 +20,8 @@ import { ProgressPhotosCard } from '@/components/body/progress-photos-card'
 import { WeightProjectionCard } from '@/components/body/weight-projection-card'
 import { RecompForecastCard } from '@/components/health/clinical-analysis'
 import { useActiveBodyGoal } from '@/hooks/use-body-goals'
-import { type BodyMetricInput, useBodyMetrics, useCreateBodyMetric, useDeleteBodyMetric } from '@/hooks/use-body-metrics'
+import { type MedicaoManual, useBodyMetrics, useDeleteBodyMetric } from '@/hooks/use-body-metrics'
+import { mensagemDeErro } from '@/lib/feedback'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useActiveDietPlan } from '@/hooks/use-diet-plan'
 import { useHealthCalc } from '@/hooks/useHealthCalc'
@@ -62,7 +63,6 @@ export function BodyPage() {
   const goal = useActiveBodyGoal()
   const profile = useProfile()
   const { user } = useAuth()
-  const createMetric = useCreateBodyMetric()
   const deleteMetric = useDeleteBodyMetric()
   const { confirm, dialog } = useConfirm()
   const [isAdding, setIsAdding] = useState(false)
@@ -70,7 +70,7 @@ export function BodyPage() {
   const { calcRecompForecast } = useHealthCalc()
 
   /** Pesagem confirmada com % de gordura + plano ativo → atualiza a previsão de recomposição. */
-  function atualizarPrevisao(values: BodyMetricInput) {
+  function atualizarPrevisao(values: MedicaoManual) {
     const plano = dietPlan.data
     if (values.peso_kg == null || values.gordura_pct == null || !plano?.calorias_alvo || !plano.proteina_g) return
     calcRecompForecast({
@@ -114,10 +114,18 @@ export function BodyPage() {
   const metaPeso = goal.data?.peso_meta_kg != null ? Number(goal.data.peso_meta_kg) : null
   const delta = pesoAtual != null && pesoAnterior != null ? pesoAtual - pesoAnterior : null
 
-  async function handleDelete(id: string) {
-    const ok = await confirm({ title: 'Excluir esta medição?', description: 'Essa ação não pode ser desfeita.' })
+  async function handleDelete(id: string, medidoEm: string) {
+    const data = medidoEm.split('-').reverse().join('/')
+    const ok = await confirm({
+      title: `Excluir a medição de ${data}?`,
+      description: 'Ela sai do histórico, dos gráficos e das projeções. Não dá para desfazer.',
+      critico: true,
+    })
     if (!ok) return
-    deleteMetric.mutate(id)
+    deleteMetric.mutate(id, {
+      onSuccess: () => toast.success(`Medição de ${data} excluída.`),
+      onError: (e) => toast.error(mensagemDeErro(e, 'excluir a medição')),
+    })
   }
 
   return (
@@ -191,32 +199,13 @@ export function BodyPage() {
               <p className="ds-body-md text-aco-texto">Registre a primeira medição para acompanhar sua composição.</p>
             )}
 
-            {!isAdding && (
-              <button
-                type="button"
-                onClick={() => setIsAdding(true)}
-                className="ds-btn-primary w-full"
-              >
-                <Icon name="add" size={16} />
-                Nova medição
-              </button>
-            )}
+            <button type="button" onClick={() => setIsAdding(true)} className="ds-btn-primary w-full">
+              <Icon name="edit" size={16} />
+              Inserir manualmente
+            </button>
           </section>
 
-          {isAdding && (
-            <BodyMetricForm
-              isSubmitting={createMetric.isPending}
-              onCancel={() => setIsAdding(false)}
-              onSubmit={(values) =>
-                createMetric.mutate(values, {
-                  onSuccess: () => {
-                    setIsAdding(false)
-                    atualizarPrevisao(values)
-                  },
-                })
-              }
-            />
-          )}
+          <BodyMetricModal open={isAdding} onClose={() => setIsAdding(false)} existentes={lista} onSalvo={atualizarPrevisao} />
 
           {/* GRADE DE MÉTRICAS */}
           {cards.length > 0 && (
@@ -293,7 +282,7 @@ export function BodyPage() {
 
           {/* HISTÓRICO */}
           {ordered.length === 0 ? (
-            !isAdding && <EmptyState message="Nenhuma medição ainda" description="A primeira pesagem é a base de todas as projeções." />
+            <EmptyState message="Nenhuma medição ainda" description="A primeira pesagem é a base de todas as projeções." />
           ) : (
             <section className="flex flex-col gap-2">
               <span className="ds-label">Histórico</span>
@@ -313,7 +302,7 @@ export function BodyPage() {
                       <button
                         type="button"
                         aria-label={`Excluir medição de ${format(parseDateOnly(metric.medido_em), 'dd/MM')}`}
-                        onClick={() => handleDelete(metric.id)}
+                        onClick={() => void handleDelete(metric.id, metric.medido_em)}
                         className="flex size-11 items-center justify-center rounded-full text-aco-texto outline-none hover:text-alerta-texto focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <Icon name="delete" size={16} />

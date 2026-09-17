@@ -50,6 +50,20 @@ export type BodyGoalUpsertInput = {
   imc_meta: number | null
 }
 
+export type MetasInput = Pick<BodyGoal, 'peso_meta_kg' | 'gordura_meta_pct' | 'musculo_pct_meta' | 'agua_meta_pct' | 'gordura_visceral_meta' | 'imc_meta'>
+
+/** Ajusta só as metas do ciclo atual (UPDATE), sem criar ciclo novo. */
+export function useAtualizarMetas() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, values }: { id: string; values: MetasInput }) => {
+      const { error } = await supabase.from('body_goals').update(values).eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['body-goals'] }),
+  })
+}
+
 function addDays(dateStr: string, days: number): string {
   const date = new Date(`${dateStr}T00:00:00`)
   date.setDate(date.getDate() + days)

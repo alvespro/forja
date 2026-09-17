@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/feedback/error-state'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GoalEditModal } from '@/components/body/goal-edit-modal'
+import { MetasModal } from '@/components/body/metas-modal'
 import { useActiveBodyGoal } from '@/hooks/use-body-goals'
 import { cycleDaysElapsed } from '@/lib/body-goals'
 import { OBJETIVO_DESCRICAO, OBJETIVO_ICONS, OBJETIVO_LABELS } from '@/lib/body-goals'
@@ -18,6 +19,7 @@ import { diffInDays, parseDateOnly } from '@/lib/date'
 export function ObjectiveCard() {
   const activeGoal = useActiveBodyGoal()
   const [isEditing, setIsEditing] = useState(false)
+  const [editandoMetas, setEditandoMetas] = useState(false)
 
   return (
     <Card>
@@ -35,13 +37,14 @@ export function ObjectiveCard() {
             </Button>
           </div>
         ) : (
-          <ObjectiveContent goal={activeGoal.data} onEdit={() => setIsEditing(true)} />
+          <ObjectiveContent goal={activeGoal.data} onEdit={() => setIsEditing(true)} onEditMetas={() => setEditandoMetas(true)} />
         )}
       </CardContent>
 
       {isEditing && (
         <GoalEditModal open={isEditing} onOpenChange={setIsEditing} currentGoal={activeGoal.data ?? null} />
       )}
+      {activeGoal.data && <MetasModal open={editandoMetas} meta={activeGoal.data} onClose={() => setEditandoMetas(false)} />}
     </Card>
   )
 }
@@ -49,9 +52,11 @@ export function ObjectiveCard() {
 function ObjectiveContent({
   goal,
   onEdit,
+  onEditMetas,
 }: {
   goal: NonNullable<ReturnType<typeof useActiveBodyGoal>['data']>
   onEdit: () => void
+  onEditMetas: () => void
 }) {
   const { objetivo, cycle } = goal
   const prazoDias = diffInDays(cycle.data_fim, cycle.data_inicio)
@@ -67,10 +72,16 @@ function ObjectiveContent({
           </span>
           <span className="text-xs text-aco-texto">{cycle.nome}</span>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={onEdit}>
-          <Icon name="edit" size={14} />
-          Editar objetivo
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" className="min-h-11" onClick={onEditMetas}>
+            <Icon name="flag" size={16} />
+            Editar metas
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={onEdit}>
+            <Icon name="edit" size={14} />
+            Editar objetivo
+          </Button>
+        </div>
       </div>
 
       <p className="text-sm text-foreground">{OBJETIVO_DESCRICAO[objetivo]}</p>

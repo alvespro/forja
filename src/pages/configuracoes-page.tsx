@@ -1,4 +1,5 @@
 import { AppVersionCard } from '@/components/settings/app-version-card'
+import { GoogleCalendarCard } from '@/components/calendar/google-calendar-card'
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -58,6 +59,7 @@ export function ConfiguracoesPage() {
       </section>
 
       <HealthCalculatorCard />
+      <GoogleCalendarCard />
 
       <FoodDatabaseCard />
 

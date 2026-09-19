@@ -1,4 +1,5 @@
 import { ActivityCalendar } from '@/components/ActivityCalendar'
+import { AgendaTodayCard } from '@/components/today/agenda-today-card'
 import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
 import { AlertsSection } from '@/components/today/alerts-section'
 import { CrmActionsCard } from '@/components/today/crm-actions-card'
@@ -51,6 +52,7 @@ export function TodayPage() {
             <QuickStatsCard />
             <NutritionTodayCard />
             <ActivityCalendar />
+            <AgendaTodayCard />
           </>
         }
       />

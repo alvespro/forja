@@ -455,6 +455,15 @@ export type Meal = {
 }
 
 export type CrmClient = {
+  telefone?: string | null
+  email?: string | null
+  cpf?: string | null
+  produto?: string | null
+  status?: string | null
+  valor_financiamento?: number | null
+  proximo_contato?: string | null
+  notas?: string | null
+  calendar_event_id?: string | null
   id: string
   user_id: string
   nome: string

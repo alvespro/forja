@@ -36,6 +36,7 @@ export const secondaryNavGroups: NavGroup[] = [
   {
     titulo: 'Rotina',
     itens: [
+      { to: '/agenda', label: 'Agenda', icon: 'calendar_today' },
       { to: '/tarefas', label: 'Tarefas', icon: 'checklist' },
       { to: '/habits', label: 'Hábitos', icon: 'task_alt' },
       { to: '/goals', label: 'Metas', icon: 'flag' },

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useLocation } from 'react-router-dom'
 import { Icon } from '@/components/Icon'
+import { EventModal, type EventDraft } from '@/components/calendar/event-modal'
 import {
   CartesianGrid,
   Legend,
@@ -120,6 +121,8 @@ function examStatusBadge(status: ProtocolExamStatus | string | null) {
 }
 
 export function ProtocoloPage() {
+  const [calendarDraft, setCalendarDraft] = useState<EventDraft | null>(null)
+  const [addToCalendar, setAddToCalendar] = useState(false)
   // "Abrir agenda" (card do Hoje) chega com { tab: 'agenda' } no state da navegação.
   const location = useLocation()
   const [tab, setTab] = useState<Tab>(((location.state as { tab?: Tab } | null)?.tab) ?? 'protocolo')
@@ -265,7 +268,11 @@ export function ProtocoloPage() {
     updateExam.mutate({
       id: examId,
       values: { data_prevista: scheduleDate, status: 'agendado' },
-    }, { onSuccess: () => setShowScheduleModal(null) })
+    }, { onSuccess: () => {
+      setShowScheduleModal(null)
+      if (addToCalendar) setCalendarDraft({ date: scheduleDate, titulo: exams.data?.find(e => e.id === examId)?.nome ?? 'Exame', categoria: 'exame', protocol_exam_id: examId })
+      setAddToCalendar(false)
+    } })
   }
 
   function handleRealizadoExam(examId: string) {
@@ -1187,12 +1194,14 @@ export function ProtocoloPage() {
       />
 
       {/* ════ MODAL: Agendar exame ════ */}
+      {calendarDraft && <EventModal draft={calendarDraft} onClose={() => setCalendarDraft(null)} />}
       <Modal
         open={!!showScheduleModal}
         onClose={() => setShowScheduleModal(null)}
         title="Agendar exame"
         maxWidth="sm"
       >
+        <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={addToCalendar} onChange={e => setAddToCalendar(e.target.checked)} />Adicionar ao Google Calendar?</label>
         <FieldInput
           label="Data prevista"
           type="date"

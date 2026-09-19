@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 
 import { GlassCard } from '@/components/GlassCard'
 import { Icon } from '@/components/Icon'
@@ -27,16 +26,19 @@ export function ProtocolCycleCard() {
 
   if (ciclo.carregando || ciclo.erro || !protocolo || !estado || estado.fase === 'sem_data') return null
 
+  const semanaDoModal = estado.fase === 'ativo' ? estado.semana : 1
+  const totalSemanasDoModal = 'totalSemanas' in estado ? estado.totalSemanas : 0
   const modal =
-    estado.fase === 'ativo' ? (
+    estado.fase === 'ativo' || ciclo.naoRegistrada ? (
       <RegistrarAplicacaoModal
         open={registrando}
         onClose={() => setRegistrando(false)}
         protocolId={protocolo.id}
         compostos={ciclo.compostosDaSemana}
-        semana={estado.semana}
-        totalSemanas={estado.totalSemanas}
-        jaRegistradoHoje={ciclo.registradoHoje}
+        semana={semanaDoModal}
+        totalSemanas={totalSemanasDoModal}
+        dataAplicacao={ciclo.naoRegistrada ?? undefined}
+        jaRegistradoHoje={!ciclo.naoRegistrada && ciclo.registradoHoje}
       />
     ) : null
 
@@ -46,9 +48,9 @@ export function ProtocolCycleCard() {
         <Icon name="warning" size={20} filled className="mt-0.5 shrink-0 text-amber-300" />
         Aplicação de {diaEData(ciclo.naoRegistrada)} não registrada — você aplicou? Registre agora.
       </span>
-      <Link to="/protocolo" state={{ tab: 'agenda' }} className="ds-btn-ghost min-h-11 self-start px-4">
-        Abrir agenda
-      </Link>
+      <button type="button" onClick={() => setRegistrando(true)} className="ds-btn-ghost min-h-11 self-start px-4">
+        Registrar aplicação de {ciclo.naoRegistrada.slice(8, 10)}/{ciclo.naoRegistrada.slice(5, 7)}
+      </button>
     </div>
   )
 
@@ -137,6 +139,7 @@ export function ProtocolCycleCard() {
 
   return (
     <>
+      {modal}
       <GlassCard className="flex items-center gap-3" padding="var(--s4)" aria-label="Ciclo do protocolo">
         <Icon name="science" size={24} className="shrink-0 text-brasa" />
         <div className="flex min-w-0 flex-col">

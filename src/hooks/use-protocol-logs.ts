@@ -57,6 +57,8 @@ export function useCreateProtocolLog() {
 
 export type RegistroAplicacaoInput = {
   protocol_id: string
+  /** Data agendada em YYYY-MM-DD. Sem ela, registra o instante atual. */
+  data_aplicacao?: string
   compostos: { compound_id: string; dose_aplicada_mg: number | null }[]
   local_aplicacao: string
   observacoes: string | null
@@ -70,13 +72,15 @@ export function useRegistrarAplicacao() {
   const { user } = useAuth()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ compostos, ...comum }: RegistroAplicacaoInput) => {
+    mutationFn: async ({ compostos, data_aplicacao, ...comum }: RegistroAplicacaoInput) => {
       if (!user) throw new Error('Não autenticado')
       if (compostos.length === 0) throw new Error('Nenhum composto selecionado')
-      const agora = new Date().toISOString()
+      // Datas puras em UTC viram o dia anterior em São Paulo. O meio-dia local
+      // preserva a data agendada ao normalizar o histórico do ciclo.
+      const dataAplicacao = data_aplicacao ? `${data_aplicacao}T12:00:00-03:00` : new Date().toISOString()
       const { error } = await supabase
         .from('protocol_logs')
-        .insert(compostos.map((c) => ({ ...comum, ...c, user_id: user.id, data_aplicacao: agora })))
+        .insert(compostos.map((c) => ({ ...comum, ...c, user_id: user.id, data_aplicacao: dataAplicacao })))
       if (error) throw error
 
       // O lembrete diário é uma notificação persistida. Sem esta atualização o
@@ -86,7 +90,10 @@ export function useRegistrarAplicacao() {
         .from('notifications')
         .update({ lida: true })
         .eq('user_id', user.id)
-        .eq('dedupe_key', `aplicacao_${comum.protocol_id}_${todayInSaoPaulo()}`)
+        .in('dedupe_key', [
+          `aplicacao_${comum.protocol_id}_${data_aplicacao ?? todayInSaoPaulo()}`,
+          `aplicacao_perdida_${comum.protocol_id}_${data_aplicacao ?? todayInSaoPaulo()}`,
+        ])
         .eq('lida', false)
       if (notificationError) console.warn('Não foi possível encerrar o lembrete da aplicação.', notificationError)
     },

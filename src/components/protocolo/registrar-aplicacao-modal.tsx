@@ -24,20 +24,25 @@ type Props = {
   compostos: ProtocolCompound[]
   semana: number
   totalSemanas: number
+  /** Data pendente a registrar em YYYY-MM-DD; ausência registra agora. */
+  dataAplicacao?: string
   /** Já existe registro hoje: avisa antes de duplicar. */
   jaRegistradoHoje: boolean
 }
 
 /** Registro da aplicação do dia: compostos da semana, local, observações e bem-estar (1–5). */
 export function RegistrarAplicacaoModal(props: Props) {
+  const descricao = props.dataAplicacao
+    ? `Aplicação pendente de ${props.dataAplicacao.slice(8, 10)}/${props.dataAplicacao.slice(5, 7)}`
+    : `Semana ${props.semana} de ${props.totalSemanas}`
   return (
-    <Modal open={props.open} onClose={props.onClose} title="Registrar aplicação" description={`Semana ${props.semana} de ${props.totalSemanas}`}>
+    <Modal open={props.open} onClose={props.onClose} title="Registrar aplicação" description={descricao}>
       {props.open && <Formulario {...props} />}
     </Modal>
   )
 }
 
-function Formulario({ onClose, protocolId, compostos, jaRegistradoHoje }: Props) {
+function Formulario({ onClose, protocolId, compostos, jaRegistradoHoje, dataAplicacao }: Props) {
   const registrar = useRegistrarAplicacao()
   const [selecionados, setSelecionados] = useState<Set<string>>(() => new Set(compostos.map((c) => c.id)))
   const [local, setLocal] = useState('')
@@ -66,6 +71,7 @@ function Formulario({ onClose, protocolId, compostos, jaRegistradoHoje }: Props)
     registrar.mutate(
       {
         protocol_id: protocolId,
+        data_aplicacao: dataAplicacao,
         compostos: compostos.filter((c) => selecionados.has(c.id)).map((c) => ({ compound_id: c.id, dose_aplicada_mg: c.dose_mg })),
         local_aplicacao: local,
         observacoes: observacoes.trim() || null,
@@ -73,7 +79,7 @@ function Formulario({ onClose, protocolId, compostos, jaRegistradoHoje }: Props)
       },
       {
         onSuccess: () => {
-          toast.success(`Aplicação registrada: ${selecionados.size} ${selecionados.size === 1 ? 'composto' : 'compostos'} · ${local}.`)
+          toast.success(`Aplicação${dataAplicacao ? ` de ${dataAplicacao.slice(8, 10)}/${dataAplicacao.slice(5, 7)}` : ''} registrada: ${selecionados.size} ${selecionados.size === 1 ? 'composto' : 'compostos'} · ${local}.`)
           onClose()
         },
         onError: (err) => toast.error(mensagemDeErro(err, 'registrar a aplicação')),
@@ -146,7 +152,7 @@ function Formulario({ onClose, protocolId, compostos, jaRegistradoHoje }: Props)
       </div>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1.5 text-sm font-medium text-nevoa">Bem-estar hoje</legend>
+        <legend className="mb-1.5 text-sm font-medium text-nevoa">Bem-estar {dataAplicacao ? 'na aplicação' : 'hoje'}</legend>
         {(['humor', 'energia', 'libido'] as const).map((campo) => (
           <label key={campo} className="flex flex-col gap-1">
             <span className="flex justify-between text-[13px] text-cinza">

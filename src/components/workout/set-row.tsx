@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { SetRowView } from '@/components/workout/session/session-views'
 import { useCreateSetLog, useUpdateSetLog } from '@/hooks/use-set-logs'
 import { haptic } from '@/lib/haptics'
+import { prepareAudio } from '@/lib/audio-beep'
 import { isNewRecord } from '@/lib/workout-metrics'
 import type { SetLog, WorkoutExercise } from '@/types/database'
 
@@ -63,6 +64,8 @@ export function SetRow({
   function handleComplete() {
     // Trava síncrona: dois toques no mesmo frame não geram duas gravações.
     if (enviandoRef.current || estado === 'bloqueada') return
+    // Faz parte do toque em ✓: desbloqueia o som que tocará ao fim da pausa.
+    prepareAudio()
     enviandoRef.current = true
     const liberar = () => {
       enviandoRef.current = false

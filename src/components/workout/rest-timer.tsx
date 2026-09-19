@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { RestTimerView } from '@/components/workout/session/session-views'
 import { useElapsedSince } from '@/hooks/use-elapsed-since'
-import { playBeep } from '@/lib/audio-beep'
+import { playRestCompleteAlert } from '@/lib/audio-beep'
 import { haptic } from '@/lib/haptics'
 
 type RestTimerProps = {
@@ -20,7 +20,7 @@ export function RestTimer({ targetSeconds, onFinish }: RestTimerProps) {
   useEffect(() => {
     if (remainingSeconds <= 0 && !alertedRef.current) {
       alertedRef.current = true
-      playBeep()
+      playRestCompleteAlert()
       haptic('pausa')
     }
   }, [remainingSeconds])

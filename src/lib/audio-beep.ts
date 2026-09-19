@@ -12,6 +12,19 @@ function getAudioContext(): AudioContext | null {
   return audioContext
 }
 
+/**
+ * Desbloqueia o áudio durante um gesto explícito do usuário. Em Safari/iOS e
+ * alguns navegadores Android, criar/retomar o AudioContext só quando o tempo
+ * acaba é bloqueado por não haver mais uma interação ativa.
+ */
+export function prepareAudio(): void {
+  const ctx = getAudioContext()
+  if (!ctx || ctx.state !== 'suspended') return
+  void ctx.resume().catch(() => {
+    // Se o navegador ainda bloquear, o cronômetro continua funcional sem som.
+  })
+}
+
 type BeepOptions = { frequency?: number; volume?: number; duration?: number }
 
 export function playBeep({ frequency = 880, volume = 0.3, duration = 0.35 }: BeepOptions = {}) {
@@ -35,6 +48,12 @@ export function playBeep({ frequency = 880, volume = 0.3, duration = 0.35 }: Bee
   } catch {
     // Web Audio indisponível neste navegador; ignora silenciosamente.
   }
+}
+
+/** Alerta inequívoco de fim do descanso: duas notas curtas, tocadas uma única vez. */
+export function playRestCompleteAlert() {
+  playBeep({ frequency: 880, volume: 0.36, duration: 0.18 })
+  window.setTimeout(() => playBeep({ frequency: 1175, volume: 0.36, duration: 0.32 }), 190)
 }
 
 export function vibrate(pattern: number[] = [200, 100, 200]) {

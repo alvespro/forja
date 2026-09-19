@@ -11,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/feedback/error-state'
 import { FormatoPicker } from '@/components/desenvolvimento/formato-picker'
 import { StarRating } from '@/components/desenvolvimento/star-rating'
+import { FlashcardsDaFonte } from '@/components/estudos/flashcards-da-fonte'
+import { textoDoReview } from '@/lib/flashcards'
 import { useCourse, useUpdateCourse } from '@/hooks/use-courses'
 import { useDevAreas } from '@/hooks/use-dev-areas'
 import { useForjaAI } from '@/hooks/useForjaAI'
@@ -452,6 +454,20 @@ export function CursoDetalhePage() {
           </Button>
         )}
       </div>
+
+      {/* Flashcards do curso (abaixo do review 3-2-1) */}
+      <FlashcardsDaFonte
+        tipo="curso"
+        fonteId={c.id}
+        titulo={c.titulo}
+        textoParaIA={textoDoReview({
+          resumo: c.resumo,
+          aprendizados: [aprendizado1, aprendizado2, aprendizado3],
+          aplicacoes: [aplicacao1, aplicacao2],
+          acao: acao1,
+          citacao,
+        })}
+      />
 
       {/* Insights da IA */}
       {showInsights && insights && (

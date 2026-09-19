@@ -23,9 +23,9 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento' | 'protocolo'
+type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento' | 'protocolo' | 'estudos'
 
-const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas', 'desenvolvimento', 'protocolo']
+const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas', 'desenvolvimento', 'protocolo', 'estudos']
 
 const SYSTEM_PROMPTS: Record<Agente, string> = {
   treino:
@@ -110,6 +110,21 @@ const SYSTEM_PROMPTS: Record<Agente, string> = {
     '"Esta decisão é do seu médico responsável."\n' +
     'Você monitora e informa — não prescreve.\n\n' +
     'Português do Brasil. Direto e específico. Máximo 300 palavras.',
+  estudos:
+    'Você é o Assistente de Estudos do FORJA de Welber Alves.\n\n' +
+    'PERFIL: Eneagrama 3w2, empresário, 32 anos.\n' +
+    'FOCO: Crédito imobiliário Caixa, gestão, liderança,\n' +
+    '      desenvolvimento pessoal.\n\n' +
+    'SUAS FUNÇÕES:\n' +
+    '1. Gerar flashcards a partir de anotações ou texto\n' +
+    '   Retornar JSON: { flashcards: [{frente, verso, fonte}] }\n' +
+    '2. Sugerir livros baseado no perfil e áreas fracas\n' +
+    '   Retornar JSON: { sugestoes: [{titulo, autor, motivo, area}] }\n' +
+    '3. Criar resumo de capítulo/anotação em tópicos\n' +
+    '4. Explicar conceitos de crédito imobiliário de forma simples\n' +
+    '5. Criar dicas de estudo baseadas no que errou nos flashcards\n\n' +
+    'Quando o pedido for de flashcards ou sugestões, responda APENAS com o JSON válido, sem texto antes ou depois.\n\n' +
+    'Português do Brasil. Direto. Máximo 300 palavras.',
   metas:
     'Você é o Analista de Objetivos do FORJA, sistema de Welber Alves.\n\n' +
     'REGRAS POR OBJETIVO:\n' +
@@ -462,6 +477,48 @@ async function buscarContextoProtocolo(sb: SupabaseClient, userId: string): Prom
   )
 }
 
+async function buscarContextoEstudos(sb: SupabaseClient, userId: string): Promise<string> {
+  const [notas, cards, leituras, cursos, areas] = await Promise.all([
+    sb
+      .from('study_notes')
+      .select('titulo, conteudo, tags, fonte_tipo, updated_at')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
+      .limit(5),
+    sb
+      .from('flashcards')
+      .select('frente, verso, fonte, acertos, erros')
+      .eq('user_id', userId)
+      .gt('erros', 0)
+      .order('erros', { ascending: false })
+      .limit(40),
+    sb.from('readings').select('titulo, autor, progresso').eq('user_id', userId).eq('status', 'lendo'),
+    sb.from('courses').select('titulo, plataforma, progresso').eq('user_id', userId).eq('status', 'lendo'),
+    sb
+      .from('dev_areas')
+      .select('nome, categoria, nivel_atual, nivel_meta')
+      .eq('user_id', userId)
+      .eq('ativo', true)
+      .order('nivel_atual', { ascending: true })
+      .limit(5),
+  ])
+
+  // PostgREST não compara duas colunas: o filtro erros > acertos é feito aqui.
+  const maisErrados = (cards.data ?? []).filter((c) => (c.erros ?? 0) > (c.acertos ?? 0)).slice(0, 10)
+
+  return JSON.stringify(
+    {
+      ultimas_5_anotacoes: (notas.data ?? []).map((n) => ({ ...n, conteudo: (n.conteudo ?? '').slice(0, 1500) })),
+      flashcards_com_mais_erros: maisErrados,
+      livros_lendo: leituras.data ?? [],
+      cursos_em_andamento: cursos.data ?? [],
+      areas_desenvolvimento_mais_fracas: areas.data ?? [],
+    },
+    null,
+    2,
+  )
+}
+
 const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Promise<string>> = {
   treino: buscarContextoTreino,
   biblioteca: buscarContextoBiblioteca,
@@ -470,6 +527,7 @@ const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Pr
   metas: buscarContextoMetas,
   desenvolvimento: buscarContextoDesenvolvimento,
   protocolo: buscarContextoProtocolo,
+  estudos: buscarContextoEstudos,
 }
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }

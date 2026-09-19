@@ -48,6 +48,7 @@ export const secondaryNavGroups: NavGroup[] = [
     titulo: 'Crescimento',
     itens: [
       { to: '/desenvolvimento', label: 'Desenvolvimento', icon: 'psychology' },
+      { to: '/estudos', label: 'Estudos 📚', icon: 'style' },
       { to: '/finances', label: 'Finanças', icon: 'account_balance_wallet' },
       { to: '/crm', label: 'CRM', icon: 'group' },
     ],

@@ -805,3 +805,82 @@ export type SleepLog = {
   notas: string | null
   fonte: 'manual'
 }
+
+// ─── Estudos ─────────────────────────────────────────────────────────────────
+
+export type FlashcardFonteTipo = 'livro' | 'curso' | 'manual' | 'anotacao'
+
+export type FlashcardDeck = {
+  id: string
+  user_id: string
+  nome: string
+  descricao: string | null
+  categoria: 'livro' | 'curso' | 'tecnico' | 'pessoal' | null
+  cor: string | null
+  ativo: boolean | null
+  created_at: string | null
+}
+
+export type Flashcard = {
+  id: string
+  user_id: string
+  deck_id: string | null
+  frente: string
+  verso: string
+  /** Nome legível da origem (título do livro/curso/anotação). */
+  fonte: string | null
+  fonte_id: string | null
+  fonte_tipo: FlashcardFonteTipo | null
+  nivel_revisao: number
+  proxima_revisao: string | null
+  ultima_revisao: string | null
+  acertos: number
+  erros: number
+  created_at: string | null
+}
+
+export type StudyNoteFonteTipo = 'livro' | 'curso' | 'tecnico' | 'aula' | 'outro'
+
+export type StudyNote = {
+  id: string
+  user_id: string
+  titulo: string
+  conteudo: string | null
+  tags: string[] | null
+  fonte_tipo: StudyNoteFonteTipo | null
+  fonte_id: string | null
+  favorito: boolean | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export type EpubDestaque = { cfi: string; texto: string; criado_em: string }
+export type EpubAnotacao = { cfi: string; texto: string; nota: string; criado_em: string }
+
+export type EpubBook = {
+  id: string
+  user_id: string
+  titulo: string
+  autor: string | null
+  /** Caminho no bucket privado `epubs` (não é URL pública). */
+  arquivo_url: string | null
+  capa_url: string | null
+  progresso_pct: number | null
+  ultima_posicao: string | null
+  destaques: EpubDestaque[]
+  anotacoes: EpubAnotacao[]
+  created_at: string | null
+  updated_at: string | null
+}
+
+export type BookSuggestion = {
+  id: string
+  user_id: string
+  titulo: string
+  autor: string | null
+  motivo: string | null
+  area: string | null
+  status: 'pendente' | 'adicionado' | 'ignorado' | null
+  origem: 'ia' | 'manual' | null
+  created_at: string | null
+}

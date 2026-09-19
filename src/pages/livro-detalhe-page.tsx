@@ -9,6 +9,8 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/feedback/error-state'
 import { StarRating } from '@/components/desenvolvimento/star-rating'
+import { FlashcardsDaFonte } from '@/components/estudos/flashcards-da-fonte'
+import { textoDoReview } from '@/lib/flashcards'
 import { useReading, useUpdateReading } from '@/hooks/use-readings'
 import { useDevAreas } from '@/hooks/use-dev-areas'
 import { useForjaAI } from '@/hooks/useForjaAI'
@@ -316,6 +318,20 @@ export function LivroDetalhePage() {
           </Button>
         )}
       </div>
+
+      {/* ── Flashcards do livro (abaixo do review 3-2-1) ── */}
+      <FlashcardsDaFonte
+        tipo="livro"
+        fonteId={r.id}
+        titulo={r.titulo}
+        textoParaIA={textoDoReview({
+          resumo: r.resumo,
+          aprendizados: [aprendizado1, aprendizado2, aprendizado3],
+          aplicacoes: [aplicacao1, aplicacao2],
+          acao: acao1,
+          citacao,
+        })}
+      />
 
       {/* ── SEÇÃO 3: Insights da IA ── */}
       {showInsights && insights && (

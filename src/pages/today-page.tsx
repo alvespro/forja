@@ -21,6 +21,7 @@ import { ProtocolCycleCard } from '@/components/today/protocol-cycle-card'
 import { RecoveryCard } from '@/components/today/recovery-card'
 import { RecoveryRingCard } from '@/components/today/recovery-ring-card'
 import { SpacedReviewCard } from '@/components/today/spaced-review-card'
+import { FlashcardsReviewCard } from '@/components/today/flashcards-review-card'
 
 /**
  * Hoje — dashboard estilo Aaru sobre Liquid Glass:
@@ -69,6 +70,7 @@ export function TodayPage() {
         <ProtocolSummaryCard />
         <MoodCheckinCard />
         <CrmActionsCard />
+        <FlashcardsReviewCard />
         <SpacedReviewCard />
         <DevSummaryCard />
         <CycleProgressCard />

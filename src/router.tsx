@@ -29,6 +29,9 @@ const ConfiguracoesPage = lazy(() => import('@/pages/configuracoes-page').then((
 const DesenvolvimentoPage = lazy(() => import('@/pages/desenvolvimento-page').then((m) => ({ default: m.DesenvolvimentoPage })))
 const LivroDetalhePage = lazy(() => import('@/pages/livro-detalhe-page').then((m) => ({ default: m.LivroDetalhePage })))
 const CursoDetalhePage = lazy(() => import('@/pages/curso-detalhe-page').then((m) => ({ default: m.CursoDetalhePage })))
+const EstudosPage = lazy(() => import('@/pages/estudos-page').then((m) => ({ default: m.EstudosPage })))
+const NotaDetalhePage = lazy(() => import('@/pages/nota-detalhe-page').then((m) => ({ default: m.NotaDetalhePage })))
+const EpubLeitorPage = lazy(() => import('@/pages/epub-leitor-page').then((m) => ({ default: m.EpubLeitorPage })))
 const TarefasPage = lazy(() => import('@/pages/tarefas-page').then((m) => ({ default: m.TarefasPage })))
 const ProtocoloPage = lazy(() => import('@/pages/protocolo-page').then((m) => ({ default: m.ProtocoloPage })))
 const ExercicioDetalhePage = lazy(() =>
@@ -93,6 +96,9 @@ export const router = createBrowserRouter([
           { path: 'desenvolvimento', element: <DesenvolvimentoPage /> },
           { path: 'biblioteca/livro/:id', element: <LivroDetalhePage /> },
           { path: 'desenvolvimento/curso/:id', element: <CursoDetalhePage /> },
+          { path: 'estudos', element: <EstudosPage /> },
+          { path: 'estudos/nota/:id', element: <NotaDetalhePage /> },
+          { path: 'estudos/epub/:id', element: <EpubLeitorPage /> },
           { path: 'focus', element: <FocusPage /> },
           { path: 'journal', element: <JournalPage /> },
           { path: 'finances', element: <FinancesPage /> },

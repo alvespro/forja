@@ -3,7 +3,7 @@ import { FunctionsHttpError } from '@supabase/supabase-js'
 
 import { supabase } from '@/lib/supabase'
 
-export type ForjaAgente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento' | 'protocolo'
+export type ForjaAgente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento' | 'protocolo' | 'estudos'
 
 export const FORJA_AGENTES: { value: ForjaAgente; label: string }[] = [
   { value: 'treino', label: 'Treino' },
@@ -13,6 +13,7 @@ export const FORJA_AGENTES: { value: ForjaAgente; label: string }[] = [
   { value: 'metas', label: 'Metas' },
   { value: 'desenvolvimento', label: 'Desenvolvimento' },
   { value: 'protocolo', label: 'Protocolo' },
+  { value: 'estudos', label: 'Estudos' },
 ]
 
 type PerguntarInput = {

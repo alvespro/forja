@@ -142,6 +142,14 @@ export const ICONS = {
   ampulheta: 'hourglass_empty',
   review: 'rate_review',
   injecao: 'vaccines',
+
+  // Estudos
+  flashcards: 'style',
+  epub: 'auto_stories',
+  ideia: 'lightbulb',
+  fonte_menor: 'text_decrease',
+  fonte_maior: 'text_increase',
+  destacar: 'border_color',
 } as const
 
 export type IconKey = keyof typeof ICONS

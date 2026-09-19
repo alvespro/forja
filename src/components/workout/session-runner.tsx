@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -26,8 +26,17 @@ import { useCreateWorkoutSession, useFinishWorkoutSession, useWorkoutSession } f
 import { useWorkouts } from '@/hooks/use-workouts'
 import { launchForjaChat } from '@/lib/forja-chat-store'
 import { haptic } from '@/lib/haptics'
+import {
+  baseDasSeries,
+  confirmadasNosLogs,
+  lerProgresso,
+  limparProgresso,
+  passoAposConfirmar,
+  salvarProgresso,
+  totalSeriesDe,
+} from '@/lib/session-progress'
 import { faseCronometrada, faseDe, ordenarPorFase } from '@/lib/workout-phases'
-import type { Exercise, SetLog } from '@/types/database'
+import type { Exercise, SetLog, WorkoutExercise } from '@/types/database'
 
 const PAUSA_PADRAO_STORAGE_KEY = 'forja:pausa-padrao-seg'
 
@@ -59,6 +68,7 @@ export function SessionRunner() {
         exercises={exercises.data ?? []}
         onMinimize={() => setMinimizado(true)}
         onEndSession={() => {
+          limparProgresso(sessionId)
           setMinimizado(false)
           setSessionId(null)
         }}
@@ -156,7 +166,18 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
   const finishSession = useFinishWorkoutSession()
   const ensureKarvonenZones = useEnsureKarvonenZones()
   const updateSetLogPausa = useUpdateSetLogPausa()
-  const [currentIndex, setCurrentIndex] = useState(0)
+  // Retomada: índice e séries confirmadas por exercício sobrevivem a sair e voltar.
+  const [progressoSalvo] = useState(() => lerProgresso(sessionId))
+  const [currentIndex, setCurrentIndex] = useState(progressoSalvo?.indice ?? 0)
+  /** Séries confirmadas por prescrição (id → quantidade). Cada exercício tem o seu. */
+  const [confirmadasLocal, setConfirmadasLocal] = useState<Record<string, number>>(progressoSalvo?.confirmadas ?? {})
+  /** Séries extras por prescrição ("Adicionar série"). */
+  const [extrasLocal, setExtrasLocal] = useState<Record<string, number>>(progressoSalvo?.extras ?? {})
+  const finalizacaoAbertaRef = useRef(false)
+
+  useEffect(() => {
+    salvarProgresso(sessionId, { indice: currentIndex, confirmadas: confirmadasLocal, extras: extrasLocal })
+  }, [sessionId, currentIndex, confirmadasLocal, extrasLocal])
 
   useWakeLock(true)
   useImmersiveMode(true)
@@ -168,7 +189,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
   const [resumo, setResumo] = useState<Omit<PostWorkoutSummaryProps, 'onClose'> | null>(null)
   const [esforco, setEsforco] = useState('')
   const [notas, setNotas] = useState('')
-  const [activeRest, setActiveRest] = useState<{ logId: string; targetSeconds: number } | null>(null)
+  const [activeRest, setActiveRest] = useState<{ logId: string; targetSeconds: number; inicio: number } | null>(null)
   const [pausaPadraoSeg, setPausaPadraoSeg] = useState(readPausaPadraoSeg)
 
   function handlePausaPadraoChange(value: string) {
@@ -181,11 +202,12 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
     }
   }
 
-  function handleSetCompleted(log: SetLog, pausaAlvoSeg: number | null) {
-    // Sem pausa alvo cadastrada, usa a pausa padrão — antes o cronômetro não
-    // aparecia e a pausa real nunca era registrada.
-    const alvo = pausaAlvoSeg && pausaAlvoSeg > 0 ? pausaAlvoSeg : pausaPadraoSeg
-    setActiveRest({ logId: log.id, targetSeconds: alvo })
+  /** Encerra o cronômetro em curso (se houver) gravando a pausa real até agora. */
+  function cancelarPausa() {
+    if (!activeRest) return
+    const pausaSeg = Math.round((Date.now() - activeRest.inicio) / 1000)
+    updateSetLogPausa.mutate({ id: activeRest.logId, sessionId, pausaSeg })
+    setActiveRest(null)
   }
 
   function handleRestFinish(elapsed: number) {
@@ -194,7 +216,21 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
     setActiveRest(null)
   }
 
+  function abrirFinalizacao() {
+    // Uma vez só: confirmar/editar séries depois não reabre o fechamento.
+    if (finalizacaoAbertaRef.current || resumo) return
+    finalizacaoAbertaRef.current = true
+    setIsFinishing(true)
+  }
+
+  function irPara(indiceNovo: number) {
+    // Cronômetro é do exercício: trocar de exercício encerra a pausa em curso.
+    if (indiceNovo !== indice) cancelarPausa()
+    setCurrentIndex(indiceNovo)
+  }
+
   const exercisesById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
+  const logsDaSessao = useMemo(() => logs.data ?? [], [logs.data])
   const logsByExercise = useMemo(() => {
     const map = new Map<string, SetLog[]>()
     for (const log of logs.data ?? []) {
@@ -249,7 +285,54 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
   const posicaoNaFase = currentPrescription ? daFase.findIndex((p) => p.id === currentPrescription.id) + 1 : 0
   const proximo = lista[indice + 1]
   const proximoNome = proximo ? (exercisesById.get(proximo.exercise_id)?.nome ?? null) : null
-  const avancar = () => setCurrentIndex((i) => Math.min(total - 1, i + 1))
+  const avancar = () => irPara(Math.min(total - 1, indice + 1))
+  const serieBase = useMemo(() => baseDasSeries(lista), [lista])
+
+  /** Séries feitas segundo o banco (inclui extras já gravadas). */
+  function feitasNosLogs(p: WorkoutExercise): number {
+    return confirmadasNosLogs(logsDaSessao, p.exercise_id, serieBase.get(p.id) ?? 0)
+  }
+
+  /** Extras = as pedidas nesta tela ou as que já existem no banco (retomada em outro aparelho). */
+  function extrasDe(p: WorkoutExercise): number {
+    return Math.max(extrasLocal[p.id] ?? 0, feitasNosLogs(p) - totalSeriesDe(p), 0)
+  }
+
+  function totalDe(p: WorkoutExercise): number {
+    return totalSeriesDe(p) + extrasDe(p)
+  }
+
+  /** Confirmadas = maior entre o estado local e o que já está gravado (retomada/outro aparelho). */
+  function confirmadasDe(p: WorkoutExercise): number {
+    return Math.min(totalDe(p), Math.max(confirmadasLocal[p.id] ?? 0, feitasNosLogs(p)))
+  }
+
+  function adicionarSerie(p: WorkoutExercise) {
+    setExtrasLocal((prev) => ({ ...prev, [p.id]: extrasDe(p) + 1 }))
+  }
+
+  function removerSerieExtra(p: WorkoutExercise) {
+    // Nunca abaixo do que já foi feito.
+    const minimo = Math.max(0, confirmadasDe(p) - totalSeriesDe(p))
+    setExtrasLocal((prev) => ({ ...prev, [p.id]: Math.max(minimo, extrasDe(p) - 1) }))
+  }
+
+  function handleSerieConfirmada(p: WorkoutExercise, serieNum: number, log: SetLog) {
+    const novas = Math.max(confirmadasDe(p), serieNum)
+    setConfirmadasLocal((prev) => ({ ...prev, [p.id]: novas }))
+    const passo = passoAposConfirmar(novas, totalDe(p), indice === total - 1)
+
+    if (passo === 'cronometro') {
+      // A pausa anterior (se esquecida aberta) é encerrada; o novo cronômetro parte do zero.
+      cancelarPausa()
+      const alvo = p.pausa_alvo_seg && p.pausa_alvo_seg > 0 ? p.pausa_alvo_seg : pausaPadraoSeg
+      setActiveRest({ logId: log.id, targetSeconds: alvo, inicio: Date.now() })
+      return
+    }
+    cancelarPausa()
+    if (passo === 'proximo_exercicio') avancar()
+    else abrirFinalizacao()
+  }
 
   function handleAskCoach() {
     const contexto = currentExercise ? ` Estou no exercício "${currentExercise.nome}".` : ''
@@ -270,7 +353,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
           total={total}
           elapsedSeconds={elapsedSeconds}
           treinoNome={treinoNome}
-          onPrev={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+          onPrev={() => irPara(Math.max(0, indice - 1))}
           onNext={avancar}
           onMinimize={onMinimize}
           onAskCoach={handleAskCoach}
@@ -303,14 +386,14 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
             totalFase={daFase.length}
             proximoNome={proximoNome}
             // No último exercício do treino não há para onde avançar: abre o fechamento.
-            onNext={() => (indice < total - 1 ? avancar() : setIsFinishing(true))}
+            onNext={() => (indice < total - 1 ? avancar() : abrirFinalizacao())}
           />
         ) : faseAtual === 'cardio' ? (
           <CardioBlock
             key={currentPrescription.id}
             exercise={currentExercise}
             prescription={currentPrescription}
-            onFinish={() => (indice < total - 1 ? avancar() : setIsFinishing(true))}
+            onFinish={() => (indice < total - 1 ? avancar() : abrirFinalizacao())}
           />
         ) : (
           <SessionExerciseBlock
@@ -320,7 +403,13 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
             prescription={currentPrescription}
             logs={logsByExercise.get(currentPrescription.exercise_id) ?? []}
             lastLog={lastLogs.data?.get(currentPrescription.exercise_id)}
-            onSetCompleted={handleSetCompleted}
+            totalSeries={totalDe(currentPrescription)}
+            extras={extrasDe(currentPrescription)}
+            confirmadas={confirmadasDe(currentPrescription)}
+            serieBase={serieBase.get(currentPrescription.id) ?? 0}
+            onSerieConfirmada={(serieNum, log) => handleSerieConfirmada(currentPrescription, serieNum, log)}
+            onAdicionarSerie={() => adicionarSerie(currentPrescription)}
+            onRemoverSerieExtra={() => removerSerieExtra(currentPrescription)}
           />
         )}
 

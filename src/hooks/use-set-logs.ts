@@ -69,9 +69,11 @@ export function useCreateSetLog() {
   return useMutation({
     mutationFn: async (values: SetLogInput) => {
       if (!user) throw new Error('Usuário não autenticado')
+      // Upsert na chave (sessão, exercício, série): retentativa de rede ou mutação
+      // retomada depois de ficar offline não duplicam a série.
       const { data, error } = await supabase
         .from('set_logs')
-        .insert({ ...values, user_id: user.id })
+        .upsert({ ...values, user_id: user.id }, { onConflict: 'session_id,exercise_id,serie_num' })
         .select('*')
         .single()
       if (error) throw error

@@ -218,6 +218,8 @@ export type SetRowViewProps = {
   cadencia: string
   concluida: boolean
   saving?: boolean
+  /** Série futura: só pode ser confirmada depois da anterior. */
+  bloqueada?: boolean
   onChange: (campo: 'carga' | 'reps' | 'rpe' | 'cadencia', valor: string) => void
   onComplete: () => void
   onEdit?: () => void
@@ -236,6 +238,7 @@ export function SetRowView({
   cadencia,
   concluida,
   saving = false,
+  bloqueada = false,
   onChange,
   onComplete,
   onEdit,
@@ -264,7 +267,7 @@ export function SetRowView({
     'h-12 w-full min-w-0 rounded-[var(--r-sm)] border border-linha bg-aco2 px-2 text-center text-[20px] font-bold text-nevoa tabular-nums [font-family:var(--font-data)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-brasa focus:shadow-[0_0_0_3px_rgba(252,76,19,0.2)]'
 
   return (
-    <div className="glass-card flex flex-col gap-2 !rounded-[var(--r-md)] p-3">
+    <div className={cn('glass-card flex flex-col gap-2 !rounded-[var(--r-md)] p-3', bloqueada && 'opacity-55')}>
       <div className="flex items-end gap-2">
         <span className="ds-terminal-md flex h-12 w-6 shrink-0 items-center text-cinza">{String(serieNum).padStart(2, '0')}</span>
         <label className="flex min-w-0 flex-1 flex-col gap-1">
@@ -296,8 +299,8 @@ export function SetRowView({
         <button
           type="button"
           onClick={onComplete}
-          disabled={saving}
-          aria-label={`Concluir série ${serieNum}`}
+          disabled={saving || bloqueada}
+          aria-label={bloqueada ? `Série ${serieNum}: conclua a anterior primeiro` : `Concluir série ${serieNum}`}
           className="ds-pressable flex size-12 shrink-0 items-center justify-center rounded-full text-brasa outline-none hover:bg-brasa/10 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Icon name="check_circle" size={36} />

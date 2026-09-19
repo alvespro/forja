@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/hooks/use-auth'
+import { todayInSaoPaulo } from '@/lib/date'
 import { supabase } from '@/lib/supabase'
 import type { ProtocolLog } from '@/types/database'
 
@@ -77,7 +78,21 @@ export function useRegistrarAplicacao() {
         .from('protocol_logs')
         .insert(compostos.map((c) => ({ ...comum, ...c, user_id: user.id, data_aplicacao: agora })))
       if (error) throw error
+
+      // O lembrete diário é uma notificação persistida. Sem esta atualização o
+      // registro entrava no histórico, mas o alerta "Dia de aplicação" seguia
+      // visível até o usuário dispensá-lo manualmente.
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .update({ lida: true })
+        .eq('user_id', user.id)
+        .eq('dedupe_key', `aplicacao_${comum.protocol_id}_${todayInSaoPaulo()}`)
+        .eq('lida', false)
+      if (notificationError) console.warn('Não foi possível encerrar o lembrete da aplicação.', notificationError)
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['protocol-logs'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['protocol-logs'] })
+      qc.invalidateQueries({ queryKey: ['notifications'] })
+    },
   })
 }

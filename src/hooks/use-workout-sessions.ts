@@ -72,6 +72,7 @@ export type FinishWorkoutSessionInput = {
   duracao_seg: number
   esforco_percebido: number | null
   notas: string | null
+  calorias_estimadas: number | null
 }
 
 export function useFinishWorkoutSession() {

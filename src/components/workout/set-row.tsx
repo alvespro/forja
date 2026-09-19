@@ -5,6 +5,7 @@ import { SetRowView } from '@/components/workout/session/session-views'
 import { useCreateSetLog, useUpdateSetLog } from '@/hooks/use-set-logs'
 import { haptic } from '@/lib/haptics'
 import { prepareAudio } from '@/lib/audio-beep'
+import { prepareRestNotifications } from '@/lib/rest-notifications'
 import { isNewRecord } from '@/lib/workout-metrics'
 import type { SetLog, WorkoutExercise } from '@/types/database'
 
@@ -66,6 +67,7 @@ export function SetRow({
     if (enviandoRef.current || estado === 'bloqueada') return
     // Faz parte do toque em ✓: desbloqueia o som que tocará ao fim da pausa.
     prepareAudio()
+    prepareRestNotifications()
     enviandoRef.current = true
     const liberar = () => {
       enviandoRef.current = false

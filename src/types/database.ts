@@ -351,6 +351,7 @@ export type WorkoutSession = {
   duracao_seg: number | null
   esforco_percebido: number | null
   notas: string | null
+  calorias_estimadas: number | null
 }
 
 export type SetLog = {

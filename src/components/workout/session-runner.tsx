@@ -18,6 +18,7 @@ import { useActiveSession } from '@/hooks/use-active-session'
 import { useElapsedSince } from '@/hooks/use-elapsed-since'
 import { useEnsureKarvonenZones } from '@/hooks/use-heart-zones'
 import { useExercises } from '@/hooks/use-exercises'
+import { useBodyMetrics } from '@/hooks/use-body-metrics'
 import { useImmersiveMode } from '@/hooks/use-immersive-mode'
 import { useLastSetLogByExercise, useSetLogsForSession, useUpdateSetLogPausa } from '@/hooks/use-set-logs'
 import { useWakeLock } from '@/hooks/use-wake-lock'
@@ -26,6 +27,7 @@ import { useCreateWorkoutSession, useFinishWorkoutSession, useWorkoutSession } f
 import { useWorkouts } from '@/hooks/use-workouts'
 import { launchForjaChat } from '@/lib/forja-chat-store'
 import { haptic } from '@/lib/haptics'
+import { estimateWorkoutCalories } from '@/lib/workout-calories'
 import {
   baseDasSeries,
   confirmadasNosLogs,
@@ -166,9 +168,11 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
   const finishSession = useFinishWorkoutSession()
   const ensureKarvonenZones = useEnsureKarvonenZones()
   const updateSetLogPausa = useUpdateSetLogPausa()
+  const bodyMetrics = useBodyMetrics()
   // Retomada: índice e séries confirmadas por exercício sobrevivem a sair e voltar.
   const [progressoSalvo] = useState(() => lerProgresso(sessionId))
   const [currentIndex, setCurrentIndex] = useState(progressoSalvo?.indice ?? 0)
+  const [exerciseStartedAt, setExerciseStartedAt] = useState(() => Date.now())
   /** Séries confirmadas por prescrição (id → quantidade). Cada exercício tem o seu. */
   const [confirmadasLocal, setConfirmadasLocal] = useState<Record<string, number>>(progressoSalvo?.confirmadas ?? {})
   /** Séries extras por prescrição ("Adicionar série"). */
@@ -184,6 +188,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
 
   const startedAtMs = session.data ? new Date(session.data.performed_at).getTime() : Date.now()
   const elapsedSeconds = useElapsedSince(startedAtMs)
+  const exerciseElapsedSeconds = useElapsedSince(exerciseStartedAt)
 
   const [isFinishing, setIsFinishing] = useState(false)
   const [resumo, setResumo] = useState<Omit<PostWorkoutSummaryProps, 'onClose'> | null>(null)
@@ -227,6 +232,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
     // Cronômetro é do exercício: trocar de exercício encerra a pausa em curso.
     if (indiceNovo !== indice) cancelarPausa()
     setCurrentIndex(indiceNovo)
+    if (indiceNovo !== indice) setExerciseStartedAt(Date.now())
   }
 
   const exercisesById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
@@ -243,12 +249,15 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
 
   function handleFinish() {
     if (!session.data) return
+    const pesoAtual = [...(bodyMetrics.data ?? [])].reverse().find((m) => m.peso_kg != null)?.peso_kg ?? null
+    const caloriasEstimadas = estimateWorkoutCalories(elapsedSeconds, pesoAtual, esforco ? Number(esforco) : null)
     finishSession.mutate(
       {
         id: sessionId,
         duracao_seg: Math.round(elapsedSeconds),
         esforco_percebido: esforco ? Number(esforco) : null,
         notas: notas.trim() || null,
+        calorias_estimadas: caloriasEstimadas,
       },
       {
         onSuccess: () => {
@@ -266,6 +275,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
             series: concluidas.length,
             volumeKg: concluidas.reduce((acc, l) => acc + (l.carga_kg ?? 0) * (l.reps ?? 0), 0),
             exercicios: exerciciosFeitos.size,
+            caloriasEstimadas,
             musculos,
           })
         },
@@ -352,6 +362,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
           atual={total > 0 ? indice + 1 : 0}
           total={total}
           elapsedSeconds={elapsedSeconds}
+          exerciseElapsedSeconds={exerciseElapsedSeconds}
           treinoNome={treinoNome}
           onPrev={() => irPara(Math.max(0, indice - 1))}
           onNext={avancar}

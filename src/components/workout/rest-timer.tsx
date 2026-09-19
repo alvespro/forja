@@ -4,6 +4,7 @@ import { RestTimerView } from '@/components/workout/session/session-views'
 import { useElapsedSince } from '@/hooks/use-elapsed-since'
 import { playRestCompleteAlert } from '@/lib/audio-beep'
 import { haptic } from '@/lib/haptics'
+import { notifyRestComplete } from '@/lib/rest-notifications'
 
 type RestTimerProps = {
   targetSeconds: number
@@ -22,6 +23,7 @@ export function RestTimer({ targetSeconds, onFinish }: RestTimerProps) {
       alertedRef.current = true
       playRestCompleteAlert()
       haptic('pausa')
+      void notifyRestComplete()
     }
   }, [remainingSeconds])
 

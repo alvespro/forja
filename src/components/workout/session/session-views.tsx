@@ -29,6 +29,7 @@ export type ImmersiveHeaderProps = {
   atual: number
   total: number
   elapsedSeconds: number
+  exerciseElapsedSeconds?: number
   treinoNome?: string | null
   onPrev?: () => void
   onNext?: () => void
@@ -42,6 +43,7 @@ export function ImmersiveHeader({
   atual,
   total,
   elapsedSeconds,
+  exerciseElapsedSeconds,
   treinoNome,
   onPrev,
   onNext,
@@ -73,7 +75,8 @@ export function ImmersiveHeader({
           <span className="text-[12px] tabular-nums text-cinza2-texto [font-family:var(--font-display)]">
             Exercício <span className="text-nevoa">{atual}</span> / {total}
           </span>
-          <span className="text-[15px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">{formatClock(elapsedSeconds)}</span>
+          <span className="text-[15px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">Treino {formatClock(elapsedSeconds)}</span>
+          {exerciseElapsedSeconds != null && <span className="text-[11px] tabular-nums text-aco-texto">Exercício {formatClock(exerciseElapsedSeconds)}</span>}
         </div>
 
         <button
@@ -379,7 +382,7 @@ export function RestTimerView({ remainingSeconds, targetSeconds, onFinish, posit
         <div className="flex flex-col gap-1">
           <span className={cn('flex items-center gap-1.5 ds-label', zerou ? '!text-ok' : '')}>
             <Icon name="timer" size={20} className={zerou ? 'text-ok' : 'text-brasa'} filled={zerou} />
-            {zerou ? 'Pode começar' : 'Pausa'}
+            {zerou ? 'Próxima série liberada' : 'Próxima série em'}
           </span>
           <span
             className={cn(
@@ -413,18 +416,20 @@ export type PostWorkoutSummaryProps = {
   series: number
   volumeKg: number
   exercicios: number
+  caloriasEstimadas: number | null
   /** Grupos musculares trabalhados (texto livre, ex.: "Costas e Bíceps"). */
   musculos: string[]
   onClose: () => void
 }
 
 /** Fechamento do treino: músculos trabalhados em destaque no BodyMap + números da sessão. */
-export function PostWorkoutSummary({ duracaoSeg, series, volumeKg, exercicios, musculos, onClose }: PostWorkoutSummaryProps) {
+export function PostWorkoutSummary({ duracaoSeg, series, volumeKg, exercicios, caloriasEstimadas, musculos, onClose }: PostWorkoutSummaryProps) {
   const stats = [
     { label: 'Duração', valor: formatClock(duracaoSeg) },
     { label: 'Séries', valor: String(series) },
     { label: 'Volume', valor: `${Math.round(volumeKg).toLocaleString('pt-BR')} kg` },
     { label: 'Exercícios', valor: String(exercicios) },
+    ...(caloriasEstimadas == null ? [] : [{ label: 'Gasto estimado', valor: `${caloriasEstimadas} kcal` }]),
   ]
   return (
     <div className="flex flex-col items-center gap-5 text-center">

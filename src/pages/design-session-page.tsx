@@ -90,6 +90,7 @@ export function DesignSessionPage() {
           series={9}
           volumeKg={3120}
           exercicios={3}
+          caloriasEstimadas={null}
           musculos={['peito', 'tríceps', 'ombros']}
           onClose={() => setResumoAberto(false)}
         />

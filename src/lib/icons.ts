@@ -38,6 +38,7 @@ export const ICONS = {
   camera: 'photo_camera',
   upload: 'upload',
   anexo: 'attach_file',
+  microfone: 'mic',
   sync: 'sync',
   fechar: 'close',
   voltar: 'arrow_back',

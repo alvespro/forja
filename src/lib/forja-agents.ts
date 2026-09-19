@@ -7,6 +7,7 @@ export type ForjaAgente =
   | 'desenvolvimento'
   | 'protocolo'
   | 'estudos'
+  | 'agenda'
 
 export const MAX_AI_QUESTION = 6000
 

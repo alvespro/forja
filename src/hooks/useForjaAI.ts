@@ -9,14 +9,16 @@ export { FORJA_AGENTES, type ForjaAgente } from '@/lib/forja-agents'
 export type PerguntarInput = {
   agente: ForjaAgente
   pergunta: string
+  /** Imagem opcional, já codificada no navegador. Usada apenas pelo assistente da agenda. */
+  anexo?: { media_type: 'image/jpeg' | 'image/png' | 'image/webp'; data: string }
 }
 
-async function perguntarAgente({ agente, pergunta }: PerguntarInput, historico: boolean) {
+async function perguntarAgente({ agente, pergunta, anexo }: PerguntarInput, historico: boolean) {
   if (!pergunta.trim() || pergunta.length > MAX_AI_QUESTION) {
     throw new Error('Escreva uma pergunta de até 6.000 caracteres.')
   }
   const { data, error } = await supabase.functions.invoke<{ resposta?: string; error?: string }>('forja-ai', {
-    body: { agente, pergunta: pergunta.trim(), historico },
+    body: { agente, pergunta: pergunta.trim(), historico, anexo },
   })
       if (error) {
         if (error instanceof FunctionsHttpError) {

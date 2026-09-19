@@ -24,9 +24,9 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento' | 'protocolo' | 'estudos'
+type Agente = 'treino' | 'biblioteca' | 'coach' | 'nutricao' | 'metas' | 'desenvolvimento' | 'protocolo' | 'estudos' | 'agenda'
 
-const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas', 'desenvolvimento', 'protocolo', 'estudos']
+const AGENTE_VALIDOS: Agente[] = ['treino', 'biblioteca', 'coach', 'nutricao', 'metas', 'desenvolvimento', 'protocolo', 'estudos', 'agenda']
 
 const SYSTEM_PROMPTS: Record<Agente, string> = {
   treino:
@@ -126,6 +126,10 @@ const SYSTEM_PROMPTS: Record<Agente, string> = {
     '5. Criar dicas de estudo baseadas no que errou nos flashcards\n\n' +
     'Quando o pedido for de flashcards ou sugestões, responda APENAS com o JSON válido, sem texto antes ou depois.\n\n' +
     'Português do Brasil. Direto. Máximo 300 palavras.',
+  agenda:
+    'Você é o Assistente de Agenda do FORJA. Interprete pedidos em português do Brasil, inclusive quando o contexto vier de imagem, e transforme-os em proposta de compromisso. Nunca crie nem altere nada: apenas proponha para revisão humana.\n\n' +
+    'Responda APENAS JSON válido, sem markdown, no formato: {"mensagem":"resumo curto","acao":"criar_evento"|"perguntar"|"nenhuma","evento":{"titulo":"string","data":"YYYY-MM-DD","inicio":"HH:MM ou null","fim":"HH:MM ou null","dia_inteiro":boolean,"categoria":"saude|protocolo|prime|treino|pessoal|exame|reuniao","local":"string","descricao":"string"}|null,"conflitos":["string"]}.\n\n' +
+    'Use America/Sao_Paulo e a data atual do contexto. Se data, horário ou duração estiverem ambíguos, use acao perguntar, evento null e faça uma pergunta objetiva. Evento sem horário: dia_inteiro true e inicio/fim null. Para evento com horário, fim deve ser posterior ao início; se não houver duração, pergunte. Compare com eventos do contexto e informe sobreposições em conflitos. Não invente participantes, locais ou horários.',
   metas:
     'Você é o Analista de Objetivos do FORJA, sistema de Welber Alves.\n\n' +
     'REGRAS POR OBJETIVO:\n' +
@@ -520,6 +524,22 @@ async function buscarContextoEstudos(sb: SupabaseClient, userId: string): Promis
   )
 }
 
+async function buscarContextoAgenda(sb: SupabaseClient, userId: string): Promise<string> {
+  const agora = new Date()
+  const { data, error } = await sb
+    .from('calendar_events')
+    .select('titulo, inicio, fim, dia_inteiro, categoria, local')
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .gte('inicio', new Date(agora.getTime() - 7 * 86_400_000).toISOString())
+    .lte('inicio', new Date(agora.getTime() + 90 * 86_400_000).toISOString())
+    .order('inicio')
+    .limit(250)
+  if (error) throw new Error('calendar_context_unavailable')
+  const dataAtual = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(agora)
+  return JSON.stringify({ fuso_horario: 'America/Sao_Paulo', data_atual: dataAtual, eventos_proximos: data ?? [] }, null, 2)
+}
+
 const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Promise<string>> = {
   treino: buscarContextoTreino,
   biblioteca: buscarContextoBiblioteca,
@@ -529,16 +549,22 @@ const BUSCAR_CONTEXTO: Record<Agente, (sb: SupabaseClient, userId: string) => Pr
   desenvolvimento: buscarContextoDesenvolvimento,
   protocolo: buscarContextoProtocolo,
   estudos: buscarContextoEstudos,
+  agenda: buscarContextoAgenda,
 }
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
+type ImageAttachment = { media_type: 'image/jpeg' | 'image/png' | 'image/webp'; data: string }
 
 async function perguntarAnthropic(
   systemPrompt: string,
   contexto: string,
   pergunta: string,
   historico: ChatMessage[] = [],
+  anexo?: ImageAttachment,
 ): Promise<string> {
+  const conteudoUsuario = anexo
+    ? [{ type: 'image', source: { type: 'base64', media_type: anexo.media_type, data: anexo.data } }, { type: 'text', text: pergunta }]
+    : pergunta
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -550,7 +576,7 @@ async function perguntarAnthropic(
       model: ANTHROPIC_MODEL,
       max_tokens: MAX_TOKENS,
       system: `${systemPrompt}\n\nCONTEXTO DOS DADOS (JSON):\n${contexto}`,
-      messages: [...historico, { role: 'user', content: pergunta }],
+      messages: [...historico, { role: 'user', content: conteudoUsuario }],
     }),
   })
 
@@ -579,7 +605,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Não autenticado' }, 401)
   }
 
-  let body: { agente?: string; pergunta?: string; historico?: boolean }
+  let body: { agente?: string; pergunta?: string; historico?: boolean; anexo?: ImageAttachment }
   try {
     body = await req.json()
   } catch {
@@ -595,6 +621,10 @@ Deno.serve(async (req) => {
   }
   if (pergunta.length > MAX_QUESTION_LENGTH) {
     return jsonResponse({ error: `pergunta deve ter no máximo ${MAX_QUESTION_LENGTH} caracteres` }, 400)
+  }
+  const anexo = body.anexo
+  if (anexo && (agente !== 'agenda' || !['image/jpeg', 'image/png', 'image/webp'].includes(anexo.media_type) || !/^[A-Za-z0-9+/=]+$/.test(anexo.data) || anexo.data.length > 7_000_000)) {
+    return jsonResponse({ error: 'Imagem inválida. Use JPEG, PNG ou WebP de até 5 MB.' }, 400)
   }
 
   // Cliente Supabase com o JWT do usuário (anon key): RLS garante que só os dados dele são lidos.
@@ -618,7 +648,7 @@ Deno.serve(async (req) => {
     const mensagensAnteriores = ((historicoRows.data ?? []) as ChatMessage[]).reverse()
 
     const contexto = await BUSCAR_CONTEXTO[agente as Agente](sb, userData.user.id)
-    const resposta = await perguntarAnthropic(SYSTEM_PROMPTS[agente as Agente], contexto, pergunta.trim(), mensagensAnteriores)
+    const resposta = await perguntarAnthropic(SYSTEM_PROMPTS[agente as Agente], contexto, pergunta.trim(), mensagensAnteriores, anexo)
 
     if (historico) {
       // Falha de persistência não esconde uma resposta útil do usuário.

@@ -8,6 +8,7 @@ import { RouteError } from '@/components/feedback/route-error'
 
 const LoginPage = lazy(() => import('@/pages/auth/login-page').then((m) => ({ default: m.LoginPage })))
 const AgendaPage = lazy(() => import('@/pages/agenda-page').then(m => ({ default: m.AgendaPage })))
+const AgendaAssistantPage = lazy(() => import('@/pages/agenda-assistant-page').then(m => ({ default: m.AgendaAssistantPage })))
 const GoogleCallbackPage = lazy(() => import('@/pages/auth/google-callback-page').then(m => ({ default: m.GoogleCallbackPage })))
 const SignupPage = lazy(() => import('@/pages/auth/signup-page').then((m) => ({ default: m.SignupPage })))
 const TodayPage = lazy(() => import('@/pages/today-page').then((m) => ({ default: m.TodayPage })))
@@ -106,6 +107,7 @@ export const router = createBrowserRouter([
           { path: 'meals', element: <MealsPage /> },
           { path: 'crm', element: <CrmPage /> },
           { path: 'agenda', element: <AgendaPage /> },
+          { path: 'agenda/assistente', element: <AgendaAssistantPage /> },
           { path: 'nutricao', element: <NutricaoPage /> },
           { path: 'suplementos', element: <SupplementsPage /> },
           { path: 'configuracoes', element: <ConfiguracoesPage /> },

@@ -73,6 +73,7 @@ export type FinishWorkoutSessionInput = {
   esforco_percebido: number | null
   notas: string | null
   calorias_estimadas: number | null
+  fonte_calorias: 'manual' | 'estimativa_met' | null
 }
 
 export function useFinishWorkoutSession() {

@@ -417,19 +417,20 @@ export type PostWorkoutSummaryProps = {
   volumeKg: number
   exercicios: number
   caloriasEstimadas: number | null
+  fonteCalorias: 'manual' | 'estimativa_met' | null
   /** Grupos musculares trabalhados (texto livre, ex.: "Costas e Bíceps"). */
   musculos: string[]
   onClose: () => void
 }
 
 /** Fechamento do treino: músculos trabalhados em destaque no BodyMap + números da sessão. */
-export function PostWorkoutSummary({ duracaoSeg, series, volumeKg, exercicios, caloriasEstimadas, musculos, onClose }: PostWorkoutSummaryProps) {
+export function PostWorkoutSummary({ duracaoSeg, series, volumeKg, exercicios, caloriasEstimadas, fonteCalorias, musculos, onClose }: PostWorkoutSummaryProps) {
   const stats = [
     { label: 'Duração', valor: formatClock(duracaoSeg) },
     { label: 'Séries', valor: String(series) },
     { label: 'Volume', valor: `${Math.round(volumeKg).toLocaleString('pt-BR')} kg` },
     { label: 'Exercícios', valor: String(exercicios) },
-    ...(caloriasEstimadas == null ? [] : [{ label: 'Gasto estimado', valor: `${caloriasEstimadas} kcal` }]),
+    ...(caloriasEstimadas == null ? [] : [{ label: fonteCalorias === 'manual' ? 'Gasto manual' : 'Gasto estimado', valor: `${caloriasEstimadas} kcal` }]),
   ]
   return (
     <div className="flex flex-col items-center gap-5 text-center">
@@ -453,6 +454,7 @@ export function PostWorkoutSummary({ duracaoSeg, series, volumeKg, exercicios, c
           </div>
         ))}
       </div>
+      {caloriasEstimadas != null && fonteCalorias && <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', fonteCalorias === 'manual' ? 'bg-brasa/15 text-brasa' : 'bg-amber-400/15 text-amber-200')}>{fonteCalorias === 'manual' ? '✏️ Manual' : '🧮 Estimativa MET'}</span>}
       <button
         type="button"
         onClick={onClose}

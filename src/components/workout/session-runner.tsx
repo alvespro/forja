@@ -27,6 +27,7 @@ import { useCreateWorkoutSession, useFinishWorkoutSession, useWorkoutSession } f
 import { useWorkouts } from '@/hooks/use-workouts'
 import { launchForjaChat } from '@/lib/forja-chat-store'
 import { haptic } from '@/lib/haptics'
+import { cn } from '@/lib/utils'
 import { estimateWorkoutCalories } from '@/lib/workout-calories'
 import {
   baseDasSeries,
@@ -193,6 +194,8 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
   const [isFinishing, setIsFinishing] = useState(false)
   const [resumo, setResumo] = useState<Omit<PostWorkoutSummaryProps, 'onClose'> | null>(null)
   const [esforco, setEsforco] = useState('')
+  const [calorias, setCalorias] = useState('')
+  const [estimativaInicial, setEstimativaInicial] = useState<number | null>(null)
   const [notas, setNotas] = useState('')
   const [activeRest, setActiveRest] = useState<{ logId: string; targetSeconds: number; inicio: number } | null>(null)
   const [pausaPadraoSeg, setPausaPadraoSeg] = useState(readPausaPadraoSeg)
@@ -225,6 +228,15 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
     // Uma vez só: confirmar/editar séries depois não reabre o fechamento.
     if (finalizacaoAbertaRef.current || resumo) return
     finalizacaoAbertaRef.current = true
+    const peso = [...(bodyMetrics.data ?? [])].reverse().find((m) => m.peso_kg != null)?.peso_kg ?? null
+    const grupos = lista.map((p) => {
+      const fase = faseDe(p.fase)
+      if (fase === 'cardio' || fase === 'mobilidade') return fase
+      return exercisesById.get(p.exercise_id)?.grupo_muscular ?? ''
+    })
+    const estimativa = estimateWorkoutCalories(elapsedSeconds, peso, grupos)
+    setEstimativaInicial(estimativa)
+    setCalorias(estimativa == null ? '' : String(estimativa))
     setIsFinishing(true)
   }
 
@@ -249,15 +261,17 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
 
   function handleFinish() {
     if (!session.data) return
-    const pesoAtual = [...(bodyMetrics.data ?? [])].reverse().find((m) => m.peso_kg != null)?.peso_kg ?? null
-    const caloriasEstimadas = estimateWorkoutCalories(elapsedSeconds, pesoAtual, esforco ? Number(esforco) : null)
+    const caloriasInformadas = Number(calorias)
+    if (!esforco || !Number.isInteger(Number(esforco)) || Number(esforco) < 1 || Number(esforco) > 10 || !Number.isFinite(caloriasInformadas) || caloriasInformadas < 0) return
+    const fonteCalorias = estimativaInicial != null && caloriasInformadas === estimativaInicial ? 'estimativa_met' as const : 'manual' as const
     finishSession.mutate(
       {
         id: sessionId,
         duracao_seg: Math.round(elapsedSeconds),
         esforco_percebido: esforco ? Number(esforco) : null,
         notas: notas.trim() || null,
-        calorias_estimadas: caloriasEstimadas,
+        calorias_estimadas: caloriasInformadas,
+        fonte_calorias: fonteCalorias,
       },
       {
         onSuccess: () => {
@@ -275,7 +289,8 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
             series: concluidas.length,
             volumeKg: concluidas.reduce((acc, l) => acc + (l.carga_kg ?? 0) * (l.reps ?? 0), 0),
             exercicios: exerciciosFeitos.size,
-            caloriasEstimadas,
+            caloriasEstimadas: caloriasInformadas,
+            fonteCalorias,
             musculos,
           })
         },
@@ -368,7 +383,7 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
           onNext={avancar}
           onMinimize={onMinimize}
           onAskCoach={handleAskCoach}
-          onFinish={() => setIsFinishing(true)}
+          onFinish={abrirFinalizacao}
         />
 
         {session.isLoading || prescriptions.isLoading ? (
@@ -448,12 +463,18 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
         {resumo && <PostWorkoutSummary {...resumo} onClose={onEndSession} />}
       </Modal>
 
-      <Modal open={isFinishing} onClose={() => setIsFinishing(false)} title="Finalizar treino" description={`Duração: ${formatClock(elapsedSeconds)}`}>
+      <Modal open={isFinishing} onClose={() => setIsFinishing(false)} title="✅ Treino concluído!" description={`${treinoNome ?? 'Treino'} · ${formatClock(elapsedSeconds)} · ${(logs.data ?? []).filter((log) => log.concluida).length} séries`}>
         <div className="flex flex-col gap-4">
           <label className="flex flex-col gap-1.5">
-            <span className="ds-body-sm text-aco-texto">Esforço percebido (1–10)</span>
-            <Input type="number" inputMode="numeric" min={1} max={10} className="h-12" value={esforco} onChange={(e) => setEsforco(e.target.value)} />
+            <span className="ds-body-sm text-aco-texto">🔥 Gasto calórico</span>
+            <div className="flex items-center gap-2"><Input type="number" inputMode="numeric" min={0} className="h-12 text-lg font-bold" value={calorias} onChange={(e) => setCalorias(e.target.value)} /><span className="text-sm text-aco-texto">kcal</span></div>
+            <span className="text-xs text-cinza2-texto">{estimativaInicial == null ? 'Informe o gasto manualmente — falta uma medição de peso.' : 'Estimativa MET — edite se souber o valor real.'}</span>
           </label>
+          <fieldset className="flex flex-col gap-2">
+            <legend className="ds-body-sm text-aco-texto">💪 Esforço percebido (RPE) *</legend>
+            <div className="grid grid-cols-10 gap-1">{Array.from({ length: 10 }, (_, index) => index + 1).map((valor) => <button key={valor} type="button" onClick={() => setEsforco(String(valor))} className={cn('flex aspect-square min-h-9 items-center justify-center rounded-[var(--r-sm)] text-sm font-bold transition-colors', Number(esforco) === valor ? 'bg-brasa text-fundo' : 'border border-linha text-aco-texto hover:text-foreground')}>{valor}</button>)}</div>
+            <div className="flex justify-between text-[11px] text-cinza2-texto"><span>Leve</span><span>Moderado</span><span>Intenso</span><span>Máximo</span></div>
+          </fieldset>
           <label className="flex flex-col gap-1.5">
             <span className="ds-body-sm text-aco-texto">Notas</span>
             <Textarea rows={3} value={notas} onChange={(e) => setNotas(e.target.value)} />
@@ -462,8 +483,8 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
             <Button type="button" variant="outline" className="min-h-12 flex-1" onClick={() => setIsFinishing(false)}>
               Continuar treinando
             </Button>
-            <Button type="button" className="min-h-12 flex-1" disabled={finishSession.isPending} onClick={handleFinish}>
-              {finishSession.isPending ? 'Salvando…' : 'Concluir'}
+            <Button type="button" className="min-h-12 flex-1" disabled={finishSession.isPending || !esforco || !calorias.trim()} onClick={handleFinish}>
+              {finishSession.isPending ? 'Salvando…' : 'Salvar treino'}
             </Button>
           </div>
         </div>

@@ -47,7 +47,10 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
 
   const cronSecret = Deno.env.get('CRON_SECRET')
-  if (cronSecret && req.headers.get('x-cron-secret') !== cronSecret) {
+  if (!cronSecret) {
+    return jsonResponse({ ok: false, error: 'cron_not_configured' }, 503)
+  }
+  if (req.headers.get('x-cron-secret') !== cronSecret) {
     return jsonResponse({ ok: false, error: 'unauthorized' }, 401)
   }
 

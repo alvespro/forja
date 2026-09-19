@@ -26,17 +26,17 @@
 
 | Camada | Tecnologia | Motivo |
 | :-- | :-- | :-- |
-| Build/Frontend | **Vite + React 18 + TypeScript** | Rápido, tipado, ideal para o Claude Code |
+| Build/Frontend | **Vite + React 19 + TypeScript** | Rápido, tipado, ideal para o Claude Code |
 | Estilo | **Tailwind CSS + shadcn/ui** | Componentes acessíveis, tema dark fácil |
 | Estado de servidor | **TanStack Query (React Query)** | Cache, sync e estados de loading/erro padronizados |
-| Roteamento | **React Router v6** | Rotas protegidas |
+| Roteamento | **React Router v7** | Rotas protegidas |
 | Gráficos | **Recharts** | Histórico de carga, saúde e tendências |
 | Backend/Banco/Auth | **Supabase** (Postgres + Auth + RLS + Storage) | Persistência real, segurança por linha |
 | Datas | **date-fns** + `date-fns-tz` | Fuso `America/Sao_Paulo` consistente |
 | PWA | **vite-plugin-pwa** | Instalável no celular, shell offline |
 | Formulários | **react-hook-form + zod** | Validação tipada |
 
-Gerenciador: `pnpm`. Deploy sugerido: frontend na **Vercel**, backend no **Supabase** gerenciado.
+Gerenciador: `npm`. Deploy sugerido: frontend na **Vercel**, backend no **Supabase** gerenciado.
 
 ---
 
@@ -471,7 +471,8 @@ Aaru Dashboard + Liquid Glass (iOS 26) + Vermilion (16/09/2026). Tokens em
 
 ```
 VITE_SUPABASE_URL=...
-VITE_SUPABASE_ANON_KEY=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+VITE_YOUTUBE_API_KEY=...
 ```
 (Service role **nunca** no frontend.)
 

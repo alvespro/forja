@@ -16,6 +16,7 @@ const ANTHROPIC_MODEL = 'claude-sonnet-4-6'
 // 300 palavras em PT-BR ≈ 500-650 tokens: com 500 os agentes de prompt longo truncavam
 // no meio da frase e o JSON do modo metas podia cortar (quebrando o parse no frontend).
 const MAX_TOKENS = 1500
+const MAX_QUESTION_LENGTH = 6000
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -553,10 +554,7 @@ async function perguntarAnthropic(
     }),
   })
 
-  if (!response.ok) {
-    const errorBody = await response.text()
-    throw new Error(`Anthropic API ${response.status}: ${errorBody}`)
-  }
+  if (!response.ok) throw new Error(response.status === 429 ? 'provider_busy' : 'provider_unavailable')
 
   const data = await response.json()
   if (data.stop_reason === 'max_tokens') {
@@ -581,19 +579,22 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Não autenticado' }, 401)
   }
 
-  let body: { agente?: string; pergunta?: string }
+  let body: { agente?: string; pergunta?: string; historico?: boolean }
   try {
     body = await req.json()
   } catch {
     return jsonResponse({ error: 'JSON inválido' }, 400)
   }
 
-  const { agente, pergunta } = body
+  const { agente, pergunta, historico = false } = body
   if (!agente || !AGENTE_VALIDOS.includes(agente as Agente)) {
     return jsonResponse({ error: `agente deve ser um de: ${AGENTE_VALIDOS.join(', ')}` }, 400)
   }
   if (!pergunta || typeof pergunta !== 'string' || !pergunta.trim()) {
     return jsonResponse({ error: 'pergunta é obrigatória' }, 400)
+  }
+  if (pergunta.length > MAX_QUESTION_LENGTH) {
+    return jsonResponse({ error: `pergunta deve ter no máximo ${MAX_QUESTION_LENGTH} caracteres` }, 400)
   }
 
   // Cliente Supabase com o JWT do usuário (anon key): RLS garante que só os dados dele são lidos.
@@ -608,30 +609,31 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Histórico da conversa (últimas 10 mensagens do agente): follow-up real
-    // em vez de cada pergunta partir do zero. RLS garante escopo do usuário.
-    const { data: historicoRows } = await sb
-      .from('ai_messages')
-      .select('role, content')
-      .eq('agente', agente)
-      .order('created_at', { ascending: false })
-      .limit(10)
-    const historico = ((historicoRows ?? []) as ChatMessage[]).reverse()
+    // Ações pontuais de uma página não contaminam a conversa persistente.
+    // Somente o chat pede memória de curto prazo e grava seus próprios turnos.
+    const historicoRows = historico
+      ? await sb.from('ai_messages').select('role, content').eq('user_id', userData.user.id).eq('agente', agente).order('created_at', { ascending: false }).limit(10)
+      : { data: null, error: null }
+    if (historicoRows.error) throw new Error('history_unavailable')
+    const mensagensAnteriores = ((historicoRows.data ?? []) as ChatMessage[]).reverse()
 
     const contexto = await BUSCAR_CONTEXTO[agente as Agente](sb, userData.user.id)
-    const resposta = await perguntarAnthropic(SYSTEM_PROMPTS[agente as Agente], contexto, pergunta, historico)
+    const resposta = await perguntarAnthropic(SYSTEM_PROMPTS[agente as Agente], contexto, pergunta.trim(), mensagensAnteriores)
 
-    // Persiste o turno (pergunta + resposta) — falha aqui não bloqueia a resposta
-    const { error: saveError } = await sb.from('ai_messages').insert([
-      { user_id: userData.user.id, agente, role: 'user', content: pergunta },
-      { user_id: userData.user.id, agente, role: 'assistant', content: resposta },
-    ])
-    if (saveError) console.warn('forja-ai: falha ao salvar histórico', saveError.message)
+    if (historico) {
+      // Falha de persistência não esconde uma resposta útil do usuário.
+      const { error: saveError } = await sb.from('ai_messages').insert([
+        { user_id: userData.user.id, agente, role: 'user', content: pergunta.trim() },
+        { user_id: userData.user.id, agente, role: 'assistant', content: resposta },
+      ])
+      if (saveError) console.warn('forja-ai: falha ao salvar histórico', saveError.message)
+    }
 
     return jsonResponse({ resposta })
   } catch (error) {
     console.error('forja-ai error', error)
-    const detail = error instanceof Error ? error.message : String(error)
-    return jsonResponse({ error: `Falha ao gerar resposta do agente: ${detail}` }, 500)
+    const detail = error instanceof Error ? error.message : ''
+    const status = detail === 'provider_busy' ? 429 : 500
+    return jsonResponse({ error: status === 429 ? 'O agente está ocupado. Tente novamente em instantes.' : 'Não foi possível gerar a resposta agora.' }, status)
   }
 })

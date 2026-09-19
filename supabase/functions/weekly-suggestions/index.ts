@@ -10,7 +10,7 @@ const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -76,11 +76,13 @@ async function gerarSugestoes(contexto: string): Promise<unknown[]> {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
 
-  // Guard anti-abuso: esta função gera custo (API Anthropic) e roda com service
-  // role. Com CRON_SECRET definido nas env vars, só o cron (que envia o header
-  // x-cron-secret) consegue invocar — a publishable key deixa de ser suficiente.
+  // Esta função gera custo e usa service role: a ausência do segredo desativa a
+  // execução, em vez de deixar o endpoint aberto por erro de configuração.
   const cronSecret = Deno.env.get('CRON_SECRET')
-  if (cronSecret && req.headers.get('x-cron-secret') !== cronSecret) {
+  if (!cronSecret) {
+    return jsonResponse({ ok: false, error: 'cron_not_configured' }, 503)
+  }
+  if (req.headers.get('x-cron-secret') !== cronSecret) {
     return jsonResponse({ ok: false, error: 'unauthorized' }, 401)
   }
 

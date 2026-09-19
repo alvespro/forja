@@ -7,7 +7,7 @@ desenvolvimento, finanças, tarefas e gamificação — tudo em um dashboard.
 
 | Camada | Tecnologia |
 |---|---|
-| Frontend | React 18 + TypeScript + Vite (rolldown), PWA |
+| Frontend | React 19 + TypeScript + Vite (rolldown), PWA |
 | UI | Tailwind CSS v4 + shadcn/ui (Radix), sonner (toasts), Recharts |
 | Estado de servidor | TanStack Query (staleTime 60s, retry inteligente) |
 | Rotas | React Router v7, lazy por página, `errorElement` em todas |
@@ -34,7 +34,7 @@ src/
   types/           database.ts (manual, auditado) + database.generated.ts
 supabase/
   migrations/      fonte da verdade do schema (npx supabase db push)
-  functions/       forja-ai, forja-vision, weekly-suggestions,
+  functions/       forja-ai, forja-vision, weekly-suggestions, daily-briefing,
                    protocol-reminders, analyze-progress-photo, search-food, health-calc
 docs/              esta doc + plano de refatoração
 ```
@@ -167,9 +167,10 @@ programado → mobilidade ou "treinar mesmo" (`recovery_scores.decisao_treino`).
 
 ## Edge functions e segurança
 
-- `verify_jwt` em todas; as **agendadas** (weekly-suggestions,
-  protocol-reminders) exigem também o header `x-cron-secret` (env
-  CRON_SECRET) — a publishable key sozinha recebe 401.
+- As funções agendadas (weekly-suggestions, daily-briefing e
+  protocol-reminders) exigem `CRON_SECRET` e o header `x-cron-secret`; sem o
+  segredo configurado, retornam 503 e não executam. As demais autenticam o JWT
+  do usuário antes de acessar dados.
 - Functions com service role sempre revalidam a posse do recurso
   (`eq('user_id', user.id)`).
 - Migrations: `npx supabase db push` (pede confirmação). Tipos:

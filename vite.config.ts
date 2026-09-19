@@ -77,19 +77,6 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          {
-            // Cache das chamadas ao Supabase (REST/Auth)
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24, // 24h
-              },
-              networkTimeoutSeconds: 10,
-            },
-          },
         ],
       },
     }),

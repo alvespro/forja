@@ -14,7 +14,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -66,9 +66,13 @@ type NotificationRow = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
 
-  // Guard anti-abuso: com CRON_SECRET definido, só o cron consegue invocar
+  // Usa service role; falhar fechado evita notificações clínicas indevidas se
+  // CRON_SECRET não tiver sido configurado no ambiente remoto.
   const cronSecret = Deno.env.get('CRON_SECRET')
-  if (cronSecret && req.headers.get('x-cron-secret') !== cronSecret) {
+  if (!cronSecret) {
+    return jsonResponse({ ok: false, error: 'cron_not_configured' }, 503)
+  }
+  if (req.headers.get('x-cron-secret') !== cronSecret) {
     return jsonResponse({ ok: false, error: 'unauthorized' }, 401)
   }
 

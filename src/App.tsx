@@ -20,8 +20,8 @@ function FloatingTools() {
   if (!user) return null
   return (
     <Suspense fallback={null}>
-      <ForjaChat />
-      <DocumentUpload />
+      <ForjaChat mostrarAtalho={false} />
+      <DocumentUpload mostrarAtalho={false} />
     </Suspense>
   )
 }

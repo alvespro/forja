@@ -3,6 +3,8 @@ import { Icon } from '@/components/Icon'
 import { Modal } from '@/components/ui/modal'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import { abrirMenuDocumentUpload } from '@/lib/document-upload-store'
+import { launchForjaChat } from '@/lib/forja-chat-store'
 
 import { secondaryNavGroups } from './nav-items'
 
@@ -11,6 +13,28 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
   return (
     <Modal open={open} onClose={onClose} title="Mais" maxWidth="md">
       <div className="flex flex-col gap-5 pb-2">
+        <button
+          type="button"
+          onClick={() => {
+            onClose()
+            launchForjaChat({ agente: 'coach' })
+          }}
+          className="flex min-h-12 items-center gap-3 rounded-[var(--r-md)] border border-brasa/45 bg-brasa/10 px-4 text-left text-sm font-semibold text-nevoa outline-none transition-colors hover:bg-brasa/15 focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Icon name="psychology" size={20} className="text-brasa" />
+          Falar com a IA FORJA
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onClose()
+            abrirMenuDocumentUpload()
+          }}
+          className="flex min-h-12 items-center gap-3 rounded-[var(--r-md)] border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 text-left text-sm font-semibold text-nevoa outline-none transition-colors hover:border-brasa/60 hover:bg-brasa/10 focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Icon name="attach_file" size={20} className="text-brasa" />
+          Importar documento
+        </button>
         {secondaryNavGroups.map((grupo) => (
           <section key={grupo.titulo} className="flex flex-col gap-2">
             <span className="ds-label">{grupo.titulo}</span>

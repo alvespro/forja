@@ -22,7 +22,7 @@ const TIPOS: { value: DocumentImportTipo; label: string; emoji: string }[] = [
   { value: 'suplemento', label: 'Suplementação', emoji: '💊' },
 ]
 
-export function DocumentUpload() {
+export function DocumentUpload({ mostrarAtalho = true }: { mostrarAtalho?: boolean }) {
   const { user } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const escondido = useHideOnScroll()
@@ -39,7 +39,7 @@ export function DocumentUpload() {
   useEffect(() => {
     if (!pedido) return
     protocolExamIdRef.current = pedido.protocolExamId ?? null
-    setTipoSelecionado(pedido.tipo)
+    setTipoSelecionado(pedido.tipo ?? null)
     setIsMenuOpen(true)
   }, [pedido])
 
@@ -166,17 +166,19 @@ export function DocumentUpload() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => (isMenuOpen ? fecharMenuManual() : setIsMenuOpen(true))}
-        aria-label={isMenuOpen ? 'Fechar importação de documento' : 'Importar documento'}
-        className={cn(
-          'fixed bottom-[calc(var(--float-bottom)+4px)] right-[84px] z-50 flex size-12 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[rgba(16,16,16,0.7)] text-cinza shadow-[var(--glass-shadow)] backdrop-blur-[20px] outline-none transition-[transform,opacity,color] duration-[var(--dur-normal)] ease-[var(--spring-bounce)] hover:text-brasa active:scale-95 focus-visible:ring-2 focus-visible:ring-ring md:bottom-7 [html[data-immersive]_&]:hidden',
-          escondido && !isMenuOpen && 'pointer-events-none translate-y-24 opacity-0',
-        )}
-      >
-        {isMenuOpen ? <Icon name="close" size={20} /> : <Icon name="attach_file" size={20} />}
-      </button>
+      {mostrarAtalho && (
+        <button
+          type="button"
+          onClick={() => (isMenuOpen ? fecharMenuManual() : setIsMenuOpen(true))}
+          aria-label={isMenuOpen ? 'Fechar importação de documento' : 'Importar documento'}
+          className={cn(
+            'fixed bottom-[calc(var(--float-bottom)+4px)] right-[84px] z-50 flex size-12 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[rgba(16,16,16,0.7)] text-cinza shadow-[var(--glass-shadow)] backdrop-blur-[20px] outline-none transition-[transform,opacity,color] duration-[var(--dur-normal)] ease-[var(--spring-bounce)] hover:text-brasa active:scale-95 focus-visible:ring-2 focus-visible:ring-ring md:bottom-7 [html[data-immersive]_&]:hidden',
+            escondido && !isMenuOpen && 'pointer-events-none translate-y-24 opacity-0',
+          )}
+        >
+          {isMenuOpen ? <Icon name="close" size={20} /> : <Icon name="attach_file" size={20} />}
+        </button>
+      )}
 
       {processando && (
         <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-3 bg-black/70 text-center">

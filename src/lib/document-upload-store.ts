@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type { DocumentImportTipo } from '@/types/database'
 
 export type DocumentUploadRequest = {
-  tipo: DocumentImportTipo
+  tipo?: DocumentImportTipo
   /** Exame do protocolo que este laudo conclui (marca como realizado ao confirmar). */
   protocolExamId?: string
   /** Muda a cada pedido para reabrir mesmo com o mesmo tipo. */
@@ -19,6 +19,12 @@ export function abrirDocumentUpload(tipo: DocumentImportTipo, opcoes: { protocol
   seq += 1
   const request = { tipo, id: seq, ...opcoes }
   listeners.forEach((listener) => listener(request))
+}
+
+/** Abre o seletor de importação sem presumir o tipo de documento. */
+export function abrirMenuDocumentUpload() {
+  seq += 1
+  listeners.forEach((listener) => listener({ id: seq }))
 }
 
 export function useDocumentUploadRequest(): DocumentUploadRequest | null {

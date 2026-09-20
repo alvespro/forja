@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
 
 type LocalTurn = { id: string; role: 'user' | 'assistant'; content: string }
 
-export function ForjaChat() {
+export function ForjaChat({ mostrarAtalho = true }: { mostrarAtalho?: boolean }) {
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const escondido = useHideOnScroll()
@@ -106,7 +106,7 @@ export function ForjaChat() {
           </div>
         </section>
       )}
-      <button type="button" aria-label={isOpen ? 'Fechar agentes FORJA' : 'Abrir agentes FORJA'} onClick={() => setIsOpen((v) => !v)} className={cn('flex size-14 items-center justify-center rounded-full bg-brasa text-fundo shadow-[var(--glow-brasa)] outline-none transition-[transform,opacity] duration-[var(--dur-normal)] ease-[var(--spring-bounce)] hover:bg-brasa2 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-fundo', escondido && !isOpen && 'pointer-events-none translate-y-24 opacity-0')}><Icon name={isOpen ? 'close' : 'psychology'} size={24} /></button>
+      {mostrarAtalho && <button type="button" aria-label={isOpen ? 'Fechar agentes FORJA' : 'Abrir agentes FORJA'} onClick={() => setIsOpen((v) => !v)} className={cn('flex size-12 items-center justify-center rounded-full bg-brasa text-fundo shadow-[var(--glow-brasa)] outline-none transition-[transform,opacity] duration-[var(--dur-normal)] ease-[var(--spring-bounce)] hover:bg-brasa2 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-fundo', escondido && !isOpen && 'pointer-events-none translate-y-24 opacity-0')}><Icon name={isOpen ? 'close' : 'psychology'} size={22} /></button>}
     </div>
   )
 }

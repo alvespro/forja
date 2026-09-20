@@ -164,6 +164,11 @@ export function AnotacoesTab() {
                     <span className="ml-auto text-[11px] text-cinza/80">{format(new Date(n.created_at), "d 'de' MMM yyyy", { locale: ptBR })}</span>
                   )}
                 </span>
+                {n.sync_status !== 'synced' && (
+                  <span className={cn('text-[11px] font-medium', n.sync_status === 'conflict' ? 'text-alerta-texto' : 'text-ambar')}>
+                    {n.sync_status === 'conflict' ? 'Conflito de sincronização — edite para resolver' : 'Salvo neste dispositivo — aguardando sincronização'}
+                  </span>
+                )}
               </button>
               <button
                 type="button"

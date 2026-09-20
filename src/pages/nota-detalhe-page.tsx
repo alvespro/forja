@@ -72,6 +72,13 @@ export function NotaDetalhePage() {
             <Icon name="star" size={22} filled={!!n.favorito} className={n.favorito ? 'text-[#E8A23D]' : undefined} />
           </button>
         </header>
+        {n.sync_status !== 'synced' && (
+          <p className={n.sync_status === 'conflict' ? 'text-sm text-alerta-texto' : 'text-sm text-ambar'}>
+            {n.sync_status === 'conflict'
+              ? 'Esta anotação também foi alterada em outro dispositivo. Edite e salve novamente para manter esta versão.'
+              : 'Salva neste dispositivo. Ela será sincronizada automaticamente quando a conexão voltar.'}
+          </p>
+        )}
         {(n.tags ?? []).length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {(n.tags ?? []).map((t) => (

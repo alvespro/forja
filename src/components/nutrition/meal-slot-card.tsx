@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Icon } from '@/components/Icon'
 
 import { NutritionCard } from '@/components/ds/nutrition-card'
@@ -7,7 +8,7 @@ import { FoodSearch } from '@/components/FoodSearch'
 import { MealLogForm } from '@/components/nutrition/meal-log-form'
 import { RefeicaoMenu, SugestoesDaRefeicao } from '@/components/nutrition/dieta-crud'
 import { MealSuggestionsModal } from '@/components/nutrition/meal-suggestions-modal'
-import { useCreateMealLog } from '@/hooks/use-meal-logs'
+import { useCreateMealLog, useUpdateMealLog } from '@/hooks/use-meal-logs'
 import { cn } from '@/lib/utils'
 import type { MealLog, MealSlot } from '@/types/database'
 
@@ -29,7 +30,9 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
   const [isLogging, setIsLogging] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [isSuggesting, setIsSuggesting] = useState(false)
+  const [editando, setEditando] = useState<MealLog | null>(null)
   const createMealLog = useCreateMealLog()
+  const updateMealLog = useUpdateMealLog()
 
   const registradoHoje = logsHoje.reduce(
     (acc, log) => ({
@@ -93,6 +96,23 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
                 Sugestões
               </button>
               <SugestoesDaRefeicao refeicao={slot} />
+              {logsHoje.length > 0 && (
+                <div className="w-full divide-y divide-linha overflow-hidden rounded-[var(--r-md)] border border-linha bg-fundo/45">
+                  {logsHoje.map((log) => (
+                    <button
+                      key={log.id}
+                      type="button"
+                      onClick={() => setEditando(log)}
+                      className="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left outline-none transition-colors hover:bg-aco focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                      aria-label={`Editar ${log.descricao ?? 'alimento registrado'}`}
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm text-nevoa">{log.descricao ?? 'Alimento sem descrição'}</span>
+                      <span className="shrink-0 font-mono text-xs text-aco-texto">{Math.round(log.calorias ?? 0)} kcal</span>
+                      <Icon name="edit" size={16} className="shrink-0 text-brasa" />
+                    </button>
+                  ))}
+                </div>
+              )}
           </>
         }
       />
@@ -104,6 +124,30 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
           onCancel={() => setIsLogging(false)}
           onSubmit={(values) => createMealLog.mutate(values, { onSuccess: () => setIsLogging(false) })}
         />
+      </Modal>
+
+      <Modal open={!!editando} onClose={() => setEditando(null)} title={`Editar alimento — ${slot.nome}`}>
+        {editando && (
+          <MealLogForm
+            key={editando.id}
+            mealSlotId={slot.id}
+            log={editando}
+            isSubmitting={updateMealLog.isPending}
+            onCancel={() => setEditando(null)}
+            onSubmit={(values) =>
+              updateMealLog.mutate(
+                { id: editando.id, values },
+                {
+                  onSuccess: () => {
+                    setEditando(null)
+                    toast.success('Alimento atualizado.')
+                  },
+                  onError: () => toast.error('Não foi possível atualizar o alimento.'),
+                },
+              )
+            }
+          />
+        )}
       </Modal>
 
       <FoodSearch

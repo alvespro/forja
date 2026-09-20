@@ -79,3 +79,15 @@ export function useDeleteMealLog() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['meal-logs'] }),
   })
 }
+
+/** Corrige um alimento já registrado sem perder a origem ou o vínculo com o catálogo. */
+export function useUpdateMealLog() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, values }: { id: string; values: MealLogInput }) => {
+      const { error } = await supabase.from('meal_logs').update(values).eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['meal-logs'] }),
+  })
+}

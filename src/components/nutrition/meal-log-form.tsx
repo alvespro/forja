@@ -5,12 +5,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { MealLogInput } from '@/hooks/use-meal-logs'
 import { todayInSaoPaulo } from '@/lib/date'
+import type { MealLog } from '@/types/database'
 
 type MealLogFormProps = {
   mealSlotId: string
   onSubmit: (values: MealLogInput) => void
   onCancel: () => void
   isSubmitting: boolean
+  /** Quando presente, o formulário corrige este registro em vez de criar outro. */
+  log?: MealLog
 }
 
 const MACROS = [
@@ -19,12 +22,12 @@ const MACROS = [
   { key: 'gordura', label: 'G', color: 'var(--atencao)' },
 ] as const
 
-export function MealLogForm({ mealSlotId, onSubmit, onCancel, isSubmitting }: MealLogFormProps) {
-  const [descricao, setDescricao] = useState('')
-  const [calorias, setCalorias] = useState('')
-  const [proteina, setProteina] = useState('')
-  const [carbo, setCarbo] = useState('')
-  const [gordura, setGordura] = useState('')
+export function MealLogForm({ mealSlotId, onSubmit, onCancel, isSubmitting, log }: MealLogFormProps) {
+  const [descricao, setDescricao] = useState(log?.descricao ?? '')
+  const [calorias, setCalorias] = useState(log?.calorias == null ? '' : String(log.calorias))
+  const [proteina, setProteina] = useState(log?.proteina_g == null ? '' : String(log.proteina_g))
+  const [carbo, setCarbo] = useState(log?.carbo_g == null ? '' : String(log.carbo_g))
+  const [gordura, setGordura] = useState(log?.gordura_g == null ? '' : String(log.gordura_g))
 
   const grams = { proteina: Number(proteina) || 0, carbo: Number(carbo) || 0, gordura: Number(gordura) || 0 }
   const maxGram = Math.max(grams.proteina, grams.carbo, grams.gordura, 1)
@@ -33,7 +36,7 @@ export function MealLogForm({ mealSlotId, onSubmit, onCancel, isSubmitting }: Me
     event.preventDefault()
     onSubmit({
       meal_slot_id: mealSlotId,
-      data: todayInSaoPaulo(),
+      data: log?.data ?? todayInSaoPaulo(),
       descricao: descricao.trim() || null,
       calorias: calorias ? Number(calorias) : null,
       proteina_g: proteina ? Number(proteina) : null,
@@ -103,7 +106,7 @@ export function MealLogForm({ mealSlotId, onSubmit, onCancel, isSubmitting }: Me
           Cancelar
         </Button>
         <Button type="submit" size="sm" disabled={isSubmitting}>
-          {isSubmitting ? 'Salvando…' : 'Registrar'}
+          {isSubmitting ? 'Salvando…' : log ? 'Salvar alterações' : 'Registrar'}
         </Button>
       </div>
     </form>

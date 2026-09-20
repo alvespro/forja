@@ -69,8 +69,7 @@ function TabContent({ icon, label, ativo }: { icon: IconName; label: string; ati
         }}
       />
       <Icon name={icon} size={24} filled={ativo} className={ativo ? 'text-brasa' : 'text-cinza2'} />
-      {/* Rótulo inativo em cinza2-texto: #646464 em 10px não passa no contraste AA. */}
-      <span className={cn('text-[10px] font-medium leading-none', ativo ? 'text-brasa' : 'text-cinza2-texto')}>{label}</span>
+      <span className={cn('text-[11px] font-semibold leading-none', ativo ? 'text-brasa' : 'text-aco-texto')}>{label}</span>
     </>
   )
 }

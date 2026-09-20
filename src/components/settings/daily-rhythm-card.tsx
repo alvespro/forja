@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Icon } from '@/components/Icon'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { ErrorState } from '@/components/feedback/error-state'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { DEFAULT_DAILY_RHYTHM, type DailyRhythmPreferences, useDailyRhythmPreferences, useSaveDailyRhythmPreferences } from '@/hooks/use-daily-rhythm'
@@ -45,6 +46,16 @@ export function DailyRhythmCard() {
       onSuccess: () => toast.success(values.enabled ? 'Ritmo do Dia ativado.' : 'Ritmo do Dia pausado.'),
       onError: (error) => toast.error(mensagemDeErro(error, 'salvar o Ritmo do Dia')),
     })
+  }
+
+  if (preferences.isError) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <ErrorState message="O Ritmo do Dia ainda não está disponível. Tente atualizar a página em instantes." onRetry={() => preferences.refetch()} />
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

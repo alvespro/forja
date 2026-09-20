@@ -60,9 +60,10 @@ export function LoginPage() {
               type="email"
               autoComplete="email"
               aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-erro' : undefined}
               {...register('email')}
             />
-            {errors.email && <p className="text-xs text-alerta-texto">{errors.email.message}</p>}
+            {errors.email && <p id="email-erro" role="alert" className="text-xs text-alerta-texto">{errors.email.message}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -72,12 +73,13 @@ export function LoginPage() {
               type="password"
               autoComplete="current-password"
               aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'senha-erro' : undefined}
               {...register('password')}
             />
-            {errors.password && <p className="text-xs text-alerta-texto">{errors.password.message}</p>}
+            {errors.password && <p id="senha-erro" role="alert" className="text-xs text-alerta-texto">{errors.password.message}</p>}
           </div>
 
-          {authError && <p className="text-sm text-alerta-texto">{authError}</p>}
+          {authError && <p role="alert" className="text-sm text-alerta-texto">{authError}</p>}
 
           <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
             {isSubmitting ? 'Entrando…' : 'Entrar'}

@@ -5,11 +5,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 import { Sidebar } from './sidebar'
 import { TabBar } from './tab-bar'
+import { PageAnnouncer } from './page-announcer'
 
 export function AppShell() {
   const { pathname } = useLocation()
   return (
     <div className="flex min-h-screen bg-background text-foreground">
+      <a href="#conteudo-principal" className="sr-only fixed left-4 top-4 z-[100] rounded-md bg-brasa px-4 py-2 font-semibold text-fundo focus:not-sr-only">
+        Pular para o conteúdo
+      </a>
       <Sidebar />
 
       {/* min-w-0: sem isso a coluna flex cresce até a largura natural do conteúdo
@@ -17,7 +21,7 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Sem overflow aqui: quem rola é a janela. overflow-y-auto no <main> (que nunca
             rola) prendia todo position: sticky ao próprio main, e headers fixos não fixavam. */}
-        <main className="flex-1 px-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px)+32px)] md:px-8 md:pb-8 md:pt-8">
+        <main id="conteudo-principal" tabIndex={-1} className="flex-1 px-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px)+32px)] md:px-8 md:pb-8 md:pt-8">
           <Suspense fallback={<PageSkeleton />}>
             {/* Entrada de tela: fade + 8px com spring a cada troca de rota. */}
             <div key={pathname} className="ds-page-enter">
@@ -27,6 +31,7 @@ export function AppShell() {
         </main>
       </div>
 
+      <PageAnnouncer />
       <TabBar />
     </div>
   )

@@ -12,13 +12,6 @@ export function RouteError() {
   const navigate = useNavigate()
 
   const is404 = isRouteErrorResponse(error) && error.status === 404
-  const detail =
-    isRouteErrorResponse(error)
-      ? `${error.status} ${error.statusText}`
-      : error instanceof Error
-        ? error.message
-        : null
-
   console.error('[route-error]', error)
 
   return (
@@ -33,11 +26,6 @@ export function RouteError() {
             ? 'O endereço não existe ou foi movido.'
             : 'O erro foi registrado. Recarregar geralmente resolve.'}
         </p>
-        {detail && !is404 && (
-          <p className="mt-2 rounded-md bg-card/60 px-3 py-1.5 font-mono text-xs text-cinza2-texto max-w-md overflow-hidden text-ellipsis">
-            {detail}
-          </p>
-        )}
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="outline" onClick={() => navigate('/')}>

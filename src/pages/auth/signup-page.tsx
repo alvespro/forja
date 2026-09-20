@@ -49,7 +49,7 @@ export function SignupPage() {
     })
 
     if (error) {
-      setAuthError(error.message)
+      setAuthError('Não foi possível criar a conta. Confira os dados e tente novamente.')
       return
     }
 
@@ -77,7 +77,7 @@ export function SignupPage() {
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="nome">Nome</Label>
               <Input id="nome" autoComplete="name" aria-invalid={!!errors.nome} {...register('nome')} />
-              {errors.nome && <p className="text-xs text-alerta-texto">{errors.nome.message}</p>}
+              {errors.nome && <p role="alert" className="text-xs text-alerta-texto">{errors.nome.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -89,7 +89,7 @@ export function SignupPage() {
                 aria-invalid={!!errors.email}
                 {...register('email')}
               />
-              {errors.email && <p className="text-xs text-alerta-texto">{errors.email.message}</p>}
+              {errors.email && <p role="alert" className="text-xs text-alerta-texto">{errors.email.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -101,7 +101,7 @@ export function SignupPage() {
                 aria-invalid={!!errors.password}
                 {...register('password')}
               />
-              {errors.password && <p className="text-xs text-alerta-texto">{errors.password.message}</p>}
+              {errors.password && <p role="alert" className="text-xs text-alerta-texto">{errors.password.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -114,11 +114,11 @@ export function SignupPage() {
                 {...register('confirmPassword')}
               />
               {errors.confirmPassword && (
-                <p className="text-xs text-alerta-texto">{errors.confirmPassword.message}</p>
+                <p role="alert" className="text-xs text-alerta-texto">{errors.confirmPassword.message}</p>
               )}
             </div>
 
-            {authError && <p className="text-sm text-alerta-texto">{authError}</p>}
+            {authError && <p role="alert" className="text-sm text-alerta-texto">{authError}</p>}
 
             <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
               {isSubmitting ? 'Criando conta…' : 'Criar conta'}

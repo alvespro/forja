@@ -173,7 +173,6 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
   // Retomada: índice e séries confirmadas por exercício sobrevivem a sair e voltar.
   const [progressoSalvo] = useState(() => lerProgresso(sessionId))
   const [currentIndex, setCurrentIndex] = useState(progressoSalvo?.indice ?? 0)
-  const [exerciseStartedAt, setExerciseStartedAt] = useState(() => Date.now())
   /** Séries confirmadas por prescrição (id → quantidade). Cada exercício tem o seu. */
   const [confirmadasLocal, setConfirmadasLocal] = useState<Record<string, number>>(progressoSalvo?.confirmadas ?? {})
   /** Séries extras por prescrição ("Adicionar série"). */
@@ -189,7 +188,6 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
 
   const startedAtMs = session.data ? new Date(session.data.performed_at).getTime() : Date.now()
   const elapsedSeconds = useElapsedSince(startedAtMs)
-  const exerciseElapsedSeconds = useElapsedSince(exerciseStartedAt)
 
   const [isFinishing, setIsFinishing] = useState(false)
   const [resumo, setResumo] = useState<Omit<PostWorkoutSummaryProps, 'onClose'> | null>(null)
@@ -244,7 +242,6 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
     // Cronômetro é do exercício: trocar de exercício encerra a pausa em curso.
     if (indiceNovo !== indice) cancelarPausa()
     setCurrentIndex(indiceNovo)
-    if (indiceNovo !== indice) setExerciseStartedAt(Date.now())
   }
 
   const exercisesById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
@@ -377,7 +374,6 @@ function ActiveSession({ sessionId, exercises, onMinimize, onEndSession }: Activ
           atual={total > 0 ? indice + 1 : 0}
           total={total}
           elapsedSeconds={elapsedSeconds}
-          exerciseElapsedSeconds={exerciseElapsedSeconds}
           treinoNome={treinoNome}
           onPrev={() => irPara(Math.max(0, indice - 1))}
           onNext={avancar}

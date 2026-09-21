@@ -91,8 +91,7 @@ export function PhaseTimerView({
           {mobilidade ? 'Pré-treino' : FASE_LABEL[fase]}
         </span>
         <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">
-          <span className={mobilidade ? 'text-amber-300' : 'text-nevoa'}>{posicao}</span> de {totalFase}{' '}
-          {totalFase === 1 ? 'exercício' : 'exercícios'}
+          <span className={mobilidade ? 'text-amber-300' : 'text-nevoa'}>{posicao}</span> de {totalFase} nesta fase
         </span>
       </div>
 
@@ -122,6 +121,7 @@ export function PhaseTimerView({
       <ObservacaoDestaque texto={observacao} tom="neutro" />
 
       <div className="flex flex-col items-center gap-3 py-2" role="timer" aria-live={zerou ? 'assertive' : 'off'}>
+        <span className="text-[12px] font-semibold text-cinza">Tempo restante</span>
         <span
           className={cn(
             'text-[64px] font-bold leading-none tracking-[-0.02em] tabular-nums [font-family:var(--font-display)]',
@@ -145,9 +145,10 @@ export function PhaseTimerView({
           onClick={onToggle}
           disabled={zerou}
           aria-label={rodando ? 'Pausar cronômetro' : 'Retomar cronômetro'}
-          className="ds-btn-ghost size-12 shrink-0 !rounded-full !p-0 disabled:opacity-40"
+          className="ds-btn-ghost flex min-h-12 shrink-0 items-center gap-1.5 rounded-full px-3 disabled:opacity-40"
         >
           <Icon name={rodando ? 'pause' : 'play_arrow'} size={24} filled />
+          {rodando ? 'Pausar' : 'Retomar'}
         </button>
         <button type="button" onClick={onNext} className="ds-btn-primary min-h-12 flex-1 text-[15px]">
           Próximo

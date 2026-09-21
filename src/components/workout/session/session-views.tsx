@@ -29,7 +29,6 @@ export type ImmersiveHeaderProps = {
   atual: number
   total: number
   elapsedSeconds: number
-  exerciseElapsedSeconds?: number
   treinoNome?: string | null
   onPrev?: () => void
   onNext?: () => void
@@ -43,7 +42,6 @@ export function ImmersiveHeader({
   atual,
   total,
   elapsedSeconds,
-  exerciseElapsedSeconds,
   treinoNome,
   onPrev,
   onNext,
@@ -52,9 +50,10 @@ export function ImmersiveHeader({
   onFinish,
 }: ImmersiveHeaderProps) {
   const pct = total > 0 ? (atual / total) * 100 : 0
+  const nomeCurto = treinoNome?.split(/[—–-]/).at(-1)?.trim() || treinoNome
   return (
     <header className="flex flex-col gap-3">
-      <div className="-mx-4 h-[2px] overflow-hidden bg-white/[0.06] md:mx-0 md:rounded-full" aria-hidden="true">
+      <div className="-mx-4 h-[3px] overflow-hidden bg-white/[0.06] md:mx-0 md:rounded-full" role="progressbar" aria-label={`Progresso do treino: etapa ${atual} de ${total}`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={atual}>
         <div
           className="h-full"
           style={{ width: `${pct}%`, background: 'var(--gradient-brand)', transition: 'width var(--dur-normal) var(--spring-smooth)' }}
@@ -65,27 +64,29 @@ export function ImmersiveHeader({
         <button
           type="button"
           onClick={onMinimize}
+          aria-label="Minimizar sessão e voltar aos treinos"
           className="flex min-h-11 items-center gap-1 justify-self-start rounded-full pr-3 text-[14px] text-cinza outline-none hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Icon name="arrow_back" size={22} />
-          Voltar
+          <Icon name="close_fullscreen" size={19} />
+          Minimizar
         </button>
 
         <div className="flex min-w-0 flex-col items-center">
-          <span className="text-[12px] tabular-nums text-cinza2-texto [font-family:var(--font-display)]">
-            Exercício <span className="text-nevoa">{atual}</span> / {total}
+          <span className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">
+            Etapa <span className="text-nevoa">{atual}</span> de {total}
           </span>
-          <span className="text-[15px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">Treino {formatClock(elapsedSeconds)}</span>
-          {exerciseElapsedSeconds != null && <span className="text-[11px] tabular-nums text-aco-texto">Exercício {formatClock(exerciseElapsedSeconds)}</span>}
+          <span className="text-[15px] font-bold tabular-nums text-nevoa [font-family:var(--font-display)]">{formatClock(elapsedSeconds)}</span>
+          <span className="text-[11px] text-cinza2-texto">tempo de treino</span>
         </div>
 
         <button
           type="button"
           onClick={onAskCoach}
-          aria-label="Perguntar ao coach"
-          className="flex size-11 items-center justify-center justify-self-end rounded-full text-cinza outline-none hover:text-brasa focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Pedir ajuda ao coach"
+          className="flex min-h-11 items-center gap-1.5 justify-self-end rounded-full px-2 text-[13px] font-semibold text-cinza outline-none hover:text-brasa focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Icon name="psychology" size={24} />
+          <Icon name="psychology" size={18} />
+          Coach
         </button>
       </div>
 
@@ -95,19 +96,21 @@ export function ImmersiveHeader({
           onClick={onPrev}
           disabled={atual <= 1}
           aria-label="Exercício anterior"
-          className="glass-card flex size-11 shrink-0 items-center justify-center !rounded-full text-nevoa outline-none disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-ring"
+          className="glass-card flex min-h-11 shrink-0 items-center gap-0.5 rounded-full px-2 text-xs font-semibold text-nevoa outline-none disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Icon name="chevron_left" size={22} />
+          <Icon name="chevron_left" size={20} />
+          Anterior
         </button>
-        <span className="min-w-0 flex-1 truncate text-center text-[13px] text-cinza">{treinoNome}</span>
+        <span className="min-w-0 flex-1 truncate text-center text-[13px] font-semibold text-cinza" title={treinoNome ?? undefined}>{nomeCurto}</span>
         <button
           type="button"
           onClick={onNext}
           disabled={atual >= total}
           aria-label="Próximo exercício"
-          className="glass-card flex size-11 shrink-0 items-center justify-center !rounded-full text-nevoa outline-none disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-ring"
+          className="glass-card flex min-h-11 shrink-0 items-center gap-0.5 rounded-full px-2 text-xs font-semibold text-nevoa outline-none disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Icon name="chevron_right" size={22} />
+          Próximo
+          <Icon name="chevron_right" size={20} />
         </button>
       </div>
 
@@ -115,7 +118,7 @@ export function ImmersiveHeader({
         <button
           type="button"
           onClick={onFinish}
-          className="flex min-h-11 items-center gap-1 self-end px-2 text-[13px] font-semibold text-brasa outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-11 items-center gap-1 self-end rounded-[var(--r-sm)] px-2 text-[13px] font-semibold text-brasa outline-none hover:bg-brasa/10 focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Icon name="flag" size={18} />
           Finalizar treino

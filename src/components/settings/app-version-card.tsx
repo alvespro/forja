@@ -17,15 +17,11 @@ export function AppVersionCard() {
   const { needRefresh, suportado, updateServiceWorker, verificarAtualizacao } = usePWAUpdate()
   const [verificando, setVerificando] = useState(false)
   const [resultado, setResultado] = useState<ResultadoVerificacao | null>(null)
-  const [erro, setErro] = useState(false)
 
   async function verificar() {
     setVerificando(true)
-    setErro(false)
     try {
       setResultado(await verificarAtualizacao())
-    } catch {
-      setErro(true)
     } finally {
       setVerificando(false)
     }
@@ -56,10 +52,15 @@ export function AppVersionCard() {
       <p role="status" aria-live="polite" className="flex items-center gap-1.5 text-[14px] font-semibold">
         {!suportado ? (
           <span className="text-cinza">Atualização automática indisponível neste navegador</span>
-        ) : erro ? (
-          <span className="flex items-center gap-1.5 text-alerta-texto">
-            <Icon name="error" size={18} filled />
-            Não foi possível verificar — confira a conexão
+        ) : resultado === 'sem_conexao' ? (
+          <span className="flex items-center gap-1.5 text-atencao">
+            <Icon name="info" size={18} />
+            Sem conexão — tente novamente quando estiver online
+          </span>
+        ) : resultado === 'indisponivel' ? (
+          <span className="flex items-center gap-1.5 text-cinza">
+            <Icon name="info" size={18} />
+            Atualização estará disponível após a instalação do app
           </span>
         ) : disponivel ? (
           <span className="flex items-center gap-1.5 text-brasa">

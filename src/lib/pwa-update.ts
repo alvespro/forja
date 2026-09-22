@@ -28,6 +28,7 @@ export function iniciarPWAUpdate() {
       // Verifica atualização a cada 60 s enquanto o app está aberto.
       if (r) window.setInterval(() => void r.update(), INTERVALO_VERIFICACAO_MS)
     },
+    onRegisterError: () => definir({ suportado: false }),
   })
 }
 
@@ -58,13 +59,34 @@ function aguardarInstalacao(sw: ServiceWorker, limiteMs = 15000): Promise<void> 
   })
 }
 
-export type ResultadoVerificacao = 'atualizado' | 'disponivel' | 'indisponivel'
+export type ResultadoVerificacao = 'atualizado' | 'disponivel' | 'indisponivel' | 'sem_conexao'
+
+/** Alguns navegadores só expõem o registro depois que a primeira tela terminou de pintar. */
+async function obterRegistro(): Promise<ServiceWorkerRegistration | undefined> {
+  if (registration) return registration
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return undefined
+
+  registration = await navigator.serviceWorker.getRegistration()
+  if (registration) return registration
+
+  // Não bloqueia a tela de Configurações indefinidamente enquanto o SW instala.
+  return await Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<undefined>((resolve) => window.setTimeout(() => resolve(undefined), 4_000)),
+  ])
+}
 
 /** "Verificar atualização": força o navegador a buscar o service worker novo. */
 export async function verificarAtualizacao(): Promise<ResultadoVerificacao> {
-  if (!registration) return 'indisponivel'
-  await registration.update()
-  if (registration.installing) await aguardarInstalacao(registration.installing)
-  if (registration.waiting) definir({ needRefresh: true })
-  return estado.needRefresh ? 'disponivel' : 'atualizado'
+  const activeRegistration = await obterRegistro()
+  if (!activeRegistration) return 'indisponivel'
+  try {
+    await activeRegistration.update()
+    if (activeRegistration.installing) await aguardarInstalacao(activeRegistration.installing)
+    if (activeRegistration.waiting) definir({ needRefresh: true })
+    return estado.needRefresh ? 'disponivel' : 'atualizado'
+  } catch {
+    // O navegador pode rejeitar a consulta quando está offline; não apresentamos isso como erro do app.
+    return navigator.onLine ? 'indisponivel' : 'sem_conexao'
+  }
 }

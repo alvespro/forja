@@ -79,15 +79,27 @@ Deno.serve(async (req) => {
       }
       if (signals.length === 0) continue
 
-      const { error: notificationError } = await sb.from('notifications').upsert({
+      const { data: inserted, error: notificationError } = await sb.from('notifications').upsert({
         user_id: pref.user_id,
         tipo: 'ritmo_do_dia',
         titulo: `${current.clock} · Check-in FORJA`,
         corpo: signals.join(' · '),
         link: '/',
         dedupe_key: `ritmo_${pref.user_id}_${current.date}_${current.clock.replace(':', '')}`,
-      }, { onConflict: 'user_id,dedupe_key', ignoreDuplicates: true })
-      if (!notificationError) generated++
+      }, { onConflict: 'user_id,dedupe_key', ignoreDuplicates: true }).select('id')
+      if (!notificationError) {
+        generated++
+        const notificationId = inserted?.[0]?.id
+        if (notificationId) {
+          // O registro no app continua sendo a fonte de verdade; uma falha de push não interrompe o cron.
+          const push = await fetch(`${SUPABASE_URL}/functions/v1/send-web-push`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notification_id: notificationId }),
+          })
+          if (!push.ok) console.error('daily-rhythm push failed', await push.text())
+        }
+      }
     }
     return response({ ok: true, notifications_generated: generated })
   } catch (error) {

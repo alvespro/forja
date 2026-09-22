@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Icon } from '@/components/Icon'
 
 import { EmptyState } from '@/components/feedback/empty-state'
@@ -25,7 +25,8 @@ export function NutricaoPage() {
   const dietPlan = useActiveDietPlan()
   const mealSlots = useMealSlots(dietPlan.data?.id)
   const mealLogs = useMealLogsToday()
-  const [showSupps, setShowSupps] = useState(true)
+  const [showSupps, setShowSupps] = useState(false)
+  const [summaryCompact, setSummaryCompact] = useState(false)
   const [buscando, setBuscando] = useState(false)
   const [editandoPlano, setEditandoPlano] = useState(false)
 
@@ -73,6 +74,13 @@ export function NutricaoPage() {
   const agoraNumero = currentSlot?.numero ?? 0
   const kcalMeta = dietPlan.data?.calorias_alvo ?? 0
 
+  useEffect(() => {
+    const updateSummary = () => setSummaryCompact(window.scrollY > 120)
+    updateSummary()
+    window.addEventListener('scroll', updateSummary, { passive: true })
+    return () => window.removeEventListener('scroll', updateSummary)
+  }, [])
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <header className="flex flex-col gap-1">
@@ -117,25 +125,28 @@ export function NutricaoPage() {
       ) : (
         <>
           {/* HEADER FIXO: macros do dia em destaque */}
-          <section className="sticky top-[env(safe-area-inset-top,0px)] z-20 -mx-4 flex flex-col gap-3 border-b border-linha bg-fundo/90 px-4 pb-4 pt-3 backdrop-blur-[20px] md:mx-0 md:rounded-[var(--r-md)] md:border md:px-5">
-            <div className="flex items-center justify-between gap-3">
-              <span className="ds-label whitespace-pre">
-                <span className="text-cinza2-texto">02</span>  Nutrição
-              </span>
-              <StatusDot
-                color={mealLogs.isFetching ? 'brasa' : 'ok'}
-                pulse={mealLogs.isFetching}
-                label={mealLogs.isFetching ? 'Sincronizando' : 'Sync OK'}
-                colorLabel
-              />
-            </div>
+          <section className={cn(
+            'sticky top-[env(safe-area-inset-top,0px)] z-20 -mx-4 flex flex-col border-b border-linha bg-fundo/90 px-4 backdrop-blur-[20px] transition-[padding,gap] duration-200 motion-reduce:transition-none md:mx-0 md:rounded-[var(--r-md)] md:border md:px-5',
+            summaryCompact ? 'gap-2 py-2' : 'gap-3 pb-4 pt-3',
+          )}>
+            {!summaryCompact && (
+              <div className="flex items-center justify-between gap-3">
+                <span className="ds-label">Resumo de hoje</span>
+                <StatusDot
+                  color={mealLogs.isFetching ? 'brasa' : 'ok'}
+                  pulse={mealLogs.isFetching}
+                  label={mealLogs.isFetching ? 'Sincronizando' : 'Sincronizado'}
+                  colorLabel
+                />
+              </div>
+            )}
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-[18px] font-bold uppercase text-nevoa [font-family:var(--font-display)] tabular-nums">
                   {Math.round(consumido.calorias).toLocaleString('pt-BR')}
                   <span className="font-normal text-cinza"> / {kcalMeta.toLocaleString('pt-BR')} kcal</span>
                 </span>
-                <span className="ds-body-sm text-cinza">
+                <span className={cn('ds-body-sm text-cinza', summaryCompact && 'sr-only')}>
                   {refeicoesHoje === 0
                     ? 'Nenhuma refeição registrada hoje'
                     : `${refeicoesHoje} ${refeicoesHoje === 1 ? 'refeição registrada' : 'refeições registradas'} hoje`}
@@ -150,12 +161,14 @@ export function NutricaoPage() {
                 Registrar alimento
               </button>
             </div>
-            <MacroBar
-              size="lg"
-              proteina={{ atual: consumido.proteina_g, meta: dietPlan.data.proteina_g ?? 0 }}
-              carbo={{ atual: consumido.carbo_g, meta: dietPlan.data.carbo_g ?? 0 }}
-              gordura={{ atual: consumido.gordura_g, meta: dietPlan.data.gordura_g ?? 0 }}
-            />
+            {!summaryCompact && (
+              <MacroBar
+                size="lg"
+                proteina={{ atual: consumido.proteina_g, meta: dietPlan.data.proteina_g ?? 0 }}
+                carbo={{ atual: consumido.carbo_g, meta: dietPlan.data.carbo_g ?? 0 }}
+                gordura={{ atual: consumido.gordura_g, meta: dietPlan.data.gordura_g ?? 0 }}
+              />
+            )}
           </section>
 
           {slots.length === 0 ? (

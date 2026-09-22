@@ -15,7 +15,7 @@ export function JournalPage() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="font-heading text-2xl font-bold text-foreground">Diário & Revisão</h1>
-        <p className="text-sm text-aco-texto">Diário diário/semanal e revisão semanal com o placar da semana.</p>
+        <p className="text-sm text-aco-texto">Registre o dia e transforme a semana em próximos passos.</p>
       </div>
 
       <div className="flex gap-1 border-b border-border" role="tablist">

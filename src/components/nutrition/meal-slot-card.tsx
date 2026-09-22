@@ -51,7 +51,7 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
   const horario = slot.horario_alvo?.slice(0, 5) ?? '—'
 
   const acaoCls =
-    'ds-pressable flex min-h-11 items-center gap-1.5 rounded-[var(--r-md)] border border-linha bg-aco px-3 ds-body-sm font-medium text-cinza outline-none hover:border-cinza hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring'
+    'ds-pressable flex min-h-10 items-center gap-1.5 rounded-[var(--r-md)] px-2.5 text-[13px] font-medium text-cinza outline-none hover:bg-aco2 hover:text-nevoa focus-visible:ring-2 focus-visible:ring-ring'
 
   return (
     <>
@@ -84,9 +84,10 @@ export function MealSlotCard({ slot, logsHoje, variant = 'default', allSlots, pa
           )
         }
         extra={
-          // Manual e Sugestões em todas as refeições: o lançamento manual é o único
-          // caminho para comida caseira sem código de barras, inclusive em refeição já passada.
+          // Alternativas ao registro principal: úteis para comida caseira e sugestões,
+          // mas visualmente secundárias para não disputar com "Registrar alimento".
           <>
+              <span className="w-full pt-1 text-xs text-cinza">Outras formas de registrar</span>
               <button type="button" className={acaoCls} onClick={() => setIsLogging(true)}>
                 <Icon name="edit_note" size={14} />
                 Manual

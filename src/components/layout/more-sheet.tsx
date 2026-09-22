@@ -13,6 +13,27 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
   return (
     <Modal open={open} onClose={onClose} title="Mais" maxWidth="md">
       <div className="flex flex-col gap-5 pb-2">
+        <section className="flex flex-col gap-2" aria-label="Acessos rápidos">
+          <span className="ds-label">Acessos rápidos</span>
+          <div className="grid grid-cols-2 gap-2">
+            <NavLink
+              to="/agenda"
+              onClick={onClose}
+              className="ds-pressable-card flex min-h-16 items-center gap-3 rounded-[var(--radius-md)] border border-linha bg-aco px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brasa/15 text-brasa"><Icon name="calendar_today" size={19} /></span>
+              <span className="text-sm font-semibold text-nevoa">Agenda</span>
+            </NavLink>
+            <NavLink
+              to="/tarefas"
+              onClick={onClose}
+              className="ds-pressable-card flex min-h-16 items-center gap-3 rounded-[var(--radius-md)] border border-linha bg-aco px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brasa/15 text-brasa"><Icon name="checklist" size={19} /></span>
+              <span className="text-sm font-semibold text-nevoa">Tarefas</span>
+            </NavLink>
+          </div>
+        </section>
         <button
           type="button"
           onClick={() => {

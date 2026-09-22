@@ -331,7 +331,7 @@ export function RecompForecastCard() {
 /** Placar de Saúde → Análise Clínica: cálculos derivados dos marcadores e da composição. */
 export function ClinicalAnalysisSection() {
   return (
-    <section className="flex flex-col gap-3">
+    <section id="analise-clinica" className="scroll-mt-6 flex flex-col gap-3">
       <h2 className="ds-h3 text-foreground">Análise Clínica</h2>
       <HomaIrCard />
       <LipidRatiosCard />

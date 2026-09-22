@@ -125,7 +125,6 @@ export function FoodBodyChart({ plan }: FoodBodyChartProps) {
                 dataKey="kcal"
                 stroke="#4CAF7D"
                 dot={false}
-                connectNulls
                 name="kcal"
                 strokeWidth={2}
               />
@@ -135,7 +134,6 @@ export function FoodBodyChart({ plan }: FoodBodyChartProps) {
                 dataKey="peso"
                 stroke="#A7A7A7"
                 dot={{ r: 2 }}
-                connectNulls
                 name="peso (kg)"
                 strokeWidth={2}
               />
@@ -143,7 +141,8 @@ export function FoodBodyChart({ plan }: FoodBodyChartProps) {
           </ResponsiveContainer>
         </div>
         <p className="text-xs text-cinza2-texto">
-          Verde: kcal consumidas (esq.) · Azul: peso (dir.) · Tracejado: meta do plano
+          Verde: kcal consumidas (esq.) · Cinza: peso (dir.) · Tracejado: meta do plano
+          {diasComRegistro < 7 && ' · Leitura inicial: registre mais dias para identificar tendências.'}
         </p>
       </CardContent>
     </Card>

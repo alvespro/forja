@@ -63,7 +63,8 @@ export function NutritionCard({
         compact ? 'gap-3 p-3.5' : 'gap-4 p-4',
         alerta ? 'border-alerta' : agora ? 'border-brasa shadow-[var(--shadow-brasa)]' : 'border-linha',
         // Refeição que já passou e foi registrada sai de foco; passada sem registro continua pedindo atenção.
-        passada && registrado && !agora && 'opacity-50',
+        // Mantém a refeição concluída em segundo plano sem apagar valores e edição.
+        passada && registrado && !agora && 'bg-aco/70',
         className,
       )}
     >

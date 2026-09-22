@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
@@ -26,11 +26,39 @@ function FloatingTools() {
   )
 }
 
+/** Revalida dados ativos depois de voltar de outro app ou do cache do navegador. */
+function AppResumeSync() {
+  useEffect(() => {
+    let timer: number | null = null
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return
+      if (timer) window.clearTimeout(timer)
+      // Dá prioridade à pintura da rota; a refetch não deve atrasar a retomada visual.
+      timer = window.setTimeout(() => {
+        void queryClient.invalidateQueries({ refetchType: 'active' })
+      }, 120)
+    }
+    const onPageShow = () => refresh()
+    document.addEventListener('visibilitychange', refresh)
+    window.addEventListener('focus', refresh)
+    window.addEventListener('pageshow', onPageShow)
+    return () => {
+      if (timer) window.clearTimeout(timer)
+      document.removeEventListener('visibilitychange', refresh)
+      window.removeEventListener('focus', refresh)
+      window.removeEventListener('pageshow', onPageShow)
+    }
+  }, [])
+
+  return null
+}
+
 function App() {
   return (
     <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <AppResumeSync />
           <RouterProvider router={router} />
           <FloatingTools />
           <UpdateBanner />

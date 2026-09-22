@@ -1,4 +1,5 @@
 import { AppVersionCard } from '@/components/settings/app-version-card'
+import { WebPushCard } from '@/components/settings/web-push-card'
 import { GoogleCalendarCard } from '@/components/calendar/google-calendar-card'
 import { DailyRhythmCard } from '@/components/settings/daily-rhythm-card'
 import { useState } from 'react'
@@ -57,6 +58,7 @@ export function ConfiguracoesPage() {
           App
         </h2>
         <AppVersionCard />
+        <WebPushCard />
       </section>
 
       <HealthCalculatorCard />

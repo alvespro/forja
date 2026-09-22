@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Icon } from '@/components/Icon'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -45,6 +45,47 @@ function parseAnalysis(resposta: string): { veredito: Veredito | null; ajustes: 
   }
   const ajustes = linhas.filter((l) => l.startsWith('- ')).map((l) => l.slice(2)).slice(0, 3)
   return { veredito, ajustes }
+}
+
+/** Remove apenas a marcação visual do agente; o texto permanece íntegro e seguro. */
+function InlineMarkdown({ text }: { text: string }) {
+  return text.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) return <strong key={index} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
+    if (part.startsWith('`') && part.endsWith('`')) return <code key={index} className="rounded bg-aco2 px-1 py-0.5 font-mono text-[0.85em] text-nevoa">{part.slice(1, -1)}</code>
+    if (part.startsWith('*') && part.endsWith('*')) return <em key={index}>{part.slice(1, -1)}</em>
+    return part
+  })
+}
+
+function AnalysisDetails({ resposta }: { resposta: string }) {
+  const lines = resposta.replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean)
+  const blocks: ReactNode[] = []
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index]
+    if (/^VEREDITO:/i.test(line)) continue
+
+    const heading = line.match(/^#{1,3}\s+(.+)$/)
+    if (heading) {
+      blocks.push(<h3 key={index} className="font-heading text-sm font-semibold text-foreground"><InlineMarkdown text={heading[1]} /></h3>)
+      continue
+    }
+
+    const item = line.match(/^[-*]\s+(.+)$/)
+    if (item) {
+      blocks.push(
+        <div key={index} className="flex gap-2">
+          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-brasa" aria-hidden="true" />
+          <span><InlineMarkdown text={item[1]} /></span>
+        </div>,
+      )
+      continue
+    }
+
+    blocks.push(<p key={index}><InlineMarkdown text={line} /></p>)
+  }
+
+  return <div className="space-y-2.5 rounded-[var(--r-md)] border border-linha bg-fundo/45 p-3 text-sm leading-6 text-foreground">{blocks}</div>
 }
 
 function readCache(): CachedAnalysis | null {
@@ -137,7 +178,7 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
                 {VEREDITO_TEXTO[veredito]}
               </div>
             ) : cache ? (
-              <p className="text-sm text-foreground">{cache.resposta}</p>
+              <p className="text-sm text-foreground">A análise está pronta. Abra os detalhes para ver as recomendações.</p>
             ) : (
               <p className="text-xs text-aco-texto">Nenhuma análise ainda.</p>
             )}
@@ -147,7 +188,7 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
                 {ajustes.map((ajuste, i) => (
                   <li key={i} className="flex gap-1.5">
                     <span className="text-aco-texto">•</span>
-                    {ajuste}
+                    <InlineMarkdown text={ajuste} />
                   </li>
                 ))}
               </ul>
@@ -177,9 +218,7 @@ export function DietAdequacyCard({ collapsible }: DietAdequacyCardProps) {
             </div>
 
             {showDetails && cache && (
-              <p className="whitespace-pre-wrap rounded-md border border-border bg-card/60 p-3 text-sm text-foreground">
-                {cache.resposta}
-              </p>
+              <AnalysisDetails resposta={cache.resposta} />
             )}
 
             {analisar.isError && (

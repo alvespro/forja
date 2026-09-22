@@ -68,7 +68,7 @@ function VariacaoPill({ variacao }: { variacao: Variacao }) {
 }
 
 function MarcadorTile({ item, selecionado, onSelect, onMenu }: { item: ItemPlacar; selecionado: boolean; onSelect: () => void; onMenu: () => void }) {
-  const { def, valor, data, status, variacao } = item
+  const { def, valor, status, variacao } = item
   const toqueLongo = useToqueLongo(onMenu)
   return (
     <div className="relative h-full">
@@ -91,13 +91,12 @@ function MarcadorTile({ item, selecionado, onSelect, onMenu }: { item: ItemPlaca
           <span className="text-[22px] font-bold leading-none tabular-nums text-nevoa [font-family:var(--font-display)]">{num(valor)}</span>
           <span className="truncate text-[11px] text-cinza2-texto">{def.unidade}</span>
         </span>
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] tabular-nums text-cinza2-texto">
-          {dataCurta(data)}
-          {def.referencia && <span>· ref {def.referencia}</span>}
-        </span>
         <span className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1">
           <StatusPill status={status} />
-          {variacao && <VariacaoPill variacao={variacao} />}
+          <span className="flex items-center gap-1">
+            {variacao && <VariacaoPill variacao={variacao} />}
+            <Icon name="chevron_right" size={16} className="text-cinza2-texto" aria-hidden="true" />
+          </span>
         </span>
       </button>
       <Button
@@ -132,10 +131,12 @@ type PlacarSaudeProps = {
   metrics: HealthMetric[]
   defs: HealthMetricDef[]
   metricsByKey: Map<string, HealthMetric[]>
+  /** Alertas podem ser promovidos para uma área de prioridade da página. */
+  showAlerts?: boolean
 }
 
 /** Placar de Saúde: evolução, alertas e marcadores por grupo, com status e variação vs anterior. */
-export function PlacarSaude({ metrics, defs, metricsByKey }: PlacarSaudeProps) {
+export function PlacarSaude({ metrics, defs, metricsByKey, showAlerts = true }: PlacarSaudeProps) {
   const placar = useMemo(() => montarPlacar(metrics), [metrics])
   const alertas = useMemo(() => alertasDoPlacar(placar), [placar])
   const evolucao = useMemo(() => evolucaoDesdeBase(placar), [placar])
@@ -195,7 +196,7 @@ export function PlacarSaude({ metrics, defs, metricsByKey }: PlacarSaudeProps) {
         </GlassCard>
       )}
 
-      {alertas.length > 0 && (
+      {showAlerts && alertas.length > 0 && (
         <section className="flex flex-col gap-2" aria-label="Alertas dos exames">
           {alertas.map((a) => (
             <div key={a.chave} role="note" className="flex items-start gap-3 rounded-[var(--r-md)] border border-brasa/40 bg-brasa/[0.08] px-4 py-3">
@@ -209,28 +210,34 @@ export function PlacarSaude({ metrics, defs, metricsByKey }: PlacarSaudeProps) {
         </section>
       )}
 
-      <div role="radiogroup" aria-label="Grupo de marcadores" className="ds-scroll -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
-        {[{ id: 'todos' as const, label: 'Todos' }, ...GRUPOS.filter((g) => presentes.has(g.id))].map((g) => {
-          const ativo = filtro === g.id
-          return (
-            <button
-              key={g.id}
-              type="button"
-              role="radio"
-              aria-checked={ativo}
-              onClick={() => {
-                setFiltro(g.id)
-                setSelecionado(null)
-              }}
-              className={cn(
-                'flex min-h-11 shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold transition-colors',
-                ativo ? 'border-brasa bg-brasa/15 text-nevoa' : 'border-linha text-cinza hover:text-nevoa',
-              )}
-            >
-              {g.label}
-            </button>
-          )
-        })}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="ds-label !text-cinza">Filtrar marcadores</span>
+          <span className="text-xs text-cinza md:hidden">Deslize para ver mais</span>
+        </div>
+        <div role="radiogroup" aria-label="Grupo de marcadores" className="ds-scroll -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
+          {[{ id: 'todos' as const, label: 'Todos' }, ...GRUPOS.filter((g) => presentes.has(g.id))].map((g) => {
+            const ativo = filtro === g.id
+            return (
+              <button
+                key={g.id}
+                type="button"
+                role="radio"
+                aria-checked={ativo}
+                onClick={() => {
+                  setFiltro(g.id)
+                  setSelecionado(null)
+                }}
+                className={cn(
+                  'flex min-h-11 shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold transition-colors',
+                  ativo ? 'border-brasa bg-brasa/15 text-nevoa' : 'border-linha text-cinza hover:text-nevoa',
+                )}
+              >
+                {g.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {grupos.map((g) => {

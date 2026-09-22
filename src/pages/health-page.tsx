@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useHealthMetricDefs } from '@/hooks/use-health-metric-defs'
 import { groupHealthMetricsByKey, useHealthMetrics } from '@/hooks/use-health-metrics'
 import { useHeartZones } from '@/hooks/use-heart-zones'
-import { MARCADORES } from '@/lib/health-markers'
+import { alertasDoPlacar, MARCADORES, montarPlacar } from '@/lib/health-markers'
 
 export function HealthPage() {
   const defs = useHealthMetricDefs()
@@ -27,6 +27,9 @@ export function HealthPage() {
   const isLoading = defs.isLoading || metrics.isLoading
   const isError = defs.isError || metrics.isError
   const metricsByKey = useMemo(() => groupHealthMetricsByKey(metrics.data), [metrics.data])
+  const alertas = useMemo(() => alertasDoPlacar(montarPlacar(metrics.data ?? [])), [metrics.data])
+  const alertasDeAcao = alertas.filter((alerta) => alerta.chave === 'estradiol')
+  const alertasParaAcompanhar = alertas.filter((alerta) => alerta.chave !== 'estradiol')
 
   // Marcadores de exame vão para o placar agrupado; o resto (peso, corrida…) segue no grid simples.
   const lista = (defs.data ?? []).filter((d) => !MARCADORES[d.chave])
@@ -38,11 +41,8 @@ export function HealthPage() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <span className="ds-label whitespace-pre">
-          <span className="text-cinza2-texto">04</span>  Saúde interna
-        </span>
         <h1 className="ds-h1 text-nevoa">Saúde</h1>
-        <p className="ds-body-sm text-cinza">Placar dos marcadores, medições e histórico.</p>
+        <p className="ds-body-sm text-cinza">Exames, tendências e próximos passos.</p>
         <Button type="button" className="mt-2 min-h-11 self-start" onClick={() => setRegistrando(true)}>
           <Icon name="add" size={20} />
           Registrar exame
@@ -50,15 +50,46 @@ export function HealthPage() {
       </header>
       <RegistrarExameModal open={registrando} onClose={() => setRegistrando(false)} />
 
+      {!isLoading && alertas.length > 0 && (
+        <section className="flex flex-col gap-3 rounded-[var(--r-lg)] border border-linha bg-aco p-4" aria-labelledby="prioridades-saude">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="ds-label text-brasa">Prioridades de saúde</span>
+              <h2 id="prioridades-saude" className="ds-h3 text-nevoa">
+                {alertasDeAcao.length > 0 ? 'Há uma ação para revisar' : `${alertas.length} pontos para acompanhar`}
+              </h2>
+            </div>
+            <Icon name={alertasDeAcao.length > 0 ? 'warning' : 'info'} size={22} filled className={alertasDeAcao.length > 0 ? 'text-alerta-texto' : 'text-brasa'} />
+          </div>
+          <div className="flex flex-col gap-2">
+            {[...alertasDeAcao, ...alertasParaAcompanhar].map((alerta) => (
+              <div key={alerta.chave} className={alerta.chave === 'estradiol' ? 'rounded-[var(--r-md)] border border-alerta/45 bg-alerta/10 px-3 py-2.5' : 'rounded-[var(--r-md)] border border-linha bg-fundo/45 px-3 py-2.5'}>
+                <p className="text-sm font-semibold text-nevoa">{alerta.titulo}</p>
+                <p className="mt-0.5 text-sm leading-5 text-cinza">{alerta.texto}</p>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" className="min-h-11" onClick={() => setRegistrando(true)}>
+              <Icon name="add" size={16} /> Registrar exame
+            </Button>
+            <a href="#analise-clinica" className="ds-btn-ghost flex min-h-11 items-center gap-1.5 px-3 text-[13px]">
+              Ver análises
+              <Icon name="arrow_downward" size={16} />
+            </a>
+          </div>
+        </section>
+      )}
+
       {/* FC de repouso: só com zonas Karvonen calculadas (valor informado, não leitura ao vivo). */}
       {zones.metodo === 'karvonen' && zones.fcRepouso != null && (
         <MetricCard
-          label="HR · FC de repouso"
+          label="Frequência cardíaca em repouso"
           numero={zones.fcRepouso}
           unidade="bpm"
           size="md"
           footer={<EcgLine />}
-          statusLabel="Base das zonas Karvonen"
+          statusLabel="Usada para calcular suas zonas de treino"
           statusColor="ok"
         />
       )}
@@ -81,7 +112,7 @@ export function HealthPage() {
         <EmptyState message="Nenhum marcador de saúde cadastrado ainda." />
       ) : (
         <>
-          <PlacarSaude metrics={metrics.data ?? []} defs={defs.data ?? []} metricsByKey={metricsByKey} />
+          <PlacarSaude metrics={metrics.data ?? []} defs={defs.data ?? []} metricsByKey={metricsByKey} showAlerts={false} />
           {lista.length > 0 && (
             <section className="flex flex-col gap-2" aria-labelledby="grupo-outros">
               <h2 id="grupo-outros" className="ds-label !text-nevoa">

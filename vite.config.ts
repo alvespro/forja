@@ -25,6 +25,10 @@ export default defineConfig({
     VitePWA({
       // 'prompt': a versão nova espera o usuário tocar "Atualizar agora" (UpdateBanner).
       registerType: 'prompt',
+      // Necessário para receber eventos `push` mesmo com o PWA fechado.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'service-worker.ts',
       includeAssets: ['icons/favicon-32x32.png', 'icons/favicon-16x16.png', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'FORJA — Sistema de Alta Performance',
@@ -58,26 +62,8 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,png,ico,woff,woff2}'],
-        runtimeCaching: [
-          {
-            // CSS do Google Fonts (Bricolage, Space Mono, Material Symbols): atualiza em segundo plano.
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'google-fonts-css' },
-          },
-          {
-            // Arquivos das fontes: imutáveis por URL — cache de 1 ano deixa o PWA legível offline.
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-files',
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
       },
     }),
   ],

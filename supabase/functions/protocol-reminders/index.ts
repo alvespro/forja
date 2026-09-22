@@ -207,6 +207,15 @@ Deno.serve(async (req) => {
         .select('id')
       if (nErr) throw nErr
       inseridas = upserted?.length ?? 0
+      // O banco é a fonte de verdade; cada entrega push é independente e não deve falhar o lembrete.
+      for (const notification of upserted ?? []) {
+        const push = await fetch(`${SUPABASE_URL}/functions/v1/send-web-push`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notification_id: notification.id }),
+        })
+        if (!push.ok) console.error('protocol-reminders push failed', await push.text())
+      }
     }
 
     return jsonResponse({

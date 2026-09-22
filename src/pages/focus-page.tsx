@@ -31,7 +31,7 @@ export function FocusPage() {
       <div>
         <h1 className="font-heading text-2xl font-bold text-foreground">Foco</h1>
         <p className="text-sm text-aco-texto">
-          Pomodoro com cronômetro por timestamp e checklist anti-procrastinação.
+          Escolha uma tarefa, reduza distrações e conclua uma sessão por vez.
         </p>
       </div>
 

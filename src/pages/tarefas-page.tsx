@@ -354,13 +354,18 @@ function TaskRow({ task, cor, divider, onToggle }: TaskRowProps) {
         type="button"
         onClick={() => onToggle(task)}
         aria-label={done ? 'Reabrir tarefa' : 'Concluir tarefa'}
-        className="flex size-[22px] shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200"
-        style={{
-          borderColor: done ? cor : 'var(--border)',
-          backgroundColor: done ? cor : 'transparent',
-        }}
+        className="-m-2 flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        {done && <span className="text-[11px] leading-none text-white">✓</span>}
+        <span
+          className="flex size-[22px] items-center justify-center rounded-full border-2 transition-all duration-200"
+          style={{
+            borderColor: done ? cor : 'var(--border)',
+            backgroundColor: done ? cor : 'transparent',
+          }}
+          aria-hidden="true"
+        >
+          {done && <span className="text-[11px] leading-none text-white">✓</span>}
+        </span>
       </button>
       <div className="flex-1 min-w-0">
         <p

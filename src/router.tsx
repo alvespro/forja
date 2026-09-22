@@ -53,7 +53,24 @@ const DesignSessionPage = import.meta.env.DEV
   : null
 
 function withSuspense(element: React.ReactNode) {
-  return <Suspense fallback={null}>{element}</Suspense>
+  return <Suspense fallback={<RouteLoading />}>{element}</Suspense>
+}
+
+/**
+ * O Android/iOS pode descartar os módulos de uma rota enquanto o PWA está em
+ * segundo plano. Um fallback vazio fazia o retorno parecer uma tela preta até
+ * o chunk ser baixado novamente.
+ */
+function RouteLoading() {
+  return (
+    <div className="flex min-h-[45vh] flex-col items-center justify-center gap-3 text-center" role="status" aria-live="polite">
+      <span className="flex size-12 items-center justify-center rounded-full border border-brasa/35 bg-brasa/10 text-xl text-brasa" aria-hidden="true">⚒</span>
+      <div className="flex flex-col gap-1">
+        <span className="text-sm font-semibold text-nevoa">Retomando o FORJA</span>
+        <span className="text-xs text-cinza">Atualizando sua tela…</span>
+      </div>
+    </div>
+  )
 }
 
 export const router = createBrowserRouter([

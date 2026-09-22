@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '@/components/Icon'
 
-import { EmptyState } from '@/components/feedback/empty-state'
 import { ErrorState } from '@/components/feedback/error-state'
 import { GoalCard } from '@/components/goals/goal-card'
 import { GoalForm } from '@/components/goals/goal-form'
@@ -120,7 +119,12 @@ export function GoalsPage() {
                 )}
 
                 {areaGoals.length === 0 && addingToArea !== option.value ? (
-                  <EmptyState message={`Nenhuma meta em ${option.label.toLowerCase()} ainda.`} />
+                  <div className="flex min-h-14 items-center justify-between gap-3 rounded-[var(--r-md)] border border-dashed border-linha bg-aco/45 px-3">
+                    <p className="text-sm text-cinza">Nenhuma meta em {option.label.toLowerCase()}.</p>
+                    <Button type="button" variant="ghost" size="sm" className="min-h-11 shrink-0" onClick={() => setAddingToArea(option.value)}>
+                      <Icon name="add" size={15} /> Adicionar
+                    </Button>
+                  </div>
                 ) : (
                   areaGoals.map((goal) => (
                     <GoalCard

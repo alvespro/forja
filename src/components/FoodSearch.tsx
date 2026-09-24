@@ -49,6 +49,7 @@ const FILTROS: { label: string; valor: FiltroFonte; icon?: IconName }[] = [
 ]
 
 const EMOJI_FONTE = { taco: '🥗', off: '📦', usda: '🔬', ia_estimado: '🤖' } as const
+const numero = (value: number | null | undefined) => value == null ? '—' : value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
 
 type FoodSearchProps = {
   open: boolean
@@ -131,7 +132,7 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
           </div>
 
           {/* Abas */}
-          <div className="flex gap-1 border-b border-border pb-2">
+          <div className="flex gap-1 border-b border-border pb-2" role="tablist" aria-label="Lista de alimentos">
             {(['buscar', 'favoritos'] as const).map((id) => (
               <Button
                 key={id}
@@ -174,10 +175,10 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
             </div>
           )}
 
-          {search.erro && <p className="text-xs text-alerta-texto">{search.erro}</p>}
+          {aba === 'buscar' && search.erro && <p role="alert" className="text-xs text-alerta-texto">{search.erro}</p>}
 
-          {search.carregando ? (
-            <div className="flex flex-col gap-2">
+          {aba === 'buscar' && search.carregando ? (
+            <div className="flex flex-col gap-2" role="status" aria-label="Buscando alimentos">
               <Skeleton className="h-20 w-full" />
               <Skeleton className="h-20 w-full" />
               <Skeleton className="h-20 w-full" />
@@ -200,7 +201,7 @@ export function FoodSearch({ open, onClose, slots, defaultSlotId }: FoodSearchPr
               }
             />
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2" aria-live="polite">
               {lista.map((p) => (
                 <ProdutoCard key={p.id} produto={p} onSelecionar={() => setSelecionado(p)} />
               ))}
@@ -246,11 +247,11 @@ function AtalhosSecao({
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-sm font-medium text-foreground">{produto.nome}</span>
-                <span className="font-mono text-[11px] text-aco-texto">
-                  {produto.por_100g.calorias ?? '—'} kcal · P{produto.por_100g.proteina ?? '—'} /100g
+                <span className="text-[12px] text-cinza tabular-nums">
+                  {numero(produto.por_100g.calorias)} kcal · proteína {numero(produto.por_100g.proteina)} g/100 g
                 </span>
               </span>
-              <Icon name="add" size={16} className="text-brasa" />
+              <Icon name="arrow_forward" size={16} className="text-brasa" />
             </button>
           </li>
         ))}
@@ -280,7 +281,7 @@ function ProdutoCard({ produto, onSelecionar }: { produto: ProdutoAlimento; onSe
   }
 
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-border bg-card/60 p-3">
+    <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-lg border border-border bg-card/60 p-3">
       {produto.imagem_url ? (
         <img src={produto.imagem_url} alt="" loading="lazy" className="size-14 shrink-0 rounded-md border border-border object-cover" />
       ) : (
@@ -311,24 +312,26 @@ function ProdutoCard({ produto, onSelecionar }: { produto: ProdutoAlimento; onSe
           )}
         </div>
 
-        <span className="font-mono text-[11px] text-aco-texto">
-          {p.calorias ?? '—'} kcal · P{p.proteina ?? '—'} C{p.carbo ?? '—'} G{p.gordura ?? '—'} /100g
+        <span className="text-[12px] leading-relaxed text-cinza tabular-nums">
+          {numero(p.calorias)} kcal / 100 g · proteína {numero(p.proteina)} g · carbo {numero(p.carbo)} g · gordura {numero(p.gordura)} g
         </span>
       </div>
 
-      <div className="flex shrink-0 flex-col items-end gap-2">
+      <div className="col-span-2 flex items-center justify-between border-t border-linha/60 pt-2">
         <Button
           type="button"
           variant="ghost"
-          size="icon"
+          size="sm"
+          className="min-h-11"
           onClick={handleFavoritar}
           aria-label={favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
           aria-pressed={!!favorito}
         >
-          <Icon name="star" size={20} filled={!!favorito} className={favorito ? 'text-brasa' : 'text-aco-texto'} />
+          <Icon name="star" size={18} filled={!!favorito} className={favorito ? 'text-brasa' : 'text-aco-texto'} />
+          {favorito ? 'Favorito' : 'Favoritar'}
         </Button>
-        <Button type="button" size="sm" onClick={onSelecionar}>
-          Adicionar
+        <Button type="button" size="sm" className="min-h-11" onClick={onSelecionar}>
+          Definir porção
         </Button>
       </div>
     </div>
@@ -475,12 +478,16 @@ function PortionModal({
           aria-label="Ajustar quantidade"
         />
 
-        <div className="rounded-lg border border-border bg-card/40 p-3 text-center">
-          <p className="font-mono text-sm text-foreground">
-            Para {gramas}
-            {porUnidade ? unidade : 'g'}: <span className="text-brasa">{macros.calorias} kcal</span> | {macros.proteina}g prot |{' '}
-            {macros.carbo}g carbo | {macros.gordura}g gord
+        <div className="rounded-lg border border-border bg-card/40 p-3">
+          <p className="text-xs text-cinza">Valores para {numero(gramas)} {porUnidade ? unidade : 'g'}</p>
+          <p className="mt-1 text-xl font-bold tabular-nums text-brasa [font-family:var(--font-display)]">
+            {numero(macros.calorias)} <span className="text-sm font-normal text-cinza">kcal</span>
           </p>
+          <div className="mt-2 grid grid-cols-3 gap-2 border-t border-linha pt-2 text-[12px] tabular-nums text-nevoa">
+            <span>Proteína <strong className="block">{numero(macros.proteina)} g</strong></span>
+            <span>Carbo <strong className="block">{numero(macros.carbo)} g</strong></span>
+            <span>Gordura <strong className="block">{numero(macros.gordura)} g</strong></span>
+          </div>
         </div>
 
         <div className="flex flex-col gap-1.5">

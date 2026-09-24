@@ -27,7 +27,7 @@ export function useMealLogsToday() {
   return useQuery({
     queryKey: ['meal-logs', today],
     queryFn: async () => {
-      const { data, error } = await supabase.from('meal_logs').select('*').eq('data', today)
+      const { data, error } = await supabase.from('meal_logs').select('*').eq('data', today).order('created_at', { ascending: false })
       if (error) throw error
       return data as MealLog[]
     },
@@ -69,11 +69,13 @@ export function useCreateMealLog() {
 }
 
 export function useDeleteMealLog() {
+  const { user } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('meal_logs').delete().eq('id', id)
+      if (!user) throw new Error('Usuário não autenticado')
+      const { error } = await supabase.from('meal_logs').delete().eq('id', id).eq('user_id', user.id).select('id').single()
       if (error) throw error
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['meal-logs'] }),
@@ -82,10 +84,12 @@ export function useDeleteMealLog() {
 
 /** Corrige um alimento já registrado sem perder a origem ou o vínculo com o catálogo. */
 export function useUpdateMealLog() {
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, values }: { id: string; values: MealLogInput }) => {
-      const { error } = await supabase.from('meal_logs').update(values).eq('id', id)
+      if (!user) throw new Error('Usuário não autenticado')
+      const { error } = await supabase.from('meal_logs').update(values).eq('id', id).eq('user_id', user.id).select('id').single()
       if (error) throw error
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['meal-logs'] }),

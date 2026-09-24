@@ -11,11 +11,13 @@ import { StatusDot } from '@/components/ds/status-dot'
 import { FoodBodyChart } from '@/components/nutrition/food-body-chart'
 import { NovaRefeicaoButton, PlanoAlimentarModal } from '@/components/nutrition/dieta-crud'
 import { MealSlotCard } from '@/components/nutrition/meal-slot-card'
+import { RegisteredMealLogs } from '@/components/nutrition/registered-meal-logs'
 import { DietAdequacyCard } from '@/components/body/diet-adequacy-card'
 import { ObjectiveBadge } from '@/components/body/objective-badge'
 import { SupplementsTodaySection } from '@/components/nutrition/supplements-today-section'
 import { useActiveDietPlan, useMealSlots } from '@/hooks/use-diet-plan'
 import { useMealLogsToday } from '@/hooks/use-meal-logs'
+import { useSystemStatus } from '@/hooks/use-system-status'
 import { nowMinutesInSaoPaulo } from '@/lib/date'
 import { classifyMeals } from '@/lib/meal-schedule'
 import { cn } from '@/lib/utils'
@@ -25,6 +27,7 @@ export function NutricaoPage() {
   const dietPlan = useActiveDietPlan()
   const mealSlots = useMealSlots(dietPlan.data?.id)
   const mealLogs = useMealLogsToday()
+  const systemStatus = useSystemStatus()
   const [showSupps, setShowSupps] = useState(false)
   const [summaryCompact, setSummaryCompact] = useState(false)
   const [buscando, setBuscando] = useState(false)
@@ -60,6 +63,8 @@ export function NutricaoPage() {
   )
 
   const slots = mealSlots.data ?? []
+  const slotIds = new Set(slots.map((slot) => slot.id))
+  const logsSemRefeicao = (mealLogs.data ?? []).filter((log) => !log.meal_slot_id || !slotIds.has(log.meal_slot_id))
   const currentSlot = slots.find((s) => s.id === timing.currentId) ?? null
 
   const isLoading = dietPlan.isLoading || mealSlots.isLoading || mealLogs.isLoading
@@ -73,6 +78,13 @@ export function NutricaoPage() {
 
   const agoraNumero = currentSlot?.numero ?? 0
   const kcalMeta = dietPlan.data?.calorias_alvo ?? 0
+  const sync = systemStatus.estado === 'offline'
+    ? { color: 'cinza' as const, label: 'Offline' }
+    : systemStatus.estado === 'falhas'
+      ? { color: 'alerta' as const, label: 'Falha ao sincronizar' }
+      : mealLogs.isFetching
+        ? { color: 'brasa' as const, label: 'Sincronizando' }
+        : { color: 'ok' as const, label: 'Sincronizado' }
 
   useEffect(() => {
     const updateSummary = () => setSummaryCompact(window.scrollY > 120)
@@ -117,11 +129,14 @@ export function NutricaoPage() {
           }}
         />
       ) : !dietPlan.data ? (
-        <EmptyState
-          message="Nenhum plano alimentar ativo"
-          description="Cadastre um plano para acompanhar macros e refeições."
-          action={<Button type="button" onClick={() => setEditandoPlano(true)}>Criar plano alimentar</Button>}
-        />
+        <>
+          <EmptyState
+            message="Nenhum plano alimentar ativo"
+            description="Cadastre um plano para acompanhar macros e refeições."
+            action={<Button type="button" onClick={() => setEditandoPlano(true)}>Criar plano alimentar</Button>}
+          />
+          <RegisteredMealLogs logs={mealLogs.data ?? []} slots={[]} heading="Alimentos registrados hoje" />
+        </>
       ) : (
         <>
           {/* HEADER FIXO: macros do dia em destaque */}
@@ -133,9 +148,9 @@ export function NutricaoPage() {
               <div className="flex items-center justify-between gap-3">
                 <span className="ds-label">Resumo de hoje</span>
                 <StatusDot
-                  color={mealLogs.isFetching ? 'brasa' : 'ok'}
+                  color={sync.color}
                   pulse={mealLogs.isFetching}
-                  label={mealLogs.isFetching ? 'Sincronizando' : 'Sincronizado'}
+                  label={sync.label}
                   colorLabel
                 />
               </div>
@@ -170,6 +185,10 @@ export function NutricaoPage() {
               />
             )}
           </section>
+
+          {logsSemRefeicao.length > 0 && (
+            <RegisteredMealLogs logs={logsSemRefeicao} slots={slots} heading="Alimentos sem refeição do plano" />
+          )}
 
           {slots.length === 0 ? (
             <>

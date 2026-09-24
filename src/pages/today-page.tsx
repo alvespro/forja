@@ -20,13 +20,14 @@ import { QuickStatsCard } from '@/components/today/quick-stats-card'
 import { ProtocolCycleCard } from '@/components/today/protocol-cycle-card'
 import { RecoveryCard } from '@/components/today/recovery-card'
 import { RecoveryRingCard } from '@/components/today/recovery-ring-card'
+import { SecondBrainCard } from '@/components/today/second-brain-card'
 import { SpacedReviewCard } from '@/components/today/spaced-review-card'
 import { FlashcardsReviewCard } from '@/components/today/flashcards-review-card'
 
 /**
  * Hoje — dashboard estilo Aaru sobre Liquid Glass:
- * 1 hero (saudação + score) → 2 recuperação | próxima ação → 3 hábitos →
- * 4 métricas → 5 nutrição → 6 calendário → nível/semana → alertas → demais resumos.
+ * 1 hero → 2 decisão do momento (saúde + ação) → 3 agenda → 4 corpo e treino →
+ * 5 segundo cérebro → hábitos e resumos. O conteúdo acompanha o ritmo do dia, não os módulos.
  */
 export function TodayPage() {
   return (
@@ -43,17 +44,30 @@ export function TodayPage() {
           <>
             {/* Ciclo do protocolo: no dia de aplicação é a prioridade do dia. */}
             <ProtocolCycleCard />
-            <section className="grid grid-cols-2 gap-2" aria-label="Recuperação e próxima ação">
-              <RecoveryRingCard />
-              <NextActionCard />
+            <section className="flex flex-col gap-3" aria-labelledby="today-now-title">
+              <div>
+                <h2 id="today-now-title" className="text-[19px] font-bold tracking-[-0.02em] text-nevoa">O que importa agora</h2>
+                <p className="mt-1 text-[13px] text-cinza">Confira sua recuperação e escolha o próximo passo.</p>
+              </div>
+              <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2">
+                <RecoveryRingCard />
+                <NextActionCard />
+              </div>
             </section>
+            <AgendaTodayCard />
             {/* Pergunta de sono/disposição (some quando o score do dia existe; volta tocando no anel). */}
             <RecoveryCard />
+            <section className="flex flex-col gap-3" aria-labelledby="today-progress-title">
+              <div>
+                <h2 id="today-progress-title" className="text-[19px] font-bold tracking-[-0.02em] text-nevoa">Seu progresso</h2>
+                <p className="mt-1 text-[13px] text-cinza">Medidas registradas e alimentação de hoje.</p>
+              </div>
+              <QuickStatsCard />
+              <NutritionTodayCard />
+            </section>
+            <SecondBrainCard />
             <HabitChecklistCard />
-            <QuickStatsCard />
-            <NutritionTodayCard />
             <ActivityCalendar />
-            <AgendaTodayCard />
           </>
         }
       />

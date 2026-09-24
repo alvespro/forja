@@ -238,6 +238,8 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
 
   const pct = total > 0 ? Math.min(100, Math.round((pontos / total) * 100)) : 0
   const rank = rankOf(pct)
+  const frentesDoDia = activities.filter((a) => !a.bonus)
+  const frentesConcluidas = frentesDoDia.filter((a) => a.done).length
 
   // ── Persistência: recálculo retroativo da janela de 8 dias ──
   // Grava só o que divergiu do armazenado; rest_day não é enviado nos dias
@@ -332,24 +334,61 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* ── SECTION 1 — HERO (Aaru): saudação, frase, sparkline da semana e o score ── */}
-      <GlassCard gradient glow className="flex flex-col gap-4" padding="var(--s5)" aria-label="Resumo do dia">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-col">
-            <span className="text-[13px] text-cinza">{saudacao},</span>
-            <h1 className="truncate text-[32px] font-bold leading-[1.1] tracking-[-0.02em] text-nevoa">{primeiroNome}.</h1>
+      {/* Abertura: progresso real em destaque, com contexto e histórico em segundo plano. */}
+      <GlassCard gradient glow className="relative flex flex-col gap-5 overflow-hidden" padding="var(--s5)" aria-label="Resumo do dia">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--glass-border)] pb-4">
+          <span className="text-[12px] font-medium text-cinza first-letter:uppercase">{dataFormatada}</span>
+          <time className="text-[12px] tabular-nums text-cinza [font-family:var(--font-display)]">{relogio}</time>
+        </div>
+
+        <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="min-w-0">
+            <h1 className="text-[clamp(28px,6vw,38px)] font-bold leading-[1.08] tracking-[-0.035em] text-nevoa">
+              {saudacao}, {primeiroNome}.
+            </h1>
+            <p className="mt-3 max-w-[34ch] text-[14px] leading-relaxed text-cinza">
+              {carregando
+                ? 'Organizando seu dia…'
+                : frentesConcluidas > 0
+                  ? `${frentesConcluidas} de ${frentesDoDia.length} atividades do dia concluídas.`
+                  : 'Seu dia começa pela próxima ação.'}
+            </p>
+            <p className="mt-3 line-clamp-2 max-w-[42ch] text-[12px] leading-relaxed text-cinza2-texto">
+              “{frase.texto}”{frase.fonte ? ` — ${frase.fonte}` : ''}
+            </p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-0.5 pt-0.5">
-            <time className="text-[13px] tabular-nums text-cinza [font-family:var(--font-display)]">{relogio}</time>
-            <span className="text-[11px] text-cinza2-texto first-letter:uppercase">{dataFormatada}</span>
+
+          <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
+            <div
+              className="grid size-[112px] shrink-0 place-items-center rounded-full p-[7px] sm:size-[132px]"
+              style={{ background: `conic-gradient(var(--brasa) ${pct}%, rgba(255,255,255,0.09) 0)` }}
+              role="img"
+              aria-label={carregando ? 'Carregando FORJA Score' : `FORJA Score: ${pct}% do dia`}
+            >
+              <div className="flex size-full flex-col items-center justify-center rounded-full bg-fundo">
+                <span className="text-[36px] font-bold leading-none tabular-nums text-nevoa sm:text-[42px] [font-family:var(--font-display)]">{carregando ? '—' : pct}{!carregando && <span className="text-[16px] text-cinza">%</span>}</span>
+                <span className="mt-1 text-[10px] text-cinza">do dia</span>
+              </div>
+            </div>
+            <div className="flex min-w-0 flex-col gap-1 sm:items-end">
+              <span className="text-[12px] font-semibold text-nevoa">{carregando ? 'Carregando…' : rank.nome}</span>
+              {!carregando && <span className="text-[11px] tabular-nums text-cinza2-texto">
+                {pontos - bonus}/{total} pts{bonus > 0 && <span className="text-ok"> · +{bonus}</span>}
+              </span>}
+              {!carregando && delta != null && (
+                <span
+                  className={cn('flex items-center gap-1 text-[11px] font-semibold tabular-nums', delta > 0 ? 'text-ok' : delta < 0 ? 'text-alerta-texto' : 'text-cinza')}
+                  aria-label={`${delta > 0 ? 'mais' : delta < 0 ? 'menos' : 'igual a'} ${Math.abs(delta)} pontos que ontem`}
+                >
+                  {delta > 0 ? '+' : delta < 0 ? '−' : ''}{Math.abs(delta)} vs. ontem
+                  <Icon name={delta > 0 ? 'trending_up' : delta < 0 ? 'trending_down' : 'trending_flat'} size={15} />
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <p className="-mt-2 line-clamp-2 text-[14px] italic leading-snug text-cinza">
-          “{frase.texto}”{frase.fonte ? ` — ${frase.fonte}` : ''}
-        </p>
-
-        <div className="h-14 w-full" role="img" aria-label={`FORJA Score dos últimos 7 dias: ${serieSemana.map((d) => d.pct).join(', ')}`}>
+        <div className="h-12 w-full border-t border-[var(--glass-border)] pt-3" role="img" aria-label={`FORJA Score dos últimos 7 dias: ${serieSemana.map((d) => d.pct).join(', ')}`}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={serieSemana} margin={{ top: 6, right: 6, bottom: 6, left: 6 }}>
               <YAxis hide domain={[0, 100]} />
@@ -369,37 +408,6 @@ export function GamifiedDashboard({ afterHero }: { afterHero?: ReactNode }) {
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-
-        <div className="flex items-end justify-between gap-3">
-          <div className="flex flex-col gap-1.5">
-            <span className="ds-label">FORJA Score</span>
-            <span
-              className="text-[48px] font-bold leading-none tracking-[-0.03em] text-brasa tabular-nums [font-family:var(--font-display)]"
-              style={{ textShadow: 'var(--glow-brasa)' }}
-            >
-              {pct}
-            </span>
-          </div>
-          <div className="flex min-w-0 flex-col items-end gap-1 pb-1">
-            {delta != null && (
-              <span
-                className={cn(
-                  'flex items-center gap-1 text-[14px] font-bold tabular-nums [font-family:var(--font-display)]',
-                  delta > 0 ? 'text-ok' : delta < 0 ? 'text-alerta-texto' : 'text-cinza',
-                )}
-                aria-label={`${delta > 0 ? 'mais' : delta < 0 ? 'menos' : 'igual a'} ${Math.abs(delta)} pontos que ontem`}
-              >
-                {delta > 0 ? '+' : delta < 0 ? '−' : ''}
-                {Math.abs(delta)}
-                <Icon name={delta > 0 ? 'trending_up' : delta < 0 ? 'trending_down' : 'trending_flat'} size={18} />
-              </span>
-            )}
-            <span className="truncate text-[12px] text-cinza2-texto">
-              {rank.nome} · {pontos - bonus}/{total} pts
-              {bonus > 0 && <span className="text-ok"> · +{bonus}</span>}
-            </span>
-          </div>
         </div>
       </GlassCard>
 

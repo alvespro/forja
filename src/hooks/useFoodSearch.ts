@@ -253,11 +253,13 @@ export function useFoodSearch() {
   const modoAtual = useRef<'nome' | 'barcode'>('nome')
   const filtroAtual = useRef<FiltroFonte>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const requestId = useRef(0)
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
   const executar = useCallback(
     async (modo: 'nome' | 'barcode', query: string, page: number, acrescentar: boolean) => {
+      const currentRequest = ++requestId.current
       setCarregando(true)
       setErro(null)
       try {
@@ -266,15 +268,17 @@ export function useFoodSearch() {
         })
         if (error) throw error
         // Resposta atrasada de um termo que o usuário já trocou: descarta.
-        if (query !== queryAtual.current.trim()) return
+        if (currentRequest !== requestId.current || query !== queryAtual.current.trim()) return
         const produtos = ((data?.produtos ?? []) as ProdutoAlimento[]).map(normalizarProduto)
         setOrigem((data?.origem as FonteAlimento | null) ?? null)
         setResultados((anteriores) => (acrescentar ? [...anteriores, ...produtos] : produtos))
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'Não foi possível buscar alimentos.')
-        if (!acrescentar) setResultados([])
+        if (currentRequest === requestId.current) {
+          setErro(e instanceof Error ? e.message : 'Não foi possível buscar alimentos.')
+          if (!acrescentar) setResultados([])
+        }
       } finally {
-        if (query === queryAtual.current.trim()) setCarregando(false)
+        if (currentRequest === requestId.current) setCarregando(false)
       }
     },
     [],
@@ -285,13 +289,17 @@ export function useFoodSearch() {
       queryAtual.current = query
       modoAtual.current = 'nome'
       if (timer.current) clearTimeout(timer.current)
+      requestId.current += 1
+      setResultados([])
+      setOrigem(null)
+      setErro(null)
 
       if (query.trim().length < MIN_CHARS) {
-        setResultados([])
-        setOrigem(null)
         setCarregando(false)
         return
       }
+
+      setCarregando(true)
 
       timer.current = setTimeout(() => {
         setPagina(1)
@@ -306,6 +314,8 @@ export function useFoodSearch() {
       if (timer.current) clearTimeout(timer.current)
       queryAtual.current = barcode
       modoAtual.current = 'barcode'
+      requestId.current += 1
+      setResultados([])
       setPagina(1)
       void executar('barcode', barcode.trim(), 1, false)
     },
@@ -320,6 +330,8 @@ export function useFoodSearch() {
       const termo = queryAtual.current.trim()
       if (modoAtual.current === 'nome' && termo.length >= MIN_CHARS) {
         if (timer.current) clearTimeout(timer.current)
+        setResultados([])
+        setOrigem(null)
         setPagina(1)
         void executar('nome', termo, 1, false)
       }
@@ -335,6 +347,7 @@ export function useFoodSearch() {
 
   const limpar = useCallback(() => {
     if (timer.current) clearTimeout(timer.current)
+    requestId.current += 1
     queryAtual.current = ''
     setResultados([])
     setErro(null)

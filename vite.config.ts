@@ -29,7 +29,7 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'service-worker.ts',
-      includeAssets: ['icons/favicon-32x32.png', 'icons/favicon-16x16.png', 'icons/apple-touch-icon.png'],
+      includeAssets: ['icons/favicon-simple-32x32.png', 'icons/favicon-simple-16x16.png', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'FORJA — Sistema de Alta Performance',
         short_name: 'FORJA',
@@ -55,7 +55,7 @@ export default defineConfig({
             purpose: 'any',
           },
           {
-            src: '/icons/icon-512.png',
+            src: '/icons/icon-maskable-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
